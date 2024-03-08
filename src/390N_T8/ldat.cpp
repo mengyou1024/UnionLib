@@ -51,7 +51,7 @@ namespace Union::AScan {
         ret.instrumentName = "390N&T8 multiple";
         ret.time           = ldat.time;
         ret.data.resize(ldat.ldat.size());
-        for (auto i = 0; i < ret.data.size(); i++) {
+        for (auto i = 0; std::cmp_less(i, ret.data.size()); i++) {
             auto& _t          = ret.data[i];
             auto& _s          = ldat.ldat[i];
             auto  axisBias    = _s.chanel_data.ch_yangshi;
@@ -74,9 +74,9 @@ namespace Union::AScan {
                 _t.dac->isSubline = _s.dac_data.ch_dac_is_subline;
                 _t.dac->index.clear();
                 _t.dac->value.clear();
-                for (auto i = 0; i < _s.dac_data.ch_dac_sample_length; i++) {
-                    _t.dac->index.emplace_back(_s.dac_data.ch_dac_sample_index[i]);
-                    _t.dac->value.emplace_back(_s.dac_data.ch_dac_sample_value[i]);
+                for (auto dacIndex = 0; dacIndex < _s.dac_data.ch_dac_sample_length; dacIndex++) {
+                    _t.dac->index.emplace_back(_s.dac_data.ch_dac_sample_index[dacIndex]);
+                    _t.dac->value.emplace_back(_s.dac_data.ch_dac_sample_value[dacIndex]);
                 }
                 _t.dac->samplingDepth    = _s.dac_data.ch_dac_sampling_depth;
                 _t.dac->decimationFactor = _s.dac_data.ch_dac_sampling_factor;
@@ -92,9 +92,9 @@ namespace Union::AScan {
                 _t.avg->reflectorMaxDepth  = _s.avg_data.ch_avg_reflector_max_depth;
                 _t.avg->index.clear();
                 _t.avg->value.clear();
-                for (auto i = 0; i < _s.avg_data.ch_avg_sample_length; i++) {
-                    _t.avg->index.emplace_back(_s.avg_data.ch_avg_sample_index[i]);
-                    _t.avg->value.emplace_back(_s.avg_data.ch_avg_sample_value[i]);
+                for (auto avgIndex = 0; avgIndex < _s.avg_data.ch_avg_sample_length; avgIndex++) {
+                    _t.avg->index.emplace_back(_s.avg_data.ch_avg_sample_index[avgIndex]);
+                    _t.avg->value.emplace_back(_s.avg_data.ch_avg_sample_value[avgIndex]);
                 }
                 _t.avg->samplingDepth    = _s.avg_data.ch_avg_sampling_depth;
                 _t.avg->decimationFactor = _s.avg_data.ch_avg_sampling_factor;

@@ -1,5 +1,4 @@
 #include "AScanType.hpp"
-#include <algorithm>
 #include <map>
 #include <tuple>
 
@@ -23,7 +22,7 @@ namespace Union::AScan {
     QList<QPointF> AScanType::GetAScanSeriesData(const AScanData& data, double softGain) {
         QList<QPointF> ret;
         const auto     AScanStep = data.axisLen / static_cast<double>(data.ascan.size());
-        for (auto i = 0; i < data.ascan.size(); i++) {
+        for (auto i = 0; std::cmp_less(i, data.ascan.size()); i++) {
             auto ampValue = data.ascan[i] / 2.0;
             if (ampValue <= data.suppression) {
                 ampValue = 0;
@@ -115,14 +114,14 @@ namespace Union::AScan {
     }
 
     QList<QPointF> AScanType::GetAScanSeriesData(int index, double softGain) const {
-        if (index > this->data.size()) {
+        if (std::cmp_greater(index, this->data.size())) {
             throw std::runtime_error("AScanType::GetAScanSeriesData: index out of range");
         }
-        const auto&    data = this->data[index];
+        const auto&    aScanData = this->data[index];
         QList<QPointF> ret;
-        const auto     AScanStep = data.axisLen / static_cast<double>(data.ascan.size());
-        for (auto i = 0; i < data.ascan.size(); i++) {
-            ret.append({data.axisBias + i * AScanStep, CalculateGainOutput(data.ascan[i] / 2.0, softGain)});
+        const auto     AScanStep = aScanData.axisLen / static_cast<double>(aScanData.ascan.size());
+        for (auto i = 0; std::cmp_less(i, aScanData.ascan.size()); i++) {
+            ret.append({aScanData.axisBias + i * AScanStep, CalculateGainOutput(aScanData.ascan[i] / 2.0, softGain)});
         }
         return ret;
     }

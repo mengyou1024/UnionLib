@@ -15,4 +15,9 @@ target_include_directories(UnionLib PRIVATE
     include_private/common
     include_private/390N_T8
 )
-target_compile_options(UnionLib PRIVATE "$<$<C_COMPILER_ID:MSVC>:/utf-8>" "$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+target_compile_options(UnionLib PRIVATE
+    "$<$<C_COMPILER_ID:MSVC>:/utf-8>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/utf-8>"
+    "$<$<C_COMPILER_ID:MSVC>:/W4>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/W4>"
+)

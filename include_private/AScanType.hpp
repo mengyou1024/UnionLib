@@ -67,15 +67,15 @@ namespace Union::AScan {
             if (gateIndex > this->gate.size()) {
                 return std::nullopt;
             }
-            const auto &data  = ascan;
-            const auto &gate  = this->gate[gateIndex];
-            auto        start = gate.pos;
-            double      end   = (double)(gate.pos + gate.width);
-            if (data.size() < 100 || gate.width <= 0.001 || std::abs(start - 1.0) < 0.00001 || gate.pos < 0.0 || end > 1.0 || !gate.enable) {
+            const auto &_data  = this->ascan;
+            const auto &_gate  = this->gate[gateIndex];
+            auto        start = _gate.pos;
+            double      end   = (double)(_gate.pos + _gate.width);
+            if (_data.size() < 100 || _gate.width <= 0.001 || std::abs(start - 1.0) < 0.00001 || _gate.pos < 0.0 || end > 1.0 || !_gate.enable) {
                 return std::nullopt;
             }
-            auto left  = data.begin() + static_cast<int64_t>((double)data.size() * (double)gate.pos);
-            auto right = data.begin() + static_cast<int64_t>((double)data.size() * (double)(gate.pos + gate.width));
+            auto left  = _data.begin() + static_cast<int64_t>((double)_data.size() * (double)_gate.pos);
+            auto right = _data.begin() + static_cast<int64_t>((double)_data.size() * (double)(_gate.pos + _gate.width));
             auto max   = std::max_element(left, right);
 
             if (find_center_if_overflow && *max == 255) {
@@ -87,7 +87,7 @@ namespace Union::AScan {
                 }
                 max = minMaxVec[0] + minMaxVec.size() / 2;
             }
-            auto pos = ((double)std::distance(data.begin(), max) / (double)data.size());
+            auto pos = ((double)std::distance(_data.begin(), max) / (double)_data.size());
             if (pos < 0.0f) {
                 return std::nullopt;
             }
