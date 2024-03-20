@@ -167,7 +167,8 @@ namespace Union::__390N_T8 {
             return ss.str();
         }();
 
-        std::vector<_ldat> ldat = {};
+        std::vector<_ldat>         ldat = {};
+        static std::optional<LDAT> FromFile(const std::wstring& fileName);
     };
 
     constexpr int HEAD_LEN = 22;

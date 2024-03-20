@@ -55,7 +55,6 @@ namespace Union::AScan {
                                                          std::function<double(double, double)> func_db_diff) const {
         // TODO: 曲线平滑
         using Union::ValueMap;
-        auto TAG = QLoggingCategory("Union");
 
         std::vector<double> index;
         for (auto& it : _index) {

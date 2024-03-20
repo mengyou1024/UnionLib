@@ -41,7 +41,7 @@ namespace Union {
      *
      * @return y
      */
-    template <class T, int P = 2, class = std::enable_if_t<std::is_floating_point_v<T>>>
+    template <int P = 2, class T = double, class = std::enable_if_t<std::is_floating_point_v<T>>>
     T KeepDecimals(T value) {
         const auto _P = static_cast<double>(std::pow(10.0, P));
         return std::round(static_cast<double>(value) * _P) / _P;
