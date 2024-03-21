@@ -146,12 +146,6 @@ namespace Union::AScan {
 
     QJsonArray AScanFileSelector::GetFileNameFilter() {
         QJsonArray ret;
-        QString    str("所有文件 (");
-        for (auto& [key, val] : data) {
-            str += QString::fromStdString(key).toLower() + " ";
-        }
-        str.replace(str.size(), 1, ')');
-        ret.append(str);
         for (auto& [key, val] : data) {
             auto& [func, describe] = val;
             ret.append(QString("%1 (%2)").arg(QString::fromStdString(describe), QString::fromStdString(key).toLower()));
