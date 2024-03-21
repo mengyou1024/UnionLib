@@ -104,10 +104,7 @@ namespace Union::__390N_T8 {
                 ret.time = obj["time"].toString(QDateTime::currentDateTime().toString("yyyy-M-d H:m:s")).toStdString();
                 // probe
                 auto probeIndex = obj[CHANNEL_PROBE_TYPE.data()].toInt();
-                ret.probe       = QString::fromStdString(
-                                std::string(
-                                    Union::Base::Probe::Index2Name(probeIndex)))
-                                .toStdWString();
+                ret.probe       = QString::fromStdString(std::string(Union::Base::Probe::Index2Name(probeIndex))).toStdWString();
                 // probe freq
                 ret.probeFrequence = obj[CHANNEL_PROBE_FREQ.data()].toDouble();
                 // probe chip size
