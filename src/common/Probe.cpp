@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cmath>
-#include <format>
-#include <numbers>
+#include <sstream>
+#include <string>
 
 namespace Union::Base::Probe {
 
@@ -32,13 +32,12 @@ namespace Union::Base::Probe {
     }
 
     std::string CreateProbeChipShape(int index, int a, int b) {
+        std::stringstream ss;
         switch (index) {
             case 0:
-                return std::format("Φ{}", a);
-            case 1:
-                return std::format("{}×{}", a, b);
+                return (ss << "Φ" << a, ss.str());
             default:
-                return std::format("{}×{}", a, b);
+                return (ss << a << "×" << b, ss.str());
         }
     }
 

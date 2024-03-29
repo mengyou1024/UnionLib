@@ -17,7 +17,7 @@ namespace Yo::File {
         read_size += __Read(file, SkipSize(8), file_size);
         read_size += __Read(file, dateTime, file_size);
         std::ostringstream ss;
-        for (int i = 0; i < dateTime.size(); i++) {
+        for (int i = 0; std::cmp_less(i, dateTime.size()); i++) {
             ss << dateTime[i];
             if (i == 3 || i == 5) {
                 ss << "-";
@@ -52,24 +52,28 @@ namespace Union::AScan {
         ret.time           = ldat.time;
         ret.data.resize(ldat.ldat.size());
         for (auto i = 0; std::cmp_less(i, ret.data.size()); i++) {
-            auto& _t          = ret.data[i];
-            auto& _s          = ldat.ldat[i];
-            auto  axisBias    = _s.chanel_data.ch_yangshi;
-            auto  axisLen     = _s.chanel_data.ch_sound_distance[_s.chanel_data.ch_sound_distance_type];
-            _t.gate[0].enable = true;
-            _t.gate[0].pos    = (_s.chanel_data.ch_gatea_pos - axisBias) / static_cast<double>(axisLen);
-            _t.gate[0].width  = (_s.chanel_data.ch_gatea_width - axisBias) / static_cast<double>(axisLen);
-            _t.gate[0].height = _s.chanel_data.ch_gatea_height / 100.0;
-            _t.gate[1].pos    = (_s.chanel_data.ch_gatea_pos - axisBias) / static_cast<double>(axisLen);
-            _t.gate[1].width  = (_s.chanel_data.ch_gatea_width - axisBias) / static_cast<double>(axisLen);
-            _t.gate[1].height = _s.chanel_data.ch_gateb_height / 100.0;
-            _t.ascan          = _s.AScan;
-            _t.axisBias       = _s.chanel_data.ch_yangshi;
-            _t.axisLen        = _s.chanel_data.ch_sound_distance[_s.chanel_data.ch_sound_distance_type];
-            _t.distanceMode   = Union::AScan::DistanceMode(_s.chanel_data.ch_sound_distance_type);
+            auto& _t                   = ret.data[i];
+            auto& _s                   = ldat.ldat[i];
+            auto  axisBias             = _s.chanel_data.ch_yangshi;
+            auto  axisLen              = _s.chanel_data.ch_sound_distance[_s.chanel_data.ch_sound_distance_type];
+            _t.gate[0].enable          = true;
+            _t.gate[0].pos             = (_s.chanel_data.ch_gatea_pos - axisBias) / static_cast<double>(axisLen);
+            _t.gate[0].width           = (_s.chanel_data.ch_gatea_width - axisBias) / static_cast<double>(axisLen);
+            _t.gate[0].height          = _s.chanel_data.ch_gatea_height / 100.0;
+            _t.gate[1].pos             = (_s.chanel_data.ch_gatea_pos - axisBias) / static_cast<double>(axisLen);
+            _t.gate[1].width           = (_s.chanel_data.ch_gatea_width - axisBias) / static_cast<double>(axisLen);
+            _t.gate[1].height          = _s.chanel_data.ch_gateb_height / 100.0;
+            _t.ascan                   = _s.AScan;
+            _t.axisBias                = _s.chanel_data.ch_yangshi;
+            _t.axisLen                 = _s.chanel_data.ch_sound_distance[_s.chanel_data.ch_sound_distance_type];
+            _t.baseGain                = _s.chanel_data.ch_base_gain / 10.0;
+            _t.scanGain                = _s.chanel_data.ch_scan_gain / 10.0;
+            _t.surfaceCompentationGain = _s.chanel_data.ch_offset_gain;
+            _t.suppression             = _s.chanel_data.ch_suppression;
+            _t.distanceMode            = Union::AScan::DistanceMode(_s.chanel_data.ch_sound_distance_type);
             if (_s.dac_data.ch_already_dac == 1) {
                 _t.dac            = Base::DAC();
-                _t.dac->baseGain  = _s.dac_data.ch_dac_base_gain / 10;
+                _t.dac->baseGain  = _s.dac_data.ch_dac_base_gain / 10.0;
                 _t.dac->gate      = _s.dac_data.ch_dac_gate;
                 _t.dac->isSubline = _s.dac_data.ch_dac_is_subline;
                 _t.dac->index.clear();
@@ -83,7 +87,7 @@ namespace Union::AScan {
             }
             if (_s.avg_data.ch_already_avg == 1) {
                 _t.avg                     = Base::AVG();
-                _t.avg->baseGain           = _s.avg_data.ch_avg_base_gain;
+                _t.avg->baseGain           = _s.avg_data.ch_avg_base_gain / 10.0;
                 _t.avg->biasGain           = _s.avg_data.ch_avg_offset_gain;
                 _t.avg->equivalent         = _s.avg_data.ch_avg_dangliang;
                 _t.avg->diameter           = _s.avg_data.ch_avg_diameter;
@@ -98,7 +102,7 @@ namespace Union::AScan {
                 }
                 _t.avg->samplingDepth    = _s.avg_data.ch_avg_sampling_depth;
                 _t.avg->decimationFactor = _s.avg_data.ch_avg_sampling_factor;
-                _t.avg->scanGain         = _s.avg_data.ch_avg_scan_gain;
+                _t.avg->scanGain         = _s.avg_data.ch_avg_scan_gain / 10.0;
             }
             _t.std.rlBias = _s.chanel_data.ch_xuan_rl;
             _t.std.slBias = _s.chanel_data.ch_xuan_sl;

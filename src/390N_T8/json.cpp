@@ -24,7 +24,7 @@ namespace Union::__390N_T8 {
                 const auto _axisBias = obj["ch_timedelay"].toDouble();
                 const auto sdt       = obj[CHANNEL_SOUNDDIST_TYPE.data()].toInt();
                 if (!obj[CHANNEL_SOUNDDIST.data()].isArray() || obj[CHANNEL_SOUNDDIST.data()].toArray().size() < sdt) {
-                    throw std::exception("ch_sound_distance is not array or array will overflow");
+                    throw std::runtime_error("ch_sound_distance is not array or array will overflow");
                 }
                 const auto _axisLen           = obj[CHANNEL_SOUNDDIST.data()].toArray()[sdt].toDouble();
                 ascan.gate[0].enable          = obj[CHANNEL_GATEA_ACTIVITY.data()].toBool();
@@ -50,10 +50,10 @@ namespace Union::__390N_T8 {
                     ascan.dac->index.clear();
                     ascan.dac->value.clear();
                     if (!obj[CHANNEL_DAC_SAMPLE_INDEX.data()].isArray() || obj[CHANNEL_DAC_SAMPLE_INDEX.data()].toArray().size() < obj[CHANNEL_DAC_SAMPLE_LENGTH.data()].toInt()) {
-                        throw std::exception("ch_dac_sample_index is not array or array will overflow");
+                        throw std::runtime_error("ch_dac_sample_index is not array or array will overflow");
                     }
                     if (!obj[CHANNEL_DAC_SAMPLE_VALUE.data()].isArray() || obj[CHANNEL_DAC_SAMPLE_VALUE.data()].toArray().size() < obj[CHANNEL_DAC_SAMPLE_LENGTH.data()].toInt()) {
-                        throw std::exception("ch_dac_sample_value is not array or array will overflow");
+                        throw std::runtime_error("ch_dac_sample_value is not array or array will overflow");
                     }
                     auto dac_index = obj[CHANNEL_DAC_SAMPLE_INDEX.data()].toArray();
                     auto dac_value = obj[CHANNEL_DAC_SAMPLE_VALUE.data()].toArray();
@@ -76,10 +76,10 @@ namespace Union::__390N_T8 {
                     ascan.avg->index.clear();
                     ascan.avg->value.clear();
                     if (!obj[CHANNEL_AVG_SAMPLE_INDEX.data()].isArray() || obj[CHANNEL_AVG_SAMPLE_INDEX.data()].toArray().size() < obj[CHANNEL_AVG_SAMPLE_LENGTH.data()].toInt()) {
-                        throw std::exception("ch_dac_sample_index is not array or array will overflow");
+                        throw std::runtime_error("ch_dac_sample_index is not array or array will overflow");
                     }
                     if (!obj[CHANNEL_AVG_SAMPLE_VALUE.data()].isArray() || obj[CHANNEL_AVG_SAMPLE_VALUE.data()].toArray().size() < obj[CHANNEL_AVG_SAMPLE_LENGTH.data()].toInt()) {
-                        throw std::exception("ch_dac_sample_value is not array or array will overflow");
+                        throw std::runtime_error("ch_dac_sample_value is not array or array will overflow");
                     }
                     auto avg_index = obj[CHANNEL_AVG_SAMPLE_INDEX.data()].toArray();
                     auto avg_value = obj[CHANNEL_AVG_SAMPLE_VALUE.data()].toArray();
@@ -128,7 +128,7 @@ namespace Union::__390N_T8 {
 
                 ascan.ascan.resize(JSON_390N_T8_ASCAN_LEN);
                 if (!obj[CHANNEL_SCAN_VALUE.data()].isArray()) {
-                    throw std::exception("ch_scan_value is not array");
+                    throw std::runtime_error("ch_scan_value is not array");
                 }
                 for (auto i = 0; std::cmp_less(i, ascan.ascan.size()); i++) {
                     ascan.ascan[i] = static_cast<uint8_t>(obj[CHANNEL_SCAN_VALUE.data()].toArray()[i].toInt());
