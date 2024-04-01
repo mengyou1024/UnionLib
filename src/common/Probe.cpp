@@ -5,6 +5,25 @@
 #include <sstream>
 #include <string>
 
+#if __has_include("QString")
+#include <QObject>
+namespace Union::Base::Probe {
+    QString Index2Name_QtExtra(int index) {
+        static std::array ret = {
+            QObject::tr("直探头"),
+            QObject::tr("斜探头"),
+            QObject::tr("双晶纵波直探头"),
+            QObject::tr("穿透探头"),
+            QObject::tr("双晶纵波斜探头"),
+        };
+        if (index < 0 || index >= ret.size()) {
+            return QObject::tr("未知");
+        }
+        return ret[index];
+    }
+} // namespace Union::Base::Probe
+#endif
+
 namespace Union::Base::Probe {
 
     inline static constexpr std::array ProbeNameMap = {

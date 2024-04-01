@@ -51,6 +51,26 @@ namespace Union::AScan {
         ret.instrumentName = "390N&T8 multiple";
         ret.time           = ldat.time;
         ret.data.resize(ldat.ldat.size());
+        ret.performance.horizontalLinearity = ldat.ldat[0].chanel_data.ch_yiqi_shuipin / 10.0;
+        ret.performance.verticalLinearity   = ldat.ldat[0].chanel_data.ch_yiqi_chuzhi / 10.0;
+        ret.performance.resolution          = ldat.ldat[0].chanel_data.ch_yiqi_fbl / 10.0;
+        ret.performance.dynamicRange        = ldat.ldat[0].chanel_data.ch_yiqi_dongtai / 10.0;
+        ret.performance.sensitivity         = ldat.ldat[0].chanel_data.ch_yiqi_lmd / 10.0;
+#if __has_include("QString")
+        ret.probe = Union::Base::Probe::Index2Name_QtExtra(ldat.ldat[0].chanel_data.ch_probe_type).toStdWString();
+#else
+        ret.probe = QString::fromStdString(std::string(Union::Base::Probe::Index2Name(ldat.ldat[0].chanel_data.ch_probe_type))).toStdWString();
+#endif
+        ret.probeFrequence = ldat.ldat[0].chanel_data.ch_probe_freq / 100.0;
+        auto [_a, _b]      = ldat.ldat[0].chanel_data.ch_probe_size;
+        ret.probeChipShape = Union::Base::Probe::CreateProbeChipShape(ldat.ldat[0].chanel_data.ch_probe_type, _a, _b);
+        ret.angle          = ldat.ldat[0].chanel_data.ch_k_value[1];
+        ret.soundVelocity  = ldat.ldat[0].chanel_data.ch_sound_speed;
+        ret.frontDistance  = ldat.ldat[0].chanel_data.ch_probe_frontier / 10.0;
+        ret.zeroPointBias  = ldat.ldat[0].chanel_data.ch_zero_point / 10.0;
+        ret.samplingDelay  = ldat.ldat[0].chanel_data.ch_sampling_delay;
+        ret.channel        = ldat.ldat[0].chanel_data.ch_id;
+
         for (auto i = 0; std::cmp_less(i, ret.data.size()); i++) {
             auto& _t                   = ret.data[i];
             auto& _s                   = ldat.ldat[i];
