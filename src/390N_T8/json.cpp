@@ -136,11 +136,11 @@ namespace Union::__390N_T8 {
                 }
                 return ret;
             } catch (std::exception &e) {
-                qCritical(QLoggingCategory("390N&T8.JSON")) << e.what();
+                qCritical(QLoggingCategory("390N&T8.JSON")) << "parser file:" << QString::fromStdWString(fileName.c_str()) << ",error:" << e.what();
                 return std::nullopt;
             }
         } else {
-            qWarning(QLoggingCategory("390N&T8.JSON")) << "parser 390N & T8 json data error";
+            qWarning(QLoggingCategory("390N&T8.JSON")) << "parser 390N & T8 json data error, file name:" << QString::fromStdWString(fileName.c_str());
             qCritical(QLoggingCategory("390N&T8.JSON")) << err.errorString();
         }
         return std::nullopt;

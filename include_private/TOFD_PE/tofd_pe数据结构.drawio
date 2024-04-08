@@ -1,0 +1,109 @@
+<mxfile host="Electron" modified="2024-03-11T03:26:29.906Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.1 Chrome/112.0.5615.204 Electron/24.6.1 Safari/537.36" etag="vKLrsLKnpYCzgqlGZ48k" version="21.6.1" type="device">
+  <diagram name="第 1 页" id="bFQzzzYomGrxvTrNYd3i">
+    <mxGraphModel dx="1418" dy="820" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-1" value="PluseMode(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="150" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-8" value="RepeatRate(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="221" y="150" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-9" value="ScanMode(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="351" y="150" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-10" value="CoderType(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="481" y="150" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-11" value="TofdFreq(float)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="611" y="150" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-12" value="EncValue(float)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="180" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-13" value="Thickness(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="221" y="180" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-14" value="PCS(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="351" y="180" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-15" value="BaseGain(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="481" y="180" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-16" value="Range(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="611" y="180" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-17" value="Delay(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="210" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-18" value="Freqence(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="221" y="210" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-19" value="Angle(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="351" y="210" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-20" value="Crystal(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="481" y="210" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-21" value="Forward(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="611" y="210" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-22" value="Offset(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="240" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-23" value="Line(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="221" y="240" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-24" value="PoKou(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="351" y="240" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-25" value="Average(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="481" y="240" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-26" value="Width(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="611" y="240" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-27" value="BandMode(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="270" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-28" value="Data(uint8_t * 500 * Line)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="221" y="270" width="520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-29" value="Flag(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="300" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-30" value="BaseGain2(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="221" y="300" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-36" value="Range2(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="351" y="300" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-37" value="Freqence2(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="481" y="300" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-38" value="temp(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="611" y="300" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-39" value="Crystal2(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="330" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-40" value="Forward2(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="221" y="330" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-41" value="Offset2(uint32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="351" y="330" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-42" value="Line2(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="481" y="330" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-43" value="Line2(int32_t)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="611" y="330" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qUh0fXR3AXtzOLd7Xjwy-44" value="Data2(uint8_t * 500 * Line2)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="91" y="360" width="650" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

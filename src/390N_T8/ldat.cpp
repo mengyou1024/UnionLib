@@ -150,4 +150,15 @@ namespace Union::__390N_T8 {
         return std::nullopt;
 #endif
     }
+
+    std::optional<LDAT> LDAT::FromFile(const std::wstring& fileName) {
+#if __has_include("Yo/File")
+        Union::__390N_T8::LDAT ldat = {};
+        auto                   ret  = Yo::File::ReadFile(fileName, ldat);
+        if (ret) {
+            return ldat;
+        }
+#endif
+        return std::nullopt;
+    }
 } // namespace Union::__390N_T8
