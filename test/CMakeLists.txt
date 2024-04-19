@@ -25,6 +25,7 @@ add_subdirectory(.. UniLib)
 add_executable(unit_tests test_union.cpp)
 target_link_libraries(unit_tests PRIVATE gtest_main UnionLib)
 target_link_libraries(UnionLib PUBLIC misc_utils)
+target_include_directories(unit_tests PRIVATE ../include_private)
 include(GoogleTest)
 gtest_discover_tests(unit_tests PROPERTIES LABELS "File" DISCOVERY_TIMEOUT 240)
 

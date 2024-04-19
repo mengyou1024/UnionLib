@@ -3,8 +3,11 @@
 #include <cstdint>
 #include <string>
 
-#include "../include_private/390N_T8/json.hpp"
-#include "../include_private/390N_T8/ldat.hpp"
-#include "../include_private/AScanType.hpp"
-#include "../include_private/TOFD_PE/tofd_pe.hpp"
+#include "../include_private/ASCAN/330/das.hpp"
+#include "../include_private/ASCAN/330/dat.hpp"
+#include "../include_private/ASCAN/390N_T8/json.hpp"
+#include "../include_private/ASCAN/390N_T8/ldat.hpp"
+#include "../include_private/ASCAN/AScanType.hpp"
+#include "../include_private/TOFD_PE/TPE/tpe.hpp"
+#include "../include_private/TOFD_PE/TofdPeType.hpp"
 #include "../include_private/common/common.hpp"

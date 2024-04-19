@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string_view>
 #include "../AScanType.hpp"
+#include <string_view>
 
 namespace Union::__390N_T8 {
     constexpr std::string_view CHANNEL_SCAN_VALUE = "ch_scan_value";
@@ -184,28 +184,74 @@ namespace Union::__390N_T8 {
     constexpr std::string_view CHANNEL_COLOR_FENG     = "ch_select_feng";     // 峰值包络
 
     // tofd
-    constexpr std::string_view TOFD_PROBE_FREQ     = "tofd_probe_freq";
-    constexpr std::string_view TOFD_PROBE_SIZE     = "tofd_probe_size";
-    constexpr std::string_view TOFD_PROBE_ANGLE    = "tofd_probe_angle";
-    constexpr std::string_view TOFD_ZEROPOINT      = "tofd_zero_point";
-    constexpr std::string_view TOFD_PROBE_FRONTIER = "tofd_probe_frontier";
-    constexpr std::string_view TOFD_FILTER_BAND    = "tofd_filter_band"; // 滤波频带
-    constexpr std::string_view TOFD_PCS            = "tofd_PCS";
-    constexpr std::string_view TOFD_THICKNESS      = "tofd_thickness";
-    constexpr std::string_view TOFD_SPEED          = "tofd_speed";
-    constexpr std::string_view TOFD_HANFENG_WIDTH  = "tofd_hanfeng_width";  // 焊缝宽度
-    constexpr std::string_view TOFD_POKOU_TYPE     = "tofd_pokou_type";     // 坡口形式
-    constexpr std::string_view TOFD_HIGH_VOLTAGE   = "tofd_high_voltage";   // 发射电压
-    constexpr std::string_view TOFD_WORK_FREQ      = "tofd_work_freq";      // 重复频率
-    constexpr std::string_view TOFD_DEMODU_SELECT  = "tofd_demodu_mode";    // 检波方式
-    constexpr std::string_view TOFD_WORK_MODE      = "tofd_work_mode";      // 工作方式  CHANNEL_WORK_MODE
-    constexpr std::string_view TOFD_CUFA_MODE      = "tofd_cufa_mode";      // 触发方式
-    constexpr std::string_view TOFD_FANGXIAN       = "tofd_fangxian";       // 扫查方向
-    constexpr std::string_view TOFD_DENOISE_LEVEL  = "tofd_denoise_level";  // 平均次数
-    constexpr std::string_view TOFD_SCAN_INCREMENT = "tofd_scan_increment"; // 扫查增量
-    constexpr std::string_view TOFD_SCAN_MODE      = "tofd_scan_mode";      // 扫查方式
-    constexpr int JSON_390N_T8_ASCAN_LEN = 520;
-#if __has_include("QtCore")
-    std::optional<Union::AScan::AScanType> __390N_T8_JSON_READ(const std::wstring& fileName);
+    constexpr std::string_view TOFD_PROBE_FREQ        = "tofd_probe_freq";
+    constexpr std::string_view TOFD_PROBE_SIZE        = "tofd_probe_size";
+    constexpr std::string_view TOFD_PROBE_ANGLE       = "tofd_probe_angle";
+    constexpr std::string_view TOFD_ZEROPOINT         = "tofd_zero_point";
+    constexpr std::string_view TOFD_PROBE_FRONTIER    = "tofd_probe_frontier";
+    constexpr std::string_view TOFD_FILTER_BAND       = "tofd_filter_band"; // 滤波频带
+    constexpr std::string_view TOFD_PCS               = "tofd_PCS";
+    constexpr std::string_view TOFD_THICKNESS         = "tofd_thickness";
+    constexpr std::string_view TOFD_SPEED             = "tofd_speed";
+    constexpr std::string_view TOFD_HANFENG_WIDTH     = "tofd_hanfeng_width";  // 焊缝宽度
+    constexpr std::string_view TOFD_POKOU_TYPE        = "tofd_pokou_type";     // 坡口形式
+    constexpr std::string_view TOFD_HIGH_VOLTAGE      = "tofd_high_voltage";   // 发射电压
+    constexpr std::string_view TOFD_WORK_FREQ         = "tofd_work_freq";      // 重复频率
+    constexpr std::string_view TOFD_DEMODU_SELECT     = "tofd_demodu_mode";    // 检波方式
+    constexpr std::string_view TOFD_WORK_MODE         = "tofd_work_mode";      // 工作方式  CHANNEL_WORK_MODE
+    constexpr std::string_view TOFD_CUFA_MODE         = "tofd_cufa_mode";      // 触发方式
+    constexpr std::string_view TOFD_FANGXIAN          = "tofd_fangxian";       // 扫查方向
+    constexpr std::string_view TOFD_DENOISE_LEVEL     = "tofd_denoise_level";  // 平均次数
+    constexpr std::string_view TOFD_SCAN_INCREMENT    = "tofd_scan_increment"; // 扫查增量
+    constexpr std::string_view TOFD_SCAN_MODE         = "tofd_scan_mode";      // 扫查方式
+    constexpr int              JSON_390N_T8_ASCAN_LEN = 520;
+
+#if __has_include("QJsonObject")
+    class T8_390N_JSON : public Union::AScan::AScanIntf {
+    public:
+        explicit T8_390N_JSON(const std::wstring& fileName);
+
+        virtual size_t __Read(std::ifstream& file, size_t file_size) override final;
+        virtual int    getDataSize(void) const override final;
+
+        virtual std::vector<std::wstring> getFileNameList(void) const override final;
+        virtual void setFileNameIndex(int index) override final;
+
+        virtual Base::Performance getPerformance(int idx) const override final;
+        virtual std::string       getDate(int idx) const override final;
+        virtual std::wstring      getProbe(int idx) const override final;
+        virtual double            getProbeFrequence(int idx) const override final;
+        virtual std::string       getProbeChipShape(int idx) const override final;
+        virtual double            getAngle(int idx) const override final;
+        virtual double            getSoundVelocity(int idx) const override final;
+        virtual double            getFrontDistance(int idx) const override final;
+        virtual double            getZeroPointBias(int idx) const override final;
+        virtual double            getSamplingDelay(int idx) const override final;
+        virtual int               getChannel(int idx) const override final;
+        virtual std::string       getInstrumentName(void) const override final;
+
+        virtual std::array<Base::Gate, 2>   getGate(int idx) const override final;
+        virtual const std::vector<uint8_t>& getScanData(int idx) const override final;
+        virtual double                      getAxisBias(int idx) const override final;
+        virtual double                      getAxisLen(int idx) const override final;
+        virtual double                      getBaseGain(int idx) const override final;
+        virtual double                      getScanGain(int idx) const override final;
+        virtual double                      getSurfaceCompentationGain(int idx) const override final;
+        virtual int                         getSupression(int idx) const override final;
+        virtual Union::AScan::DistanceMode  getDistanceMode(int idx) const override final;
+        virtual std::optional<Base::AVG>    getAVG(int idx) const override final;
+        virtual std::optional<Base::DAC>    getDAC(int idx) const override final;
+        virtual Union::AScan::DAC_Standard  getDACStandard(int idx) const override final;
+
+        virtual std::function<double(double)> getAVGLineExpr(int idx) const override final;
+        virtual std::function<double(double)> getDACLineExpr(int idx) const override final;
+
+        static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& file_name);
+
+    private:
+        QJsonObject          m_json = {};
+        std::vector<uint8_t> m_data = {};
+    };
 #endif
-} // namespace Union::__390_T8
+
+} // namespace Union::__390N_T8

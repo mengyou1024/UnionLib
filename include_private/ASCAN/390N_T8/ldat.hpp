@@ -14,6 +14,10 @@
     #include <QtCore>
 #endif
 
+#if __has_include("Yo/File")
+    #include <Yo/File>
+#endif
+
 namespace Union::__390N_T8 {
 
     constexpr int ECHO_PACKAGE_SIZE = 520;
@@ -156,7 +160,11 @@ namespace Union::__390N_T8 {
         PARAM_CHANEL_DAT     chanel_data = {};
     };
 
-    struct LDAT {
+    constexpr int HEAD_LEN = 22;
+    constexpr int BODY_LEN = EncoderLen + 8;
+
+    class LDAT : public Union::AScan::AScanIntf {
+    private:
         std::string time = []() -> std::string {
             auto const        now = std::chrono::system_clock::now();
             std::time_t       t   = std::chrono::system_clock::to_time_t(now);
@@ -167,27 +175,47 @@ namespace Union::__390N_T8 {
             return ss.str();
         }();
 
-        std::vector<_ldat>         ldat = {};
-        static std::optional<LDAT> FromFile(const std::wstring& fileName);
+        std::vector<_ldat> ldat = {};
+
+    public:
+        static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& fileName);
+
+        // READ IMPL
+        size_t __Read(std::ifstream& file, size_t file_size) override final;
+        int    getDataSize(void) const override final;
+
+        virtual std::vector<std::wstring> getFileNameList(void) const override final;
+        virtual void                      setFileNameIndex(int index) override final;
+
+        // IMPL
+        Base::Performance getPerformance(int idx) const override final;
+        std::string       getDate(int idx) const override final;
+        std::wstring      getProbe(int idx) const override final;
+        double            getProbeFrequence(int idx) const override final;
+        std::string       getProbeChipShape(int idx) const override final;
+        double            getAngle(int idx) const override final;
+        double            getSoundVelocity(int idx) const override final;
+        double            getFrontDistance(int idx) const override final;
+        double            getZeroPointBias(int idx) const override final;
+        double            getSamplingDelay(int idx) const override final;
+        int               getChannel(int idx) const override final;
+        std::string       getInstrumentName(void) const override final;
+
+        std::array<Base::Gate, 2>   getGate(int idx) const override final;
+        const std::vector<uint8_t>& getScanData(int idx) const override final;
+        double                      getAxisBias(int idx) const override final;
+        double                      getAxisLen(int idx) const override final;
+        double                      getBaseGain(int idx) const override final;
+        double                      getScanGain(int idx) const override final;
+        double                      getSurfaceCompentationGain(int idx) const override final;
+        int                         getSupression(int idx) const override final;
+        Union::AScan::DistanceMode  getDistanceMode(int idx) const override final;
+        std::optional<Base::AVG>    getAVG(int idx) const override final;
+        std::optional<Base::DAC>    getDAC(int idx) const override final;
+        Union::AScan::DAC_Standard  getDACStandard(int idx) const override final;
+
+        std::function<double(double)> getAVGLineExpr(int idx) const override final;
+        std::function<double(double)> getDACLineExpr(int idx) const override final;
     };
 
-    constexpr int HEAD_LEN = 22;
-    constexpr int BODY_LEN = EncoderLen + 8;
-
-#if __has_include("QtCore")
-    std::optional<Union::AScan::AScanType> __390N_T8_LDAT_READ(const std::wstring& fileName);
-#endif
 } // namespace Union::__390N_T8
-
-#if __has_include("Yo/File")
-    #include <Yo/File>
-namespace Yo::File {
-    template <>
-    size_t __Read(std::ifstream& file, Union::__390N_T8::LDAT& _ld, size_t file_size);
-} // namespace Yo::File
-#endif
-
-namespace Union::AScan {
-    template <>
-    std::optional<AScanType> CONVERT_TO_STANDARD_ASCAN_TYPE(const Union::__390N_T8::LDAT& ldat);
-} // namespace Union::AScan

@@ -87,4 +87,15 @@ namespace Union {
      */
     double EchoDbDiffOfPlanAndHole(double lambda, double x, double d);
 
+    template<class T>
+    T ByteSwap(T x) {
+        if constexpr (sizeof(T) == 1) {
+            return x;
+        } else if constexpr(sizeof(T) == 2) {
+            return (x >> 8) | (x << 8);
+        } else if constexpr(sizeof(T) == 4) {
+            return (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
+        }
+    }
+
 } // namespace Union

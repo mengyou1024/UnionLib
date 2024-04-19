@@ -1,14 +1,10 @@
-#pragma once
+#include "../TofdPeType.hpp"
 
-#include <cstdint>
+#include <memory>
 #include <optional>
-#include <string>
-#include <vector>
-#if __has_include("QString")
-    #include <QString>
-#endif
 
-namespace Union::__TOFD_PE {
+namespace Union::TOFD_PE::TPE {
+
     struct SubData {
         uint32_t             baseGain;  ///< 增益
         uint32_t             range;     ///< 声程范围
@@ -49,10 +45,33 @@ namespace Union::__TOFD_PE {
         uint32_t               flag;
         std::vector<uint8_t>   data;
         std::optional<SubData> subData;
-
-        static std::optional<Data> FromFile(const std::wstring& fileName);
-#if __has_include("QString")
-        static std::optional<Data> FromFile(const QString& fileName);
-#endif
     };
-}; // namespace Union::__TOFD_PE
+
+    class TpeType : public TofdPeIntf {
+        Data m_data = {};
+
+        std::optional<Data> m_data_bak = std::nullopt;
+
+    public:
+        static std::unique_ptr<TofdPeIntf> FromFile(const std::wstring& fileName);
+
+        virtual size_t __Read(std::ifstream& file, size_t file_size) override final;
+
+        virtual int                         getTofdLines(void) const override final;
+        virtual const std::vector<uint8_t>& getTofdData(void) const override final;
+        virtual double                      getTofdDelay(void) const override final;
+        virtual double                      getTofdRange(void) const override final;
+
+        virtual bool                        hasPe(void) const override final;
+        virtual int                         getPeLines(void) const override final;
+        virtual const std::vector<uint8_t>& getPeData(void) const override final;
+        virtual double                      getPeRange(void) const override final;
+        virtual double                      getPeDelay(void) const override final;
+        virtual double                      getPeAngle(void) const override final;
+
+        virtual void removeThroughWaveEvent(double x, double y, double w, double h) override final;
+        virtual void pullThroughWaveEvent(double x, double y, double w, double h) override final;
+        virtual void backup(void) override final;
+        virtual void rollback(void) override final;
+    };
+} // namespace Union::TOFD_PE::TPE
