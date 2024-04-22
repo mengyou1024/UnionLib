@@ -11,6 +11,8 @@ namespace Union::TOFD_PE {
         virtual ~TofdPeIntf()                                        = default;
         virtual size_t __Read(std::ifstream& file, size_t file_size) = 0;
 
+        virtual int getAScanSize(void) const = 0;
+
         virtual int                         getTofdLines(void) const = 0;
         virtual const std::vector<uint8_t>& getTofdData(void) const  = 0;
         virtual double                      getTofdDelay(void) const = 0;

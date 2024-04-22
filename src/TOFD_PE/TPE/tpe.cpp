@@ -22,17 +22,21 @@ namespace Union::TOFD_PE::TPE {
     size_t TpeType::__Read(std::ifstream &file, size_t file_size) {
         size_t ret = 0;
         ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(m_data.pulseMode), &(m_data.bandMode), sizeof(int32_t)), file_size);
-        m_data.data.resize((m_data.line + 1) * 500);
+        m_data.data.resize((m_data.line + 1) * getAScanSize());
         ret += Yo::File::__Read(file, m_data.data, file_size);
         ret += Yo::File::__Read(file, m_data.flag, file_size);
 
         if (m_data.flag == 2) {
             m_data.subData = SubData();
             ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(m_data.subData->baseGain), &(m_data.subData->derect), sizeof(int32_t)), file_size);
-            m_data.subData->data.resize((m_data.subData->line + 1) * 500);
+            m_data.subData->data.resize((m_data.subData->line + 1) * getAScanSize());
             ret += Yo::File::__Read(file, m_data.subData->data, file_size);
         }
         return ret;
+    }
+
+    int TpeType::getAScanSize(void) const {
+        return 500;
     }
 
     int TpeType::getTofdLines(void) const {
@@ -89,8 +93,8 @@ namespace Union::TOFD_PE::TPE {
 
     void TpeType::removeThroughWaveEvent(double x, double y, double w, double h) {
         for (auto i = static_cast<int>(x * getTofdLines() + 1.5); std::cmp_less_equal(i, static_cast<int>((x + w) * getTofdLines() + 1.5)); i++) {
-            for (auto j = static_cast<int>(y * 500.0 + 1.5); std::cmp_less_equal(j, static_cast<int>((y + h) * 500.0 + 1.5)); j++) {
-                m_data.data[i * 500 + j] += -m_data.data[static_cast<int>(x * getTofdLines() - 0.5) * 500 + j] + 128;
+            for (auto j = static_cast<int>(y * static_cast<float>(getAScanSize()) + 1.5); std::cmp_less_equal(j, static_cast<int>((y + h) * static_cast<float>(getAScanSize()) + 1.5)); j++) {
+                m_data.data[i * getAScanSize() + j] += -m_data.data[static_cast<int>(x * getTofdLines() - 0.5) * getAScanSize() + j] + 128;
             }
         }
     }

@@ -57,6 +57,8 @@ namespace Union::TOFD_PE::TPE {
 
         virtual size_t __Read(std::ifstream& file, size_t file_size) override final;
 
+        virtual int getAScanSize(void) const override final;
+
         virtual int                         getTofdLines(void) const override final;
         virtual const std::vector<uint8_t>& getTofdData(void) const override final;
         virtual double                      getTofdDelay(void) const override final;
