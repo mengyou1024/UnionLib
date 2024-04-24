@@ -1,24 +1,8 @@
 #include "AScanType.hpp"
-#include <map>
 #include <tuple>
 
 namespace Union::AScan {
 #if __has_include("QJsonObject")
-    QJsonObject AScanIntf::getBoardParamJSON(int idx) const {
-        QJsonObject ret;
-        ret.insert("probe", QString::fromStdWString(getProbe(idx)));
-        ret.insert("angle", Union::KeepDecimals(getAngle(idx)));
-        ret.insert("soundVelocity", Union::KeepDecimals(getSoundVelocity(idx)));
-        QJsonObject performance;
-        performance.insert("horizontalLinearity", Union::KeepDecimals(getPerformance(idx).horizontalLinearity));
-        performance.insert("verticalLinearity", Union::KeepDecimals(getPerformance(idx).verticalLinearity));
-        performance.insert("resolution", Union::KeepDecimals(getPerformance(idx).resolution));
-        performance.insert("dynamicRange", Union::KeepDecimals(getPerformance(idx).dynamicRange));
-        performance.insert("sensitivity", Union::KeepDecimals(getPerformance(idx).sensitivity));
-        ret.insert("performance", performance);
-        return ret;
-    }
-
     QList<QPointF> AScanIntf::getAScanSeriesData(int index, double softGain) const {
         QList<QPointF> ret;
         const auto     AScanStep = getAxisLen(index) / static_cast<double>(getScanData(index).size());

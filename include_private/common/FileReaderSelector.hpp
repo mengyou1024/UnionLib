@@ -17,7 +17,7 @@ namespace Union::Utils {
     class FileReaderSelectorIntf {
     public:
         virtual ~FileReaderSelectorIntf() {
-            qDebug(QLoggingCategory("Union::Utils")) <<  __FUNCTION__;
+            qDebug(QLoggingCategory("Union::Utils")) << __FUNCTION__;
         };
     };
 
@@ -30,8 +30,20 @@ namespace Union::Utils {
         inline static std::map<std::string, std::shared_ptr<FileReaderSelectorIntf>> m_data = {};
     };
 
+    class ReadIntf {
+    public:
+        virtual ~ReadIntf() = default;
+    };
+
+    /**
+     * @brief 文件读取选择器
+     *
+     * @tparam T_INTF 读取接口
+     * @tparam I_NAME 对应的UI名称
+     */
     template <class T_INTF, const std::string_view &I_NAME>
-    class FileReaderSelector:public FileReaderSelectorIntf {
+        requires std::is_base_of_v<ReadIntf, T_INTF>
+    class FileReaderSelector : public FileReaderSelectorIntf {
     public:
         using FRS_RFUNC = std::function<std::unique_ptr<T_INTF>(const std::wstring &)>;
         using FRS_DTYPE = std::tuple<FRS_RFUNC, std::string>;
@@ -41,16 +53,30 @@ namespace Union::Utils {
         FileReaderSelector &operator=(const FileReaderSelector &) = delete;
         FileReaderSelector &operator=(FileReaderSelector &&)      = delete;
 
-        virtual ~FileReaderSelector()  {
-            qDebug(QLoggingCategory("Union::Utils")) <<  __FUNCTION__;
+        virtual ~FileReaderSelector() {
+            qDebug(QLoggingCategory("Union::Utils")) << __FUNCTION__;
         }
 
+        /**
+         * @brief 注册读取函数接口
+         *
+         * @param file_suffix 文件后缀
+         * @param describe 描述
+         * @param func 接口函数
+         * @return bool
+         */
         bool RegistReader(std::string_view file_suffix, std::string_view describe, const FRS_RFUNC &func) {
             qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
             auto temp = std::make_tuple(func, std::string(describe));
             return data.try_emplace(std::string(file_suffix), temp).second;
         }
 
+        /**
+         * @brief 通过文件后缀查找存储的读写接口和描述
+         *
+         * @param file_suffix 文件后缀
+         * @return std::optional<FRS_DTYPE>
+         */
         const std::optional<FRS_DTYPE> Get(const std::string &file_suffix) {
             qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
             const auto ret = data.find(file_suffix);
@@ -61,6 +87,11 @@ namespace Union::Utils {
             }
         }
 
+        /**
+         * @brief 获取QML中FileDialog可使用的filter
+         *
+         * @return QJsonArray
+         */
         QJsonArray GetFileNameFilter() {
             qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
             QJsonArray ret;
@@ -71,6 +102,11 @@ namespace Union::Utils {
             return ret;
         }
 
+        /**
+         * @brief 获取QML中FolderList可使用的filter
+         *
+         * @return QJsonArray
+         */
         QJsonArray GetFileListModelNameFilter() {
             qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
             QJsonArray obj;
@@ -85,6 +121,11 @@ namespace Union::Utils {
             return obj;
         }
 
+        /**
+         * @brief 获取后缀到UI的映射MAP
+         *
+         * @return QJsonObject
+         */
         QJsonObject GetUINameMap() {
             qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
             QJsonObject obj;
@@ -99,6 +140,12 @@ namespace Union::Utils {
             return obj;
         }
 
+        /**
+         * @brief 通过文件后缀查找文件读取接口函数(不区分大小写)
+         *
+         * @param file_suffix 文件后缀
+         * @return std::optional<FRS_RFUNC>
+         */
         const std::optional<FRS_RFUNC> GetReadFunction(const std::wstring &fileName) {
             qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
             QFileInfo file(QString::fromStdWString(fileName));
@@ -111,6 +158,11 @@ namespace Union::Utils {
             return std::nullopt;
         }
 
+        /**
+         * @brief 获取单例
+         *
+         * @return FileReaderSelector&
+         */
         static FileReaderSelector &Instance() {
             auto ret = InstanceBuilder::FindInstance(I_NAME.data());
             if (ret == nullptr) {
@@ -121,7 +173,7 @@ namespace Union::Utils {
         }
 
     private:
-        FileReaderSelector() = default;
+        FileReaderSelector()                  = default;
         std::map<std::string, FRS_DTYPE> data = {};
     };
 #endif
