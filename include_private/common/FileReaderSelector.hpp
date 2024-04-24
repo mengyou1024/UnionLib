@@ -12,6 +12,10 @@
 #endif
 
 namespace Union::Utils {
+    class ReadIntf {
+    public:
+        virtual ~ReadIntf() = default;
+    };
 #if __has_include("QtCore")
 
     class FileReaderSelectorIntf {
@@ -28,11 +32,6 @@ namespace Union::Utils {
 
     private:
         inline static std::map<std::string, std::shared_ptr<FileReaderSelectorIntf>> m_data = {};
-    };
-
-    class ReadIntf {
-    public:
-        virtual ~ReadIntf() = default;
     };
 
     /**
