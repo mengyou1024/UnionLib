@@ -6,28 +6,21 @@
 #include "../common/Gate.hpp"
 #include "../common/Performance.hpp"
 #include "../common/common.hpp"
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QLoggingCategory>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
+#include <QRegularExpressionMatchIterator>
+#include <QString>
+#include <QtCore>
 #include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <tuple>
 #include <vector>
-
-#if __has_include("QtCore")
-    #include <QFileInfo>
-    #include <QJsonArray>
-    #include <QJsonObject>
-    #include <QLoggingCategory>
-    #include <QRegularExpression>
-    #include <QRegularExpressionMatch>
-    #include <QRegularExpressionMatchIterator>
-    #include <QString>
-    #include <QtCore>
-#endif
-
-#if __has_include("NumCpp/Polynomial/Poly1d.hpp")
-    #include <NumCpp/Polynomial/Poly1d.hpp>
-#endif
 
 namespace Union::AScan {
     enum DistanceMode {
@@ -42,7 +35,7 @@ namespace Union::AScan {
         double elBias = -18.0;
     };
 
-    class AScanIntf:public Union::Utils::ReadIntf {
+    class AScanIntf : public Union::Utils::ReadIntf {
     public:
         virtual ~AScanIntf() = default;
 
@@ -318,7 +311,6 @@ namespace Union::AScan {
          *         其中bias为`getAxisBias`返回值, len为`getAxisLen`返回值
          */
         virtual std::array<double, 2> getAxisRange(int idx) const final;
-#if __has_include("QJsonObject")
 
         /**
          * @brief 获取QLineSeries.replace可使用的A扫数据
@@ -328,12 +320,9 @@ namespace Union::AScan {
          * @return QList<QPointF>
          */
         virtual QList<QPointF> getAScanSeriesData(int index = 0, double softGain = 0.0) const final;
-#endif
     };
 
-#if __has_include("QtCore")
     inline static constexpr std::string_view ASCAN_I_NAME = "AScan";
     using AScanFileSelector                               = Union::Utils::FileReaderSelector<AScanIntf, ASCAN_I_NAME>;
-#endif
 
 } // namespace Union::AScan

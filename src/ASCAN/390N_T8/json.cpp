@@ -1,11 +1,9 @@
 #include "json.hpp"
-
-#if __has_include("QJsonArray")
-    #include <QDateTime>
-    #include <QJsonArray>
-    #include <QJsonDocument>
-    #include <QJsonObject>
-    #include <QLoggingCategory>
+#include <QDateTime>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QLoggingCategory>
 
 namespace Union::__390N_T8 {
     T8_390N_JSON::T8_390N_JSON(const std::wstring &fileName) {
@@ -79,11 +77,7 @@ namespace Union::__390N_T8 {
         (void)idx;
         try {
             auto probeIndex = m_json[CHANNEL_PROBE_TYPE.data()].toInt();
-    #if __has_include("QString")
             return Union::Base::Probe::Index2Name_QtExtra(probeIndex).toStdWString();
-    #else
-            return QString::fromStdString(std::string(Union::Base::Probe::Index2Name(probeIndex))).toStdWString();
-    #endif
         } catch (...) {
             qWarning(QLoggingCategory("390N&T8.JSON")) << "error on function <" __FUNCTION__ ">";
             return {};
@@ -314,4 +308,3 @@ namespace Union::__390N_T8 {
     }
 
 } // namespace Union::__390N_T8
-#endif

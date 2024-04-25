@@ -23,7 +23,7 @@ namespace Union::TOFD_PE::TPE {
         uint32_t               pulseMode;  ///< 脉冲模式
         uint32_t               repeatRate; ///< 重复频率
         int32_t                scanMode;   ///< 扫查模式 0: 平行扫查 1: 非平行扫查
-        int32_t                coderType;  ///< 编码器类型 0: 编码器 1: 事件
+        int32_t                coderType;  ///< 编码器类型 0: 编码器 1: 时间
         float                  tofdFreq;   ///< TOFD频率
         float                  encValue;   ///<
         int32_t                thickness;  ///< 厚度
@@ -75,5 +75,35 @@ namespace Union::TOFD_PE::TPE {
         virtual void pullThroughWaveEvent(double x, double y, double w, double h) override final;
         virtual void backup(void) override final;
         virtual void rollback(void) override final;
+
+        virtual const QJsonObject getTofdParam(void) const override;
+        virtual const QJsonObject getPeParam(void) const override;
+        virtual const QJsonObject getTofdSystemParam(void) const override;
+        virtual const QJsonObject getTofdWorkPieceParam(void) const override;
+        virtual const QJsonObject getTofdChannelParam(void) const override;
+        virtual const QJsonObject getPeWorkPieceParam(void) const override;
+        virtual QString           getEmitVoltage(void) const override;
+        virtual int               getRepeatFreq(void) const override;
+        virtual QString           getScanMode(void) const override;
+        virtual QString           getTriggerMode(void) const override;
+        virtual double            getScanIncrement(void) const override;
+        virtual double            getThicknessOfWorkPiece(void) const override;
+        virtual double            getTofdWeldWidth(void) const override;
+        virtual QString           getGrooveType(void) const override;
+        virtual double            getTofdGain(void) const override;
+        virtual QString           getFilterBand(void) const override;
+        virtual QString           getDetectionMode(void) const override;
+        virtual QString           getTofdProbeType(void) const override;
+        virtual QString           getTofdProbeSize(void) const override;
+        virtual double            getTofdProbeFreq(void) const override;
+        virtual double            getTofdAngle(void) const override;
+        virtual double            getTofdProbeFront(void) const override;
+        virtual double            getTofdZeroPoint(void) const override;
+        virtual double            getPeGain(void) const override;
+        virtual double            getPeProbeFront(void) const override;
+        virtual double            getPeZeroPoint(void) const override;
+        virtual double            getPeProbeFreq(void) const override;
+        virtual QString           getPeCrystalPlate(void) const override;
+        virtual double            getPCS(void) const override;
     };
 } // namespace Union::TOFD_PE::TPE

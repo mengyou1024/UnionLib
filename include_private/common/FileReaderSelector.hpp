@@ -1,22 +1,18 @@
 #pragma once
 
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QtCore>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string_view>
-
-#if __has_include("QtCore")
-    #include <QJsonArray>
-    #include <QJsonObject>
-    #include <QtCore>
-#endif
 
 namespace Union::Utils {
     class ReadIntf {
     public:
         virtual ~ReadIntf() = default;
     };
-#if __has_include("QtCore")
 
     class FileReaderSelectorIntf {
     public:
@@ -175,5 +171,4 @@ namespace Union::Utils {
         FileReaderSelector()                  = default;
         std::map<std::string, FRS_DTYPE> data = {};
     };
-#endif
 } // namespace Union::Utils

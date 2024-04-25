@@ -1,12 +1,11 @@
 #include "Probe.hpp"
 
+#include <QObject>
 #include <array>
 #include <cmath>
 #include <sstream>
 #include <string>
 
-#if __has_include("QString")
-#include <QObject>
 namespace Union::Base::Probe {
     QString Index2Name_QtExtra(int index) {
         static std::array ret = {
@@ -22,34 +21,8 @@ namespace Union::Base::Probe {
         return ret[index];
     }
 } // namespace Union::Base::Probe
-#endif
 
 namespace Union::Base::Probe {
-
-    inline static constexpr std::array ProbeNameMap = {
-        "直探头",
-        "斜探头",
-        "双晶纵波直探头",
-        "穿透探头",
-        "双晶纵波斜探头",
-    };
-
-    std::string_view Index2Name(int index) {
-        if (index < 0 || index >= ProbeNameMap.size()) {
-            return "未知";
-        }
-        return ProbeNameMap[index];
-    }
-
-    int Name2Index(std::string_view name) {
-        for (int i = 0; i < ProbeNameMap.size(); i++) {
-            if (ProbeNameMap[i] == name) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
     std::string CreateProbeChipShape(int index, int a, int b) {
         std::stringstream ss;
         switch (index) {

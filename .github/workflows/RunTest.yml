@@ -12,6 +12,12 @@ jobs:
     steps:
     # 拉取仓库
     - uses: actions/checkout@v4
+    # 安装Qt
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: 5.15.2
+        arch: win64_msvc2019_64
     # 配置MSVC环境
     - uses: ilammy/msvc-dev-cmd@v1
       with:

@@ -206,7 +206,6 @@ namespace Union::__390N_T8 {
     constexpr std::string_view TOFD_SCAN_MODE         = "tofd_scan_mode";      // 扫查方式
     constexpr int              JSON_390N_T8_ASCAN_LEN = 520;
 
-#if __has_include("QJsonObject")
     class T8_390N_JSON : public Union::AScan::AScanIntf {
     public:
         explicit T8_390N_JSON(const std::wstring& fileName);
@@ -215,7 +214,7 @@ namespace Union::__390N_T8 {
         virtual int    getDataSize(void) const override final;
 
         virtual std::vector<std::wstring> getFileNameList(void) const override final;
-        virtual void setFileNameIndex(int index) override final;
+        virtual void                      setFileNameIndex(int index) override final;
 
         virtual Base::Performance getPerformance(int idx) const override final;
         virtual std::string       getDate(int idx) const override final;
@@ -252,6 +251,5 @@ namespace Union::__390N_T8 {
         QJsonObject          m_json = {};
         std::vector<uint8_t> m_data = {};
     };
-#endif
 
 } // namespace Union::__390N_T8

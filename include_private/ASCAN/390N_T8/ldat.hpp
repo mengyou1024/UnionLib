@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../AScanType.hpp"
+#include <QtCore>
+#include <Yo/File>
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -9,14 +11,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#if __has_include("QtCore")
-    #include <QtCore>
-#endif
-
-#if __has_include("Yo/File")
-    #include <Yo/File>
-#endif
 
 namespace Union::__390N_T8 {
 

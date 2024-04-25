@@ -1,6 +1,5 @@
 #include "FileReaderSelector.hpp"
 
-#if __has_include("QtCore")
 namespace Union::Utils {
     std::shared_ptr<FileReaderSelectorIntf> InstanceBuilder::FindInstance(const std::string &name) {
         if (m_data.contains(name)) {
@@ -14,4 +13,3 @@ namespace Union::Utils {
     }
 
 } // namespace Union::Utils
-#endif

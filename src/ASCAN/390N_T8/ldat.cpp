@@ -1,8 +1,7 @@
 #include "ldat.hpp"
 #include <optional>
 
-#if __has_include("Yo/File")
-    #include <Yo/Types>
+#include <Yo/Types>
 
 namespace Yo::File {
     using namespace Union::__390N_T8;
@@ -12,18 +11,13 @@ namespace Yo::File {
     }
 } // namespace Yo::File
 
-#endif
-
 namespace Union::__390N_T8 {
     std::unique_ptr<Union::AScan::AScanIntf> LDAT::FromFile(const std::wstring& fileName) {
-#if __has_include("Yo/File")
-
         auto ldat = std::make_unique<Union::__390N_T8::LDAT>();
         auto ret  = Yo::File::ReadFile(fileName, *(ldat.get()));
         if (ret) {
             return ldat;
         }
-#endif
         return nullptr;
     }
 
@@ -95,11 +89,7 @@ namespace Union::__390N_T8 {
     }
 
     std::wstring LDAT::getProbe(int idx) const {
-#if __has_include("QString")
         return Union::Base::Probe::Index2Name_QtExtra(ldat.at(idx).chanel_data.ch_probe_type).toStdWString();
-#else
-        return Yo::Types::WStringFromString(std::string(Union::Base::Probe::Index2Name(ldat.at(idx).chanel_data.ch_probe_type)));
-#endif
     }
 
     double LDAT::getProbeFrequence(int idx) const {

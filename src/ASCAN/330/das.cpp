@@ -69,11 +69,7 @@ namespace Union::__330 {
 
     std::wstring DASType::getProbe(int idx) const {
         (void)idx;
-#if __has_include("QString")
         return Union::Base::Probe::Index2Name_QtExtra((channelStatus.sys >> 12) & 0x07).toStdWString();
-#else
-        return Yo::Types::WStringFromString(std::string(Union::Base::Probe::Index2Name((channelStatus.sys >> 12) & 0x07)));
-#endif
     }
 
     double DASType::getProbeFrequence(int idx) const {

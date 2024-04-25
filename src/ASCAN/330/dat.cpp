@@ -122,11 +122,7 @@ namespace Union::__330 {
 
     std::wstring DATType::getProbe(int idx) const {
         (void)idx;
-#if __has_include("QString")
         return Union::Base::Probe::Index2Name_QtExtra((getHead().channel_status.sys >> 12) & 0x07).toStdWString();
-#else
-        return Yo::Types::WStringFromString(std::string(Union::Base::Probe::Index2Name((getHead().channel_status.sys >> 12) & 0x07)));
-#endif
     }
 
     double DATType::getProbeFrequence(int idx) const {

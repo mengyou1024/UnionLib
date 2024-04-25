@@ -2,7 +2,6 @@
 #include <tuple>
 
 namespace Union::AScan {
-#if __has_include("QJsonObject")
     QList<QPointF> AScanIntf::getAScanSeriesData(int index, double softGain) const {
         QList<QPointF> ret;
         const auto     AScanStep = getAxisLen(index) / static_cast<double>(getScanData(index).size());
@@ -15,7 +14,6 @@ namespace Union::AScan {
         }
         return ret;
     }
-#endif
 
     std::function<double(double)> AScanIntf::getLineExpr(int idx, const std::vector<int>& _index, const std::vector<uint8_t>& value, const std::array<double, 2>& r_range, const std::array<double, 2>& v_range, std::function<double(double, double)> func_db_diff) const {
         // TODO: 曲线平滑
