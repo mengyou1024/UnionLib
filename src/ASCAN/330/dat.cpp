@@ -52,6 +52,9 @@ namespace Union::__330 {
             int32_t infoLen    = -1;
             ret += Yo::File::__Read(file, encoderLen, file_size);
             ret += Yo::File::__Read(file, infoLen, file_size);
+            if (encoderLen >= file_size || infoLen >= file_size) {
+                return 0;
+            }
             std::vector<uint8_t> rawData;
             rawData.resize(encoderLen);
             ret += Yo::File::__Read(file, rawData, file_size);
