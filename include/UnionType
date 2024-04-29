@@ -5,6 +5,7 @@
 
 #include "../include_private/ASCAN/330/das.hpp"
 #include "../include_private/ASCAN/330/dat.hpp"
+#include "../include_private/ASCAN/330/serial_330.hpp"
 #include "../include_private/ASCAN/390N_T8/json.hpp"
 #include "../include_private/ASCAN/390N_T8/ldat.hpp"
 #include "../include_private/ASCAN/AScanType.hpp"

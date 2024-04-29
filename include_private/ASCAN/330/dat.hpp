@@ -249,5 +249,6 @@ namespace Union::__330 {
         int              getOption(int idx) const noexcept;
         double           getUnit(int idx) const noexcept;
         const __DATHead& getHead() const;
+        uint8_t convertDB2GateAMP(int idx, int db) const;
     };
 } // namespace Union::__330

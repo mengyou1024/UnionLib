@@ -34,6 +34,7 @@ TEST(Union, readFile) {
     EXPECT_TRUE(Union::TOFD_PE::TPE::TpeType::FromFile(L"test_file/2.tpe"));
     EXPECT_FALSE(Union::TOFD_PE::TPE::TpeType::FromFile(L"test_file/3.tpe"));
     EXPECT_TRUE(Union::__330::DATType::FromFile(L"test_file/23-11-03.DAT"));
+    EXPECT_TRUE(Union::__330::Serial_330::FromFile(L"test_file/serial.cod"));
 }
 
 TEST(__330, lzw_decompressed) {

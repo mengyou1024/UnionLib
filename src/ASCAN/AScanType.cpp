@@ -25,41 +25,50 @@ namespace Union::AScan {
         }
 
         return [=, this](double val) -> double {
-            val = ValueMap(val, {getAxisBias(idx), getAxisBias(idx) + getAxisLen(idx)}, v_range);
-            if (val <= index[0]) {
-                return value.at(0);
-            } else {
-                std::pair<double, double>                first  = {};
-                std::optional<std::pair<double, double>> second = std::nullopt;
-                if (index.size() == 1) {
-                    first = {index[0], value[0]};
+            try {
+                val = ValueMap(val, {getAxisBias(idx), getAxisBias(idx) + getAxisLen(idx)}, v_range);
+                if (val <= index.at(0)) {
+                    return value.at(0);
+                } else if (val >= index.back()) {
+                    return value.back();
                 } else {
-                    bool in_range = false;
-                    for (int i = 1; std::cmp_less(i, index.size()); i++) {
-                        if (val >= index[i - 1] && val <= index[i]) {
-                            first    = {index[i - 1], value[i - 1]};
-                            second   = {index[i], value[i]};
-                            in_range = true;
+                    std::pair<double, double>                first  = {};
+                    std::optional<std::pair<double, double>> second = std::nullopt;
+                    if (index.size() == 1) {
+                        first = {index.at(0), value.at(0)};
+                    } else {
+                        bool in_range = false;
+                        for (int i = 1; std::cmp_less(i, index.size()); i++) {
+                            if (val >= index.at(i - 1) && val <= index.at(i)) {
+                                first    = {index.at(i - 1), value.at(i - 1)};
+                                second   = {index.at(i), value.at(i)};
+                                in_range = true;
+                            }
+                        }
+                        if (!in_range) {
+                            first  = {index.back(), value.back()};
+                            second = std::nullopt;
                         }
                     }
-                    if (!in_range) {
-                        first  = {index.back(), value.back()};
-                        second = std::nullopt;
+
+                    auto CalcluateValue = [=](std::pair<double, double> pt = {}) -> double {
+                        return Union::CalculateGainOutput(pt.second, func_db_diff(val, pt.first));
+                    };
+
+                    if (second.has_value()) {
+                        auto value_first   = CalcluateValue(first);
+                        auto vallue_second = CalcluateValue(second.value());
+                        auto first_rate    = (val - first.first) / (second->first - first.first);
+                        auto second_rate   = (second->first - val) / (second->first - first.first);
+                        return value_first * second_rate + vallue_second * first_rate;
                     }
+                    return CalcluateValue(first);
                 }
-
-                auto CalcluateValue = [=](std::pair<double, double> pt = {}) -> double {
-                    return Union::CalculateGainOutput(pt.second, func_db_diff(val, pt.first));
-                };
-
-                if (second.has_value()) {
-                    auto value_first   = CalcluateValue(first);
-                    auto vallue_second = CalcluateValue(second.value());
-                    auto first_rate    = (val - first.first) / (second->first - first.first);
-                    auto second_rate   = (second->first - val) / (second->first - first.first);
-                    return value_first * second_rate + vallue_second * first_rate;
-                }
-                return CalcluateValue(first);
+            } catch (std::exception& e) {
+#if __has_include("QtCore")
+                qDebug(QLoggingCategory("AScanType")) << "getLineExpr error! msg:" << e.what();
+#endif
+                return 0;
             }
         };
     }

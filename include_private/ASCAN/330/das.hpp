@@ -157,7 +157,7 @@ namespace Union::__330 {
         virtual int    getDataSize(void) const final;
 
         virtual std::vector<std::wstring> getFileNameList(void) const override final;
-        virtual void setFileNameIndex(int index) override final;
+        virtual void                      setFileNameIndex(int index) override final;
 
         // IMPL
         Base::Performance getPerformance(int idx) const override final;
@@ -190,8 +190,9 @@ namespace Union::__330 {
         virtual std::function<double(double)> getDACLineExpr(int idx) const override final;
 
     private:
-        int    getOption(void) const noexcept;
-        double getUnit(void) const noexcept;
+        int     getOption(void) const noexcept;
+        double  getUnit(void) const noexcept;
+        uint8_t convertDB2GateAMP(int db) const;
     };
 #pragma pack()
 } // namespace Union::__330

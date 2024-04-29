@@ -2,7 +2,6 @@
 #include "lzw.hpp"
 #include <Yo/File>
 #include <Yo/Types>
-#include <chrono>
 #include <ctime>
 #include <numeric>
 #include <regex>
@@ -165,7 +164,7 @@ namespace Union::__330 {
 
     int DATType::getChannel(int idx) const {
         (void)idx;
-        return -1;
+        return ((getHead().channel_status.sys >> 12) & 0x0F) + 1;
     }
 
     std::string DATType::getInstrumentName(void) const {
@@ -245,16 +244,36 @@ namespace Union::__330 {
     }
 
     Union::AScan::DistanceMode DATType::getDistanceMode(int idx) const {
-        // TODO: 返回正确的DistanceMode
-        return Union::AScan::DistanceMode_Y;
+        const auto opt = getOption(idx);
+        if (opt == 0) {
+            return Union::AScan::DistanceMode_Y;
+        } else if (opt == 1) {
+            return Union::AScan::DistanceMode_X;
+        }
+        return Union::AScan::DistanceMode_S;
     }
 
     std::optional<Base::AVG> DATType::getAVG(int idx) const {
-        return std::optional<Base::AVG>();
+        if ((((getHead().channel_status.status >> 4) & 0b1) == 1) || ((((getHead().channel_status.status >> 3) & 0b1)) == 1)) {
+            Base::AVG ret;
+            ret.baseGain  = getHead().channel_param.BaseGain;
+            ret.biasGain  = 0;
+            ret.isSubline = false;
+            return ret;
+        }
+        return std::nullopt;
     }
 
     std::optional<Base::DAC> DATType::getDAC(int idx) const {
-        return std::optional<Base::DAC>();
+        if (!(((getHead().channel_status.status >> 4) & 0b1) == 1) && !((((getHead().channel_status.status >> 3) & 0b1)) == 1)) {
+            Base::DAC ret;
+            // TODO: 填入AVG数据
+            ret.baseGain  = getHead().channel_param.BaseGain;
+            ret.biasGain  = 0;
+            ret.isSubline = false;
+            return ret;
+        }
+        return std::nullopt;
     }
 
     Union::AScan::DAC_Standard DATType::getDACStandard(int idx) const {
@@ -262,11 +281,34 @@ namespace Union::__330 {
     }
 
     std::function<double(double)> DATType::getAVGLineExpr(int idx) const {
-        return std::function<double(double)>();
+        if (getAVG() == std::nullopt) {
+            return [](double) { return 0.0; };
+        }
+        std::vector<int>     index;
+        std::vector<uint8_t> value;
+        index.resize(getHead().dac.num);
+        value.resize(getHead().dac.num);
+        for (auto i = 0; i < getHead().dac.num; i++) {
+            index[i] = getHead().dac.dist[i];
+            value[i] = convertDB2GateAMP(idx, getHead().dac.db[i]);
+        }
+        auto func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
+        return getLineExpr(idx, index, value, {getAxisBias(), getAxisLen()}, {0.0, 480.0}, func);
     }
 
     std::function<double(double)> DATType::getDACLineExpr(int idx) const {
-        return std::function<double(double)>();
+        if (getDAC() == std::nullopt) {
+            return [](double) { return 0.0; };
+        }
+        std::vector<int>     index;
+        std::vector<uint8_t> value;
+        index.resize(getHead().dac.num);
+        value.resize(getHead().dac.num);
+        for (auto i = 0; i < getHead().dac.num; i++) {
+            index[i] = getHead().dac.dist[i];
+            value[i] = convertDB2GateAMP(idx, getHead().dac.db[i]);
+        }
+        return getLineExpr(idx, index, value, {getAxisBias(), getAxisLen()}, {0.0, 480.0});
     }
 
     int DATType::getOption(int idx) const noexcept {
@@ -286,5 +328,9 @@ namespace Union::__330 {
     }
     const __DATHead &DATType::getHead() const {
         return m_data.at(m_fileName_index).first;
+    }
+
+    uint8_t DATType::convertDB2GateAMP(int idx, int db) const {
+        return static_cast<uint8_t>(std::pow(10.0, (200 * log10(255) - db + getBaseGain(idx) * 10.0 + getSurfaceCompentationGain(idx) * 10.0) / 200.0));
     }
 } // namespace Union::__330

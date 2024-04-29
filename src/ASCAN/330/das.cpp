@@ -1,7 +1,6 @@
 #include "das.hpp"
 #include <Yo/File>
 #include <Yo/Types>
-#include <chrono>
 #include <cstdio>
 #include <numbers>
 
@@ -109,7 +108,7 @@ namespace Union::__330 {
 
     int DASType::getChannel(int idx) const {
         (void)idx;
-        return -1;
+        return ((systemStatus.sys >> 12) & 0x0F) + 1;
     }
 
     std::string DASType::getInstrumentName(void) const {
@@ -131,6 +130,7 @@ namespace Union::__330 {
     }
 
     const std::vector<uint8_t> &DASType::getScanData(int idx) const {
+        (void)idx;
         return data;
     }
 
@@ -188,24 +188,35 @@ namespace Union::__330 {
     }
 
     Union::AScan::DistanceMode DASType::getDistanceMode(int idx) const {
-        // TODO: 返回正确的DistanceMode
-        return Union::AScan::DistanceMode_Y;
+        (void)idx;
+        const auto opt = getOption();
+        if (opt == 0) {
+            return Union::AScan::DistanceMode_Y;
+        } else if (opt == 1) {
+            return Union::AScan::DistanceMode_X;
+        }
+        return Union::AScan::DistanceMode_S;
     }
 
     std::optional<Base::AVG> DASType::getAVG(int idx) const {
-        if (channelStatus.status & 0b001) {
+        if ((((channelStatus.status >> 4) & 0b1) == 1) || ((((channelStatus.status >> 3) & 0b1)) == 1)) {
             Base::AVG ret;
-            // TODO: 填入AVG数据
-            return std::nullopt;
+            ret.baseGain  = channelParam.baseGain;
+            ret.biasGain  = 0;
+            ret.isSubline = false;
+            return ret;
         }
         return std::nullopt;
     }
 
     std::optional<Base::DAC> DASType::getDAC(int idx) const {
-        if (channelStatus.status & 0b01) {
+        if (!(((channelStatus.status >> 4) & 0b1) == 1) && !((((channelStatus.status >> 3) & 0b1)) == 1)) {
             Base::DAC ret;
             // TODO: 填入AVG数据
-            return std::nullopt;
+            ret.baseGain  = channelParam.baseGain;
+            ret.biasGain  = 0;
+            ret.isSubline = false;
+            return ret;
         }
         return std::nullopt;
     }
@@ -215,11 +226,35 @@ namespace Union::__330 {
     }
 
     std::function<double(double)> DASType::getAVGLineExpr(int idx) const {
-        return std::function<double(double)>();
+        if (getAVG() == std::nullopt) {
+            return [](double) { return 0.0; };
+        }
+        std::vector<int>     index;
+        std::vector<uint8_t> value;
+        index.resize(dacParam.num);
+        value.resize(dacParam.num);
+        for (auto i = 0; i < dacParam.num; i++) {
+            index[i] = dacParam.dist[i];
+            value[i] = convertDB2GateAMP(dacParam.dB[i]);
+        }
+        auto func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
+        return getLineExpr(idx, index, value, {getAxisBias(), getAxisLen()}, {0.0, 480.0}, func);
     }
 
     std::function<double(double)> DASType::getDACLineExpr(int idx) const {
-        return std::function<double(double)>();
+        // FIXME: DAC曲线不正确
+        if (getDAC() == std::nullopt) {
+            return [](double) { return 0.0; };
+        }
+        std::vector<int>     index;
+        std::vector<uint8_t> value;
+        index.resize(dacParam.num);
+        value.resize(dacParam.num);
+        for (auto i = 0; i < dacParam.num; i++) {
+            index[i] = dacParam.dist[i];
+            value[i] = convertDB2GateAMP(dacParam.dB[i]);
+        }
+        return getLineExpr(idx, index, value, {getAxisBias(), getAxisLen()}, {0.0, 480.0});
     }
 
     int DASType::getOption(void) const noexcept {
@@ -235,4 +270,9 @@ namespace Union::__330 {
         }
         return 1.0;
     }
+
+    uint8_t DASType::convertDB2GateAMP(int db) const {
+        return static_cast<uint8_t>(std::pow(10.0, (200 * log10(255) - db + channelParam.baseGain + getSurfaceCompentationGain(0)) / 200.0));
+    }
+
 } // namespace Union::__330
