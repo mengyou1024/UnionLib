@@ -26,4 +26,6 @@ target_include_directories(UnionLib PRIVATE
     include_private/TOFD_PE
     include_private/TOFD_PE/TPE
     include_private/Bridge
+    include_private/TOFD_MULTI/
+    include_private/TOFD_MULTI/9x0
 )

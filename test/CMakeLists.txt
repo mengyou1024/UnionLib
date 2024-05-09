@@ -20,13 +20,13 @@ FetchContent_Declare(MISC_UTILS
 
 FetchContent_MakeAvailable(MISC_UTILS)
 
-find_package(Qt5 5.15 REQUIRED COMPONENTS Core SerialPort)
+find_package(Qt5 5.15 REQUIRED COMPONENTS Core SerialPort Widgets)
 
 set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(.. UniLib)
 add_executable(unit_tests test_union.cpp)
 target_link_libraries(unit_tests PRIVATE gtest_main UnionLib)
-target_link_libraries(UnionLib PUBLIC misc_utils Qt5::Core Qt5::SerialPort)
+target_link_libraries(UnionLib PUBLIC misc_utils Qt5::Core Qt5::SerialPort Qt5::Widgets)
 target_include_directories(unit_tests PRIVATE ../include_private)
 include(GoogleTest)
 gtest_discover_tests(unit_tests PROPERTIES LABELS "File" DISCOVERY_TIMEOUT 240)
