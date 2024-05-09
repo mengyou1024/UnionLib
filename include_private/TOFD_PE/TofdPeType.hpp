@@ -43,14 +43,14 @@ namespace Union::TOFD_PE {
 
         /**
          * @brief 获取TOFD延时(mm)
-         * @return double
+         * @return double (mm)
          */
         virtual double getTofdDelay(void) const = 0;
 
         /**
          * @brief 获取TOFD范围(mm)
          *
-         * @return double
+         * @return double (mm)
          */
         virtual double getTofdRange(void) const = 0;
 
@@ -90,7 +90,7 @@ namespace Union::TOFD_PE {
         virtual double getPeRange(void) const = 0;
 
         /**
-         * @brief 获取PE角度
+         * @brief 获取PE角度(°)
          *
          * @return double (°)
          */
@@ -165,7 +165,7 @@ namespace Union::TOFD_PE {
         virtual QString getEmitVoltage(void) const = 0;
 
         /**
-         * @brief 获取重复频率
+         * @brief 获取重复频率(Hz)
          * @return int (Hz)
          */
         virtual int getRepeatFreq(void) const = 0;
@@ -183,19 +183,19 @@ namespace Union::TOFD_PE {
         virtual QString getTriggerMode(void) const = 0;
 
         /**
-         * @brief 获取扫查增量
+         * @brief 获取扫查增量(mm)
          * @return double (mm)
          */
         virtual double getScanIncrement(void) const = 0;
 
         /**
-         * @brief 获取工件厚度
+         * @brief 获取工件厚度(mm)
          * @return double (mm)
          */
         virtual double getThicknessOfWorkPiece(void) const = 0;
 
         /**
-         * @brief 获取焊缝宽度
+         * @brief 获取焊缝宽度(mm)
          * @return double (mm)
          */
         virtual double getTofdWeldWidth(void) const = 0;
@@ -237,49 +237,49 @@ namespace Union::TOFD_PE {
         virtual QString getTofdProbeSize(void) const = 0;
 
         /**
-         * @brief 获取探头频率
+         * @brief 获取探头频率(MHz)
          * @return double (MHz)
          */
         virtual double getTofdProbeFreq(void) const = 0;
 
         /**
-         * @brief 获取TOFD角度
+         * @brief 获取TOFD角度(°)
          * @return double (°)
          */
         virtual double getTofdAngle(void) const = 0;
 
         /**
-         * @brief 获取TOFD前沿
+         * @brief 获取TOFD前沿(mm)
          * @return double (mm)
          */
         virtual double getTofdProbeFront(void) const = 0;
 
         /**
-         * @brief 获取TOFD零点
+         * @brief 获取TOFD零点(μs)
          * @return double (μs)
          */
         virtual double getTofdZeroPoint(void) const = 0;
 
         /**
-         * @brief 获取PE增益
+         * @brief 获取PE增益(dB)
          * @return double (dB)
          */
         virtual double getPeGain(void) const = 0;
 
         /**
-         * @brief 获取PE探头前沿
+         * @brief 获取PE探头前沿(mm)
          * @return double (mm)
          */
         virtual double getPeProbeFront(void) const = 0;
 
         /**
-         * @brief 获取PE零点
-         * @return double(us)
+         * @brief 获取PE零点(μs)
+         * @return double (μs)
          */
         virtual double getPeZeroPoint(void) const = 0;
 
         /**
-         * @brief 获取PE频率
+         * @brief 获取PE频率(MHz)
          * @return double (MHz)
          */
         virtual double getPeProbeFreq(void) const = 0;
@@ -291,7 +291,7 @@ namespace Union::TOFD_PE {
         virtual QString getPeCrystalPlate(void) const = 0;
 
         /**
-         * @brief 获取PCS
+         * @brief 获取PCS(mm)
          * @return double (mm)
          */
         virtual double getPCS(void) const = 0;
@@ -317,6 +317,15 @@ namespace Union::TOFD_PE {
         }
     };
 
+    /**
+     * @brief TOFD/PE类型的UI名称
+     *
+     */
     inline static constexpr std::string_view TOFD_PE_I_NAME = "TOFD_PE";
-    using TofdPeFileSelector                                = Union::Utils::FileReaderSelector<TofdPeIntf, TOFD_PE_I_NAME>;
+
+    /**
+     * @brief TOFD/PE类型的文件选择器
+     *
+     */
+    using TofdPeFileSelector = Union::Utils::FileReaderSelector<TofdPeIntf, TOFD_PE_I_NAME>;
 } // namespace Union::TOFD_PE

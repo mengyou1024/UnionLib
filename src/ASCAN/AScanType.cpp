@@ -29,8 +29,6 @@ namespace Union::AScan {
                 val = ValueMap(val, {getAxisBias(idx), getAxisBias(idx) + getAxisLen(idx)}, v_range);
                 if (val <= index.at(0)) {
                     return value.at(0);
-                } else if (val >= index.back()) {
-                    return value.back();
                 } else {
                     std::pair<double, double>                first  = {};
                     std::optional<std::pair<double, double>> second = std::nullopt;
@@ -65,9 +63,7 @@ namespace Union::AScan {
                     return CalcluateValue(first);
                 }
             } catch (std::exception& e) {
-#if __has_include("QtCore")
                 qDebug(QLoggingCategory("AScanType")) << "getLineExpr error! msg:" << e.what();
-#endif
                 return 0;
             }
         };

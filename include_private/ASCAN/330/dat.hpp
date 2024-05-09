@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../AScanType.hpp"
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string_view>
@@ -109,7 +110,7 @@ namespace Union::__330 {
         uint16_t DepthGain; // 深度补偿值
         int16_t  CompGain;  /*补偿增益	*/
 
-        int16_t lineGain[6]; // 六条线偏移
+        std::array<int16_t, 6> lineGain; // 六条线偏移
 
         int16_t gatedB;
         int16_t depth; // 缺陷高度
@@ -136,11 +137,11 @@ namespace Union::__330 {
 
     typedef struct
     {
-        uint16_t db[10];
-        uint16_t dist[10];
-        int16_t  num;
-        uint16_t diameter; // 反射体直径、长度
-        uint16_t length;
+        std::array<uint16_t, 10> db;
+        std::array<uint16_t, 10> dist;
+        int16_t              num;
+        uint16_t             diameter; // 反射体直径、长度
+        uint16_t             length;
     } DAC_DAT;
 
     struct WELD_PARA_DAT {
@@ -165,16 +166,8 @@ namespace Union::__330 {
     };
 
     struct __DATType {
-        // std::array<uint8_t, 500>     ascan_data;
-        std::vector<uint8_t>         ascan_data;
-        HEADER_TIMESTAMP_DAT         header_timestamp;
-        SYSTEM_STATUS_DAT            system_status;
-        CHANNEL_STATUS_DAT           channel_status;
-        CHANNEL_PARAMETER_DAT        channel_param;
-        std::array<GATE_PARA_DAT, 2> gate_param;
-        DAC_DAT                      dac;
-        WELD_PARA_DAT                weld_param;
-        uint16_t :16;
+        std::vector<uint8_t>    ascan_data;
+        std::array<uint32_t, 4> wave_para;
     };
 #pragma pack()
 
@@ -194,7 +187,7 @@ namespace Union::__330 {
     inline static constexpr auto ASCAN_DATA_SIZE = 500;
     inline static constexpr auto DAT_HEAD_SIZE   = sizeof(HEADER_TIMESTAMP_DAT) + sizeof(SYSTEM_STATUS_DAT) + sizeof(CHANNEL_STATUS_DAT) +
                                                  sizeof(CHANNEL_PARAMETER_DAT) + sizeof(std::array<GATE_PARA_DAT, 2>) + sizeof(DAC_DAT) + sizeof(WELD_PARA_DAT);
-    inline static constexpr auto ASCAN_FRAME_SIZE = sizeof(__DATType) - sizeof(std::vector<uint8_t>) + ASCAN_DATA_SIZE;
+    inline static constexpr auto ASCAN_FRAME_SIZE = 800;
 
     class DATType : public Union::AScan::AScanIntf {
     private:
@@ -245,10 +238,14 @@ namespace Union::__330 {
         virtual std::function<double(double)> getAVGLineExpr(int idx) const override final;
         virtual std::function<double(double)> getDACLineExpr(int idx) const override final;
 
+        virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
+
+        std::array<QVector<QPointF>, 3> unResolvedGetDacLines(int idx) const;
+
     private:
         int              getOption(int idx) const noexcept;
         double           getUnit(int idx) const noexcept;
         const __DATHead& getHead() const;
-        uint8_t convertDB2GateAMP(int idx, int db) const;
+        uint8_t          convertDB2GateAMP(int idx, int db) const;
     };
 } // namespace Union::__330

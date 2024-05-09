@@ -171,6 +171,8 @@ namespace Union::__390N_T8 {
 
         std::vector<_ldat> ldat = {};
 
+        std::vector<std::wstring> m_fileNameList = {};
+
     public:
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& fileName);
 
@@ -210,6 +212,8 @@ namespace Union::__390N_T8 {
 
         std::function<double(double)> getAVGLineExpr(int idx) const override final;
         std::function<double(double)> getDACLineExpr(int idx) const override final;
+
+        void pushFileNameList(const std::wstring& fileName);
     };
 
 } // namespace Union::__390N_T8

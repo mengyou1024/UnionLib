@@ -248,8 +248,41 @@ namespace Union::__390N_T8 {
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& file_name);
 
     private:
-        QJsonObject          m_json = {};
-        std::vector<uint8_t> m_data = {};
+        std::vector<std::wstring> m_fileNameList = {};
+        struct AScanData {
+            std::array<Base::Gate, 2>  gate                    = {}; ///< 波门
+            std::vector<uint8_t>       ascan                   = {}; ///< A扫数据
+            double                     axisBias                = {}; ///< 坐标轴偏移
+            double                     axisLen                 = {}; ///< 坐标轴长度
+            double                     baseGain                = {}; ///< 基本增益
+            double                     scanGain                = {}; ///< 扫查增益
+            double                     surfaceCompentationGain = {}; ///< 表面补偿增益
+            int                        suppression             = {}; ///< 抑制
+            Union::AScan::DistanceMode distanceMode            = {}; ///< 声程模式
+            std::optional<Base::AVG>   avg                     = {}; ///< AVG曲线
+            std::optional<Base::DAC>   dac                     = {}; ///< DAC曲线
+            Union::AScan::DAC_Standard std                     = {}; ///< DAC标准
+        };
+
+        struct AScanType {
+            std::vector<AScanData> data           = {};
+            Base::Performance      performance    = {}; ///< 性能
+            std::string            time           = {}; ///< 时间
+            std::wstring           probe          = {}; ///< 探头
+            double                 probeFrequence = {}; ///< 探头频率
+            std::string            probeChipShape = {}; ///< 探头晶片尺寸
+            double                 angle          = {}; ///< 角度
+            double                 soundVelocity  = {}; ///< 声速
+            double                 frontDistance  = {}; ///< 前沿
+            double                 zeroPointBias  = {}; ///< 零点偏移
+            double                 samplingDelay  = {}; ///< 采样延迟
+            int                    channel        = {}; ///< 通道
+            std::string            instrumentName = {}; ///< 仪器型号
+        };
+
+        std::optional<AScanType> __390N_T8_JSON_READ(const std::wstring& fileName);
+        std::optional<AScanType> m_ascan = std::nullopt;
+        ;
     };
 
 } // namespace Union::__390N_T8

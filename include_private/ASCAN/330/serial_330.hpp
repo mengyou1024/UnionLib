@@ -89,6 +89,9 @@ namespace Union::__330 {
         virtual std::function<double(double)> getAVGLineExpr(int idx) const override final;
         virtual std::function<double(double)> getDACLineExpr(int idx) const override final;
 
+
+        virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
+        std::array<QVector<QPointF>, 3> unResolvedGetDacLines(int idx) const;
     private:
         int    getOption(void) const noexcept;
         double getUnit(void) const noexcept;

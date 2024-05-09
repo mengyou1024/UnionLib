@@ -1,8 +1,11 @@
 #include "das.hpp"
+#include <QFileInfo>
 #include <Yo/File>
 #include <Yo/Types>
 #include <cstdio>
 #include <numbers>
+
+#include "_330_draw_dac.hpp"
 
 namespace Yo::File {
     template <>
@@ -17,6 +20,29 @@ namespace Union::__330 {
         auto ret = std::make_unique<DASType>();
         auto res = Yo::File::ReadFile(fileName, *(ret.get()));
         if (res) {
+            auto                                  _raw = dynamic_cast<DASType *>(ret.get());
+            Union::Temp::Unresovled::DrawDacParam _temp;
+            _temp.m_unit         = _raw->systemStatus.unit;
+            _temp.m_sys          = _raw->systemStatus.sys;
+            _temp.m_ch_status    = _raw->channelStatus.status;
+            _temp.m_ch_option    = _raw->channelStatus.option;
+            _temp.m_ch_sys       = _raw->channelStatus.status;
+            _temp.m_ch_Range     = _raw->channelParam.range;
+            _temp.m_ch_Delay     = _raw->channelParam.delay;
+            _temp.m_ch_Speed     = _raw->channelParam.speed;
+            _temp.m_ch_Crystal_w = _raw->channelParam.crystal_w;
+            _temp.m_ch_Crystal_l = _raw->channelParam.crystal_l;
+            _temp.m_ch_Frequence = _raw->channelParam.freqence;
+            _temp.m_ch_lineGain  = _raw->channelParam.lineGain;
+            _temp.m_ch_BaseGain  = _raw->channelParam.baseGain;
+            _temp.m_ch_gatedB    = _raw->channelParam.gateDB;
+            _temp.m_dac_db       = _raw->dacParam.dB;
+            _temp.m_dac_dist     = _raw->dacParam.dist;
+            _temp.m_dac_num      = _raw->dacParam.num;
+            _temp.m_range_a      = _raw->getAxisLen(0);
+            _raw->setUnResolvedGetDacLines(DrawDac(_temp), 0);
+            QFileInfo info(QString::fromStdWString(fileName));
+            _raw->m_fileNameList.push_back(info.baseName().toStdWString());
             return ret;
         }
         return nullptr;
@@ -40,7 +66,7 @@ namespace Union::__330 {
     }
 
     std::vector<std::wstring> DASType::getFileNameList(void) const {
-        return {};
+        return m_fileNameList;
     }
 
     void DASType::setFileNameIndex(int index) {
@@ -98,7 +124,7 @@ namespace Union::__330 {
 
     double DASType::getZeroPointBias(int idx) const {
         (void)idx;
-        return channelParam.offset;
+        return channelParam.offset / 160.0;
     }
 
     double DASType::getSamplingDelay(int idx) const {
@@ -199,62 +225,134 @@ namespace Union::__330 {
     }
 
     std::optional<Base::AVG> DASType::getAVG(int idx) const {
-        if ((((channelStatus.status >> 4) & 0b1) == 1) || ((((channelStatus.status >> 3) & 0b1)) == 1)) {
-            Base::AVG ret;
-            ret.baseGain  = channelParam.baseGain;
-            ret.biasGain  = 0;
-            ret.isSubline = false;
-            return ret;
-        }
+        (void)idx;
+        // 330 不使用该参数
         return std::nullopt;
     }
 
     std::optional<Base::DAC> DASType::getDAC(int idx) const {
-        if (!(((channelStatus.status >> 4) & 0b1) == 1) && !((((channelStatus.status >> 3) & 0b1)) == 1)) {
-            Base::DAC ret;
-            // TODO: 填入AVG数据
-            ret.baseGain  = channelParam.baseGain;
-            ret.biasGain  = 0;
-            ret.isSubline = false;
-            return ret;
-        }
+        (void)idx;
+        // 330 不使用该参数
         return std::nullopt;
     }
 
     Union::AScan::DAC_Standard DASType::getDACStandard(int idx) const {
+        (void)idx;
+        // 330 不使用该参数
         return Union::AScan::DAC_Standard();
     }
 
     std::function<double(double)> DASType::getAVGLineExpr(int idx) const {
-        if (getAVG() == std::nullopt) {
-            return [](double) { return 0.0; };
-        }
-        std::vector<int>     index;
-        std::vector<uint8_t> value;
-        index.resize(dacParam.num);
-        value.resize(dacParam.num);
-        for (auto i = 0; i < dacParam.num; i++) {
-            index[i] = dacParam.dist[i];
-            value[i] = convertDB2GateAMP(dacParam.dB[i]);
-        }
-        auto func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
-        return getLineExpr(idx, index, value, {getAxisBias(), getAxisLen()}, {0.0, 480.0}, func);
+        (void)idx;
+        // 330 不使用该参数
+        return [](double) { return 0.0; };
     }
 
     std::function<double(double)> DASType::getDACLineExpr(int idx) const {
-        // FIXME: DAC曲线不正确
-        if (getDAC() == std::nullopt) {
-            return [](double) { return 0.0; };
+        (void)idx;
+        // 330 不使用该参数
+        return [](double) { return 0.0; };
+    }
+
+    const std::array<QVector<QPointF>, 3> &DASType::unResolvedGetDacLines(int idx) const {
+        (void)idx;
+        return m_dacLines;
+    }
+
+    void DASType::setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3> &dat, int idx) {
+        (void)idx;
+        m_dacLines = dat;
+    }
+
+    QJsonArray DASType::createGateValue(int idx, double soft_gain) const {
+        QJsonArray ret = Union::AScan::AScanIntf::createGateValue(idx, soft_gain);
+
+        QString strMRange;
+        int     mode;
+        if (((channelStatus.status >> 2) & 0x01) == 1) {
+            mode = (((channelStatus.option >> 28) & 0x0f) % 6) + 1;
+        } else if (((channelStatus.status >> 3) & 0x01) == 1) {
+            int Ax = channelStatus.option; /*标度：垂直\水平\距离2位	d3d2*/
+            Ax     = (Ax >> 26);
+            Ax     = (Ax & 0x03);
+            mode   = Ax + 10;
+        } else
+            mode = -1;
+
+        if (mode == 1) {
+            if (systemStatus.unit % 4) {
+                strMRange = "Φ" + QString::number(dacParam.diameter / 10.0 / 25.4, 'f', 3) + " x " + QString::number(dacParam.length / 10.0 / 25.4, 'f', 3);
+
+            } else {
+                strMRange = "Φ" + QString::number(dacParam.diameter / 10) + " x " + QString::number(dacParam.length / 10);
+            }
+            float fOffset = int(channelParam.wavepara[3]) / 10.0;
+            if (fOffset > 0) {
+                strMRange += " +" + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+            } else {
+                strMRange += " " + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+            }
+            strMRange += "dB";
+        } else if (mode > 1) {
+            if ((mode - 2) == 0)
+                strMRange = "RL";
+            else if ((mode - 3) == 0)
+                strMRange = "SL";
+            else if ((mode - 4) == 0)
+                strMRange = "EL";
+            else if ((mode - 5) == 0)
+                strMRange = "4L";
+            else if ((mode - 6) == 0)
+                strMRange = "5L";
+            else if ((mode - 7) == 0)
+                strMRange = "6L";
+            else if ((mode - 10) == 0 || (mode - 11) == 0) {
+                if (systemStatus.unit % 4)
+                    strMRange = "Φ" + QString::number(((float)(10 * pow(10, (int(channelParam.wavepara[3]) + channelParam.lineGain[2] + 120) / 400.0))) / 10.0 / 25.4, 'f', 2);
+                else
+                    strMRange = "Φ" + QString::number(((int)(10 * pow(10, (int(channelParam.wavepara[3]) + channelParam.lineGain[2] + 120) / 400.0) + 0.5)) / 10.0, 'f', 1);
+                strMRange += "  ";
+                if (systemStatus.unit % 4)
+                    strMRange += "Φ" + QString::number((float)(pow(10, (channelParam.lineGain[2] + 120) / 400.0)) / 25.4, 'f', 2);
+                else
+                    strMRange += "Φ" + QString::number((int)(pow(10, (channelParam.lineGain[2] + 120) / 400.0) + 0.5));
+                float fOffset = int(channelParam.wavepara[3]) / 10.0;
+                if (fOffset > 0)
+                    strMRange += " +" + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+                else
+                    strMRange += " " + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+                strMRange += "dB";
+
+                qDebug() << "lineEdit_a4001" << strMRange << int(channelParam.wavepara[3]);
+            }
+
+            if ((mode < 10) || (mode > 11)) {
+                auto Mid        = int(channelParam.wavepara[3]);
+                auto strMRange1 = QString::number(channelParam.wavepara[2] / (10.0), 'f', 1);
+                if (Mid > 0)
+                    strMRange1 = " +" + QString::number(abs(Mid / 10.0), 'f', 1);
+                else
+                    strMRange1 = " -" + QString::number(abs(Mid / (10.0)), 'f', 1);
+                strMRange = strMRange + strMRange1 + "dB";
+            }
+
+        } else if (mode < 1) {
+            QString s0 = QString::asprintf("∧%0.1f %", (float)(int(channelParam.wavepara[3]) / 10.0));
+            (void)s0;
+            strMRange = "";
         }
-        std::vector<int>     index;
-        std::vector<uint8_t> value;
-        index.resize(dacParam.num);
-        value.resize(dacParam.num);
-        for (auto i = 0; i < dacParam.num; i++) {
-            index[i] = dacParam.dist[i];
-            value[i] = convertDB2GateAMP(dacParam.dB[i]);
-        }
-        return getLineExpr(idx, index, value, {getAxisBias(), getAxisLen()}, {0.0, 480.0});
+        qDebug(QLoggingCategory("DAS")) << "strMRange" << strMRange;
+        qDebug(QLoggingCategory("DAS")) << ret;
+        auto obj1      = ret[0].toObject();
+        auto obj2      = ret[1].toObject();
+        obj1["equi"]   = strMRange;
+        obj1["dist_c"] = QString::number(channelParam.wavepara[0] / 10.0, 'f', 1);
+        obj1["dist_a"] = QString::number(channelParam.wavepara[1] / 10.0, 'f', 1);
+        obj1["dist_b"] = QString::number(channelParam.wavepara[2] / 10.0, 'f', 1);
+        obj2["equi"]   = "-";
+        ret.replace(0, obj1);
+        ret.replace(1, obj2);
+        return ret;
     }
 
     int DASType::getOption(void) const noexcept {

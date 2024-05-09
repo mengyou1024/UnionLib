@@ -6,9 +6,8 @@
 
 namespace Union::Base::Probe {
     QString Index2Name_QtExtra(int index);
-} // namespace Union::Base::Probe
+    int Name2Index_QtExtra(QString name);
 
-namespace Union::Base::Probe {
     std::string      CreateProbeChipShape(int index, int a, int b);
     constexpr double Degree2Rd(double deg) {
         return deg / 180.0 * std::numbers::pi;

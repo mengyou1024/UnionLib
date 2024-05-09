@@ -373,7 +373,8 @@ VOID decode_vc(BYTE *inbuf, int inlen, BYTE *outbuf, int *outlen) {
     buffer_destory(&out);
     stack_destory(&stack);
 }
-
-void __decode(uint8_t *inbuf, int inlen, uint8_t *outbuf, int *outlen) {
-    decode_vc(inbuf, inlen, outbuf, outlen);
-}
+namespace Union::Temp::Unresovled {
+    void __decode(uint8_t *inbuf, int inlen, uint8_t *outbuf, int *outlen) {
+        decode_vc(inbuf, inlen, outbuf, outlen);
+    }
+} // namespace Union::Temp::Unresovled

@@ -22,6 +22,8 @@ target_include_directories(UnionLib PRIVATE
     include_private/ASCAN
     include_private/ASCAN/390N_T8
     include_private/ASCAN/330
+    include_private/ASCAN/390
     include_private/TOFD_PE
     include_private/TOFD_PE/TPE
+    include_private/Bridge
 )

@@ -87,15 +87,37 @@ namespace Union {
      */
     double EchoDbDiffOfPlanAndHole(double lambda, double x, double d);
 
-    template<class T>
+    template <class T>
     T ByteSwap(T x) {
         if constexpr (sizeof(T) == 1) {
             return x;
-        } else if constexpr(sizeof(T) == 2) {
+        } else if constexpr (sizeof(T) == 2) {
             return (x >> 8) | (x << 8);
-        } else if constexpr(sizeof(T) == 4) {
+        } else if constexpr (sizeof(T) == 4) {
             return (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
         }
+    }
+
+    /**
+     * @brief 时间转换为距离
+     * @param time_us 时间(μs)
+     * @param velocity_m_per_s 声速(m/s)
+     * @param coef 系数，如果是经过反射则为2.0(默认)，如果要计算实际距离则为1.0
+     * @return 距离(mm)
+     */
+    constexpr double Time2Distance(double time_us, double velocity_m_per_s, double coef = 2.0) {
+        return velocity_m_per_s * time_us / 1000.0 / coef;
+    }
+
+    /**
+     * @brief 距离转换为时间
+     * @param distance_mm 距离(mm)
+     * @param velocity_m_per_s 声速(m/s)
+     * @param coef 系数，如果是经过反射则为2.0(默认)，如果要计算实际距离则为1.0
+     * @return 时间(μs)
+     */
+    constexpr double Distance2Time(double distance_mm, double velocity_m_per_s, double coef = 2.0) {
+        return distance_mm * 1000.0 * coef / velocity_m_per_s;
     }
 
 } // namespace Union

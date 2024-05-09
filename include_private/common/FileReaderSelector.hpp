@@ -14,6 +14,16 @@ namespace Union::Utils {
         virtual ~ReadIntf() = default;
     };
 
+    /**
+     * @brief 读取接口概念
+     *      当概念为true时表示该类是ReadInft的派生类
+     * @note 类ReadInft只有一个虚析构函数, 创建该类只是为了更好的限制类模板FileReaderSelector的模板参数
+     *
+     * @tparam T 输入类型
+     */
+    template <class T>
+    concept RD_INTF = std::is_base_of_v<ReadIntf, T>;
+
     class FileReaderSelectorIntf {
     public:
         virtual ~FileReaderSelectorIntf() {
@@ -33,13 +43,22 @@ namespace Union::Utils {
     /**
      * @brief 文件读取选择器
      *
-     * @tparam T_INTF 读取接口
-     * @tparam I_NAME 对应的UI名称
+     * @tparam T_INTF 读取接口 需要满足 RD_INTF 概念
+     * @tparam I_NAME 对应的UI名称, 该UI名称用于动态加载界面UI <br/>
+     *     对应的界面文件<br/>
+     *         主界面: <br/> 
+     *              qrc:/qml/src/<I_NAME>/MainUI.qml <br/>
+     *         控制界面: <br/> 
+     *              qrc:/qml/src/<I_NAME>/Control.qml <br/>
      */
-    template <class T_INTF, const std::string_view &I_NAME>
-        requires std::is_base_of_v<ReadIntf, T_INTF>
+    template <RD_INTF T_INTF, const std::string_view &I_NAME>
     class FileReaderSelector : public FileReaderSelectorIntf {
     public:
+        /**
+         * @brief 读取接口类型
+         *  该接口输入参数为宽字符版本的文件路径, 返回值为指向读取后的类指针, 若读取失败则返回nullptr
+         *  `T_INTF`需要是`ReadIntf`的派生类
+         */
         using FRS_RFUNC = std::function<std::unique_ptr<T_INTF>(const std::wstring &)>;
         using FRS_DTYPE = std::tuple<FRS_RFUNC, std::string>;
 

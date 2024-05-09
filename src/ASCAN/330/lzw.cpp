@@ -10,7 +10,7 @@ namespace Union::__330 {
         std::vector<uint8_t> ret;
         ret.resize(8192 * 8);
         int decompressed_size = 0;
-        __decode(const_cast<uint8_t *>(data), static_cast<int>(size), ret.data(), &decompressed_size);
+        Union::Temp::Unresovled ::__decode(const_cast<uint8_t *>(data), static_cast<int>(size), ret.data(), &decompressed_size);
         ret.resize(decompressed_size);
         return ret;
     }

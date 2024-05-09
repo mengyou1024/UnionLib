@@ -1,12 +1,11 @@
 #pragma once
 
+#include "../330/das.hpp"
 #include "../AScanType.hpp"
-#include <QPointF>
-#include <QVector>
 #include <cstdint>
 #include <memory>
 
-namespace Union::__330 {
+namespace Union::__390 {
 
 #pragma pack(1)
     struct SystemStatus {
@@ -138,71 +137,47 @@ namespace Union::__330 {
         uint16_t Gate3PeakAmp;
     };
 
-    class DASType : public Union::AScan::AScanIntf {
+    struct _390Extra {
+        int                      num11;
+        int                      num12;
+        int                      num13;
+        int                      num14;
+        std::array<uint16_t, 20> pnNumber15;
+        int                      stocktype;
+        int                      railtype;
+        int                      linetype;
+        int                      finetype;
+        int                      weldtype;
+        int                      num22;
+        int                      num23;
+        std::array<uint16_t, 20> pnNumber24;
+        uint32_t                 yearTemp;
+        uint32_t                 monthTemp;
+        uint32_t                 dateTemp;
+        uint32_t                 hourTemp;
+        uint32_t                 minuteTemp;
+        int                      position;
+        int                      num32;
+        int                      size;
+        int                      type;
+        int                      num35;
+        int                      num36;
+        uint32_t                 posiFlage;
+        uint32_t                 tailPosiFlage;
+    };
+
+    inline constexpr auto SIZE_390_EXTRA = sizeof(_390Extra);
+
+    class DAAType : public Union::__330::DASType {
     public:
-        SystemStatus             systemStatus;
-        ChannelStatus            channelStatus;
-        ChannelParam             channelParam;
-        std::array<GateParam, 2> gateParam;
-        DACParam                 dacParam;
-        std::array<WeldParam, 2> weldParam;
-        GatePeakSingleParam      gatePeakSingleParam;
-        uint32_t                 channelTemp;
-        uint16_t :16;
-
-        std::vector<uint8_t> data;
-        std::vector<uint8_t> name;
-
-        std::vector<std::wstring> m_fileNameList = {};
+        _390Extra _390extra;
 
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& fileName);
 
-        virtual size_t __Read(std::ifstream& file, size_t file_size);
-        virtual int    getDataSize(void) const;
-
-        virtual std::vector<std::wstring> getFileNameList(void) const override;
-        virtual void                      setFileNameIndex(int index) override;
-
-        // IMPL
-        Base::Performance getPerformance(int idx) const override;
-        std::string       getDate(int idx) const override;
-        std::wstring      getProbe(int idx) const override;
-        double            getProbeFrequence(int idx) const override;
-        std::string       getProbeChipShape(int idx) const override;
-        double            getAngle(int idx) const override;
-        double            getSoundVelocity(int idx) const override;
-        double            getFrontDistance(int idx) const override;
-        double            getZeroPointBias(int idx) const override;
-        double            getSamplingDelay(int idx) const override;
-        int               getChannel(int idx) const override;
-        std::string       getInstrumentName(void) const override;
-
-        std::array<Base::Gate, 2>   getGate(int idx = 0) const override;
-        const std::vector<uint8_t>& getScanData(int idx = 0) const override;
-        double                      getAxisBias(int idx = 0) const override;
-        double                      getAxisLen(int idx = 0) const override;
-        double                      getBaseGain(int idx = 0) const override;
-        double                      getScanGain(int idx = 0) const override;
-        double                      getSurfaceCompentationGain(int idx = 0) const override;
-        int                         getSupression(int idx = 0) const override;
-        Union::AScan::DistanceMode  getDistanceMode(int idx = 0) const override;
-        std::optional<Base::AVG>    getAVG(int idx = 0) const override;
-        std::optional<Base::DAC>    getDAC(int idx = 0) const override;
-        Union::AScan::DAC_Standard  getDACStandard(int idx = 0) const override;
-
-        virtual std::function<double(double)> getAVGLineExpr(int idx) const override;
-        virtual std::function<double(double)> getDACLineExpr(int idx) const override;
-
-        const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const;
-        void                                   setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx);
-
-        virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
+        virtual std::string getInstrumentName(void) const override final;
+        virtual QVariantMap createReportValueMap(int idx, double soft_gain) const override final;
 
     private:
-        int                             getOption(void) const noexcept;
-        double                          getUnit(void) const noexcept;
-        uint8_t                         convertDB2GateAMP(int db) const;
-        std::array<QVector<QPointF>, 3> m_dacLines = {};
     };
 #pragma pack()
-} // namespace Union::__330
+} // namespace Union::__390
