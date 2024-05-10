@@ -7,6 +7,7 @@
 #include "../common/Performance.hpp"
 #include "../common/common.hpp"
 #include <QFileInfo>
+#include <QImage>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QLoggingCategory>
@@ -545,6 +546,26 @@ namespace Union::AScan {
                 {QObject::tr("探头信息"), probeParameter},
                 {QObject::tr("基本信息"), basicParameter},
             };
+        }
+
+        /**
+         * @brief 判断是否含有摄像头图像
+         *
+         * @return bool
+         */
+        virtual bool hasCameraImage(void) const {
+            return false;
+        }
+
+        /**
+         * @brief 获取摄像头图像
+         *
+         * @param idx idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
+         * @return QImage
+         */
+        virtual QImage getCameraImage(int idx) const {
+            (void)idx;
+            return QImage();
         }
     };
 

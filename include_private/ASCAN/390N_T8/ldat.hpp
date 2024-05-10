@@ -158,6 +158,7 @@ namespace Union::__390N_T8 {
     constexpr int BODY_LEN = EncoderLen + 8;
 
     class LDAT : public Union::AScan::AScanIntf {
+        friend class VDATA;
     private:
         std::string time = []() -> std::string {
             auto const        now = std::chrono::system_clock::now();
@@ -173,45 +174,47 @@ namespace Union::__390N_T8 {
 
         std::vector<std::wstring> m_fileNameList = {};
 
+    protected:
+        std::string convertTime(std::array<char, 14> arr) const;
     public:
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& fileName);
 
         // READ IMPL
-        size_t __Read(std::ifstream& file, size_t file_size) override final;
-        int    getDataSize(void) const override final;
+        size_t __Read(std::ifstream& file, size_t file_size) override;
+        int    getDataSize(void) const override;
 
-        virtual std::vector<std::wstring> getFileNameList(void) const override final;
-        virtual void                      setFileNameIndex(int index) override final;
+        virtual std::vector<std::wstring> getFileNameList(void) const override;
+        virtual void                      setFileNameIndex(int index) override;
 
         // IMPL
-        Base::Performance getPerformance(int idx) const override final;
-        std::string       getDate(int idx) const override final;
-        std::wstring      getProbe(int idx) const override final;
-        double            getProbeFrequence(int idx) const override final;
-        std::string       getProbeChipShape(int idx) const override final;
-        double            getAngle(int idx) const override final;
-        double            getSoundVelocity(int idx) const override final;
-        double            getFrontDistance(int idx) const override final;
-        double            getZeroPointBias(int idx) const override final;
-        double            getSamplingDelay(int idx) const override final;
-        int               getChannel(int idx) const override final;
-        std::string       getInstrumentName(void) const override final;
+        Base::Performance getPerformance(int idx) const override;
+        std::string       getDate(int idx) const override;
+        std::wstring      getProbe(int idx) const override;
+        double            getProbeFrequence(int idx) const override;
+        std::string       getProbeChipShape(int idx) const override;
+        double            getAngle(int idx) const override;
+        double            getSoundVelocity(int idx) const override;
+        double            getFrontDistance(int idx) const override;
+        double            getZeroPointBias(int idx) const override;
+        double            getSamplingDelay(int idx) const override;
+        int               getChannel(int idx) const override;
+        std::string       getInstrumentName(void) const override;
 
-        std::array<Base::Gate, 2>   getGate(int idx) const override final;
-        const std::vector<uint8_t>& getScanData(int idx) const override final;
-        double                      getAxisBias(int idx) const override final;
-        double                      getAxisLen(int idx) const override final;
-        double                      getBaseGain(int idx) const override final;
-        double                      getScanGain(int idx) const override final;
-        double                      getSurfaceCompentationGain(int idx) const override final;
-        int                         getSupression(int idx) const override final;
-        Union::AScan::DistanceMode  getDistanceMode(int idx) const override final;
-        std::optional<Base::AVG>    getAVG(int idx) const override final;
-        std::optional<Base::DAC>    getDAC(int idx) const override final;
-        Union::AScan::DAC_Standard  getDACStandard(int idx) const override final;
+        std::array<Base::Gate, 2>   getGate(int idx) const override;
+        const std::vector<uint8_t>& getScanData(int idx) const override;
+        double                      getAxisBias(int idx) const override;
+        double                      getAxisLen(int idx) const override;
+        double                      getBaseGain(int idx) const override;
+        double                      getScanGain(int idx) const override;
+        double                      getSurfaceCompentationGain(int idx) const override;
+        int                         getSupression(int idx) const override;
+        Union::AScan::DistanceMode  getDistanceMode(int idx) const override;
+        std::optional<Base::AVG>    getAVG(int idx) const override;
+        std::optional<Base::DAC>    getDAC(int idx) const override;
+        Union::AScan::DAC_Standard  getDACStandard(int idx) const override;
 
-        std::function<double(double)> getAVGLineExpr(int idx) const override final;
-        std::function<double(double)> getDACLineExpr(int idx) const override final;
+        std::function<double(double)> getAVGLineExpr(int idx) const override;
+        std::function<double(double)> getDACLineExpr(int idx) const override;
 
         void pushFileNameList(const std::wstring& fileName);
     };

@@ -12,6 +12,21 @@ namespace Yo::File {
 } // namespace Yo::File
 
 namespace Union::__390N_T8 {
+    std::string LDAT::convertTime(std::array<char, 14> arr) const {
+        std::ostringstream ss;
+        for (int i = 0; std::cmp_less(i, arr.size()); i++) {
+            ss << arr[i];
+            if (i == 3 || i == 5) {
+                ss << "-";
+            } else if (i == 7) {
+                ss << " ";
+            } else if (i == 9 || i == 11) {
+                ss << ":";
+            }
+        }
+        return ss.str();
+    }
+
     std::unique_ptr<Union::AScan::AScanIntf> LDAT::FromFile(const std::wstring& fileName) {
         auto ldat = std::make_unique<Union::__390N_T8::LDAT>();
         auto ret  = Yo::File::ReadFile(fileName, *(ldat.get()));
@@ -35,19 +50,7 @@ namespace Union::__390N_T8 {
         std::array<char, 14> dateTime;
         read_size += Yo::File::__Read(file, SkipSize(8), file_size);
         read_size += Yo::File::__Read(file, dateTime, file_size);
-        std::ostringstream ss;
-        for (int i = 0; std::cmp_less(i, dateTime.size()); i++) {
-            ss << dateTime[i];
-            if (i == 3 || i == 5) {
-                ss << "-";
-            } else if (i == 7) {
-                ss << " ";
-            } else if (i == 9 || i == 11) {
-                ss << ":";
-            }
-        }
-        std::string time_str = ss.str();
-        time                 = time_str;
+        time = convertTime(dateTime);
         for (auto& it : ldat) {
             read_size += Yo::File::__Read(file, SkipSize(8), file_size);
             it.AScan.resize(Union::__390N_T8::ECHO_PACKAGE_SIZE);
@@ -233,7 +236,7 @@ namespace Union::__390N_T8 {
     std::function<double(double)> LDAT::getAVGLineExpr(int idx) const {
         auto func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
         auto _ret = getLineExpr(idx, getAVG(idx)->index, getAVG(idx)->value, {0.0, 160.0}, {0.0, 520.0}, func);
-        return [=](double val) -> double {
+        return [=, this](double val) -> double {
             auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain + getAVG(idx)->biasGain;
             return Union::CalculateGainOutput(_ret(val), modifyGain);
         };
@@ -241,7 +244,7 @@ namespace Union::__390N_T8 {
 
     std::function<double(double)> LDAT::getDACLineExpr(int idx) const {
         auto _ret = getLineExpr(idx, getDAC(idx)->index, getDAC(idx)->value, {0.0, 106.59}, {0.0, 520.0});
-        return [=](double val) -> double {
+        return [=, this](double val) -> double {
             auto modifyGain = getBaseGain(idx) + getScanGain(idx) - getDAC(idx)->baseGain + getDAC(idx)->biasGain;
             return Union::CalculateGainOutput(_ret(val), modifyGain);
         };

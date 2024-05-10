@@ -1,6 +1,5 @@
 #include "dat330_single.h"
 #include "../include_private/common/common.hpp"
-#include <QDebug>
 #include <QList>
 #include <QPointF>
 #include <array>
@@ -24,7 +23,6 @@ std::array<QVector<QPointF>, 3> dat330_single::DrawDac() {
     Width = 480; // 480
     CalcuDac();
     GetDacLine();
-    qDebug() << "DrawDac0000";
     if ((m_ch_status >> 2 & 0x1) == 1 || (m_ch_status >> 3 & 0x1) == 1) // 2DAC3AVG  判断有DAC或AVG曲线
     {
         Number = ((m_ch_option & 0x07) % 7); // 曲线条数
@@ -134,10 +132,7 @@ int dat330_single::CalcuDac() {
         number = (100 * number * m_ch_Frequence) / (4 * m_ch_Speed + 0.5) + 0.5;
     }
 
-    // qDebug()<<"CalcuDac02"<<number<<range;
-
     if (m_ch_status >> 4 & 0x1 == 1 || m_ch_status >> 3 & 0x1 == 1) { // AVG
-        //  qDebug()<<"CalcuDac_das02";
 
         if (dac_dist[0] <= 3 * number) {   // 第一点在三倍近场区内
             for (i = test_num; i > 0; i--) // 所点向后移一点,增加头

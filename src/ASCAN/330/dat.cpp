@@ -120,6 +120,8 @@ namespace Union::__330 {
     }
 
     Base::Performance DATType::getPerformance(int idx) const {
+        // 330 该参数未使用
+        (void)idx;
         return Base::Performance();
     }
 
