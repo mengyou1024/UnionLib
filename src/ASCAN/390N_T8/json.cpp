@@ -300,7 +300,7 @@ namespace Union::__390N_T8 {
                 // zero point bias
                 ret.zeroPointBias = obj[CHANNEL_ZEROPOINT.data()].toDouble();
                 // scanpling delay
-                ret.zeroPointBias  = obj[CHANNEL_SAMPLING_DELAY.data()].toDouble();
+                ret.samplingDelay  = obj[CHANNEL_SAMPLING_DELAY.data()].toDouble();
                 ret.channel        = obj[SYS_CHANNEL_ID.data()].toInt(-1);
                 ret.instrumentName = "390N&T8 Single";
 
