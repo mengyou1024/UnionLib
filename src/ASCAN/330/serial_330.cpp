@@ -301,7 +301,7 @@ namespace Union::__330 {
     std::optional<Base::DAC> Serial_330::getDAC(int idx) const {
         (void)idx;
         // 330 不使用该参数
-        return std::nullopt;
+        return Base::DAC();
     }
 
     Union::AScan::DAC_Standard Serial_330::getDACStandard(int idx) const {
@@ -313,13 +313,13 @@ namespace Union::__330 {
     std::function<double(double)> Serial_330::getAVGLineExpr(int idx) const {
         (void)idx;
         // 330 不使用该参数
-        return std::function<double(double)>();
+        return [](double) { return 0.0; };
     }
 
     std::function<double(double)> Serial_330::getDACLineExpr(int idx) const {
         (void)idx;
         // 330 不使用该参数
-        return std::function<double(double)>();
+        return [](double) { return 0.0; };
     }
 
     QJsonArray Serial_330::createGateValue(int idx, double soft_gain) const {
