@@ -1,10 +1,12 @@
 #pragma once
 
 #include "../AScanType.hpp"
+#include "./_330_common.hpp"
 #include <array>
 #include <cstdint>
 #include <memory>
 #include <string_view>
+
 namespace Union::__330 {
 #pragma pack(1)
     struct HEADER_TIMESTAMP_DAT {
@@ -139,9 +141,9 @@ namespace Union::__330 {
     {
         std::array<uint16_t, 10> db;
         std::array<uint16_t, 10> dist;
-        int16_t              num;
-        uint16_t             diameter; // 反射体直径、长度
-        uint16_t             length;
+        int16_t                  num;
+        uint16_t                 diameter; // 反射体直径、长度
+        uint16_t                 length;
     } DAC_DAT;
 
     struct WELD_PARA_DAT {
@@ -189,7 +191,7 @@ namespace Union::__330 {
                                                  sizeof(CHANNEL_PARAMETER_DAT) + sizeof(std::array<GATE_PARA_DAT, 2>) + sizeof(DAC_DAT) + sizeof(WELD_PARA_DAT);
     inline static constexpr auto ASCAN_FRAME_SIZE = 800;
 
-    class DATType : public Union::AScan::AScanIntf {
+    class DATType : public Union::AScan::AScanIntf, public Union::__330::_330_DAC_C {
     private:
         using _My_T = std::vector<std::pair<__DATHead, std::vector<__DATType>>>;
 
@@ -240,12 +242,15 @@ namespace Union::__330 {
 
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
 
-        std::array<QVector<QPointF>, 3> unResolvedGetDacLines(int idx) const;
+        virtual const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const override;
+
+        virtual void setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx) override;
 
     private:
-        int              getOption(int idx) const noexcept;
-        double           getUnit(int idx) const noexcept;
-        const __DATHead& getHead() const;
-        uint8_t          convertDB2GateAMP(int idx, int db) const;
+        int                                                    getOption(int idx) const noexcept;
+        double                                                 getUnit(int idx) const noexcept;
+        const __DATHead&                                       getHead() const;
+        uint8_t                                                convertDB2GateAMP(int idx, int db) const;
+        mutable std::map<int, std::array<QVector<QPointF>, 3>> m_dac_map;
     };
 } // namespace Union::__330

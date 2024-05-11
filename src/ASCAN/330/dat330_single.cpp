@@ -14,7 +14,7 @@ std::array<QVector<QPointF>, 3> dat330_single::DrawDac() {
     int                             i, j;
     double                          fTemp;
     int                             Number;
-    short                           dac_line00[500];
+    double                          dac_line00[500];
 
     int Width, Hunit;
 
@@ -45,9 +45,7 @@ std::array<QVector<QPointF>, 3> dat330_single::DrawDac() {
                     dac_line00[j]        = Union::CalculateGainOutput(dac_line[j], fGain);
                     dac_points[i - 1][j] = dac_line00[j];
 
-                    if (dac_line00[j] < 205) {
-                        points.append(QPointF(mdelay + float(j * (m_range_a / 480)), (dac_line00[j] * 2) * 100.0 / 400.0));
-                    }
+                    points.append(QPointF(mdelay + float(j * (m_range_a / 480)), (dac_line00[j] * 2) * 100.0 / 400.0));
                 }
                 if (i == 1) {
                     std::swap(points, ret[0]);
@@ -60,12 +58,12 @@ std::array<QVector<QPointF>, 3> dat330_single::DrawDac() {
             if (m_ch_lineGain[i] != m_ch_lineGain[i - 1]) {
                 fTemp       = 2.302585 * (m_ch_lineGain[i - 1] - m_ch_lineGain[i]) / 200.0;
                 fTemp       = expf((float)fTemp);
-                dac_line[0] = (int)(dac_line[0] / fTemp + 0.5);
+                dac_line[0] = (dac_line[0] / fTemp + 0.5);
                 for (j = 4; j < Width + 4; j += 4) {
-                    dac_line[j]     = (int)(dac_line[j] / fTemp + 0.5);
-                    dac_line[j - 2] = (int)((dac_line[j - 4] + dac_line[j]) / 2.0 + 0.5);
-                    dac_line[j - 3] = (int)((dac_line[j - 4] + dac_line[j - 2]) / 2.0 + 0.5);
-                    dac_line[j - 1] = (int)((dac_line[j - 2] + dac_line[j]) / 2.0 + 0.5);
+                    dac_line[j]     = (dac_line[j] / fTemp + 0.5);
+                    dac_line[j - 2] = ((dac_line[j - 4] + dac_line[j]) / 2.0 + 0.5);
+                    dac_line[j - 3] = ((dac_line[j - 4] + dac_line[j - 2]) / 2.0 + 0.5);
+                    dac_line[j - 1] = ((dac_line[j - 2] + dac_line[j]) / 2.0 + 0.5);
                 }
             }
         }
@@ -234,7 +232,7 @@ int dat330_single::CalcuDac() {
 }
 
 void dat330_single::GetDacLine() {
-    int            basegain;
+    double         basegain;
     int            i;
     int            dist1, dist2;
     int            step           = 4;
@@ -264,9 +262,9 @@ void dat330_single::GetDacLine() {
 
     if (((m_sys >> 25) & 1) && (((m_ch_status >> C_TEST_DAC) & 0x1) == 0) && (((m_ch_status >> C_TEST_AVG) & 0x01) == 0)) // MGetSystemMode() == 1 && (MGetTestStatus(C_TEST_DAC) == 0 && MGetTestStatus(C_TEST_AVG) == 0)
     {
-        basegain = (int)(m_ch_BaseGain + 481.31); // 基准增益
+        basegain = (m_ch_BaseGain + 481.31); // 基准增益
     } else {
-        basegain = (int)(m_ch_BaseGain + m_ch_lineGain[0] + 481.31); // 基准增益，应加上判废线
+        basegain = (m_ch_BaseGain + m_ch_lineGain[0] + 481.31); // 基准增益，应加上判废线
     }
     dist2           = 0;
     dac_line[dist2] = (u_int)(Mexpf((float)(C_EXPF * (basegain - dac_line[dist2]) / 200.0), C_SIZE_SHORT));
@@ -292,13 +290,13 @@ void dat330_single::GetDacLine() {
         double fTemp = 2.302585 * (m_ch_lineGain[0] - m_ch_gatedB) / 200.0;
         fTemp        = exp((float)fTemp);
         if (fTemp > 0) {
-            dac_gate[0] = (int)(dac_line[0] / fTemp + 0.5);
+            dac_gate[0] = (dac_line[0] / fTemp + 0.5);
 
             for (int j = 4; j < ECHO_PACKAGE_SIZE + 4; j += 4) {
-                dac_gate[j]     = (int)(dac_line[j] / fTemp + 0.5);
-                dac_gate[j - 2] = (int)((dac_gate[j - 4] + dac_gate[j]) / 2.0 + 0.5);
-                dac_gate[j - 3] = (int)((dac_gate[j - 4] + dac_gate[j - 2]) / 2.0 + 0.5);
-                dac_gate[j - 1] = (int)((dac_gate[j - 2] + dac_gate[j]) / 2.0 + 0.5);
+                dac_gate[j]     = (dac_line[j] / fTemp + 0.5);
+                dac_gate[j - 2] = ((dac_gate[j - 4] + dac_gate[j]) / 2.0 + 0.5);
+                dac_gate[j - 3] = ((dac_gate[j - 4] + dac_gate[j - 2]) / 2.0 + 0.5);
+                dac_gate[j - 1] = ((dac_gate[j - 2] + dac_gate[j]) / 2.0 + 0.5);
             }
         }
     }
@@ -335,7 +333,7 @@ int dat330_single::GetMiddleValue(int dist1, int db1, int dist2, int db2, int di
     return Union::ValueMap(dist, {(double)db1, (double)db2}, {(double)dist1, (double)dist2});
 }
 
-int dat330_single::GetLine_TwoDot(short line[], int dist1, int dist2) {
+int dat330_single::GetLine_TwoDot(double line[], int dist1, int dist2) {
     // FUNC: 实现line[dist1]~line[dist2]之见数据的线性插值
     int    dist;
     double k;
@@ -348,7 +346,7 @@ int dat330_single::GetLine_TwoDot(short line[], int dist1, int dist2) {
 
     k = (double)(line[dist2] - line[dist1]) / (double)(dist2 - dist1);
     for (dist = 1; dist1 + dist < dist2; dist++) {
-        line[dist1 + dist] = (int)(dist * k + line[dist1]);
+        line[dist1 + dist] = (dist * k + line[dist1]);
     }
     return 1;
 }

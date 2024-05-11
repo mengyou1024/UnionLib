@@ -322,8 +322,6 @@ namespace Union::__330 {
                 else
                     strMRange += " " + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
                 strMRange += "dB";
-
-                qDebug() << "lineEdit_a4001" << strMRange << int(channelParam.wavepara[3]);
             }
 
             if ((mode < 10) || (mode > 11)) {

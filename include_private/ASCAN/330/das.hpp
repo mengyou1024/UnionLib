@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../AScanType.hpp"
+#include "./_330_common.hpp"
 #include <QPointF>
 #include <QVector>
 #include <cstdint>
@@ -138,7 +139,7 @@ namespace Union::__330 {
         uint16_t Gate3PeakAmp;
     };
 
-    class DASType : public Union::AScan::AScanIntf {
+    class DASType : public Union::AScan::AScanIntf, public Union::__330::_330_DAC_C {
     public:
         SystemStatus             systemStatus;
         ChannelStatus            channelStatus;
@@ -157,8 +158,8 @@ namespace Union::__330 {
 
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& fileName);
 
-        virtual size_t __Read(std::ifstream& file, size_t file_size);
-        virtual int    getDataSize(void) const;
+        virtual size_t __Read(std::ifstream& file, size_t file_size) override;
+        virtual int    getDataSize(void) const override;
 
         virtual std::vector<std::wstring> getFileNameList(void) const override;
         virtual void                      setFileNameIndex(int index) override;
@@ -193,8 +194,9 @@ namespace Union::__330 {
         virtual std::function<double(double)> getAVGLineExpr(int idx) const override;
         virtual std::function<double(double)> getDACLineExpr(int idx) const override;
 
-        const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const;
-        void                                   setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx);
+        virtual const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const override;
+
+        virtual void setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx) override;
 
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
 

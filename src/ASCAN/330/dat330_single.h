@@ -242,8 +242,8 @@ public:
     int C_TEST_AVG    = 3;
     int C_MAKE_DACAVG = 4;
 
-    short dac_line[500] = {};
-    short dac_gate[600] = {};
+    double dac_line[500] = {};
+    double dac_gate[600] = {};
 
     int Last_Test_Dist = 0;
 
@@ -271,10 +271,10 @@ public:
 private:
     int   CalcuDac();
     int   GetMiddleValue(int dist1, int db1, int dist2, int db2, int dist);
-    int   GetLine_TwoDot(short line[], int dist1, int dist2);
+    int   GetLine_TwoDot(double line[], int dist1, int dist2);
     void  GetDacLine();
     float Mexpf(float ex, u_int len); // 指数函数，得到e^ex,位数不大于len×8
-    std::array<std::array<int, 500>, 10> dac_points = {};
+    std::array<std::array<double, 500>, 10> dac_points = {};
 };
 
 #endif // DAT330_SINGLE_H

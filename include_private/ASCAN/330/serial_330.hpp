@@ -44,7 +44,7 @@ namespace Union::__330 {
 
     } // namespace SerialSpecial
 
-    class Serial_330 : public Union::AScan::AScanIntf {
+    class Serial_330 : public Union::AScan::AScanIntf, public Union::__330::_330_DAC_C {
         using _My_T = std::vector<SerialSpecial::SerialOneFrame>;
 
     private:
@@ -89,12 +89,15 @@ namespace Union::__330 {
         virtual std::function<double(double)> getAVGLineExpr(int idx) const override final;
         virtual std::function<double(double)> getDACLineExpr(int idx) const override final;
 
-
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
-        std::array<QVector<QPointF>, 3> unResolvedGetDacLines(int idx) const;
+
+        virtual const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const override;
+        virtual void                                   setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx) override;
+
     private:
-        int    getOption(void) const noexcept;
-        double getUnit(void) const noexcept;
+        int                                                    getOption(void) const noexcept;
+        double                                                 getUnit(void) const noexcept;
+        mutable std::map<int, std::array<QVector<QPointF>, 3>> m_dac_map;
     };
 
 } // namespace Union::__330
