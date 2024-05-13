@@ -104,8 +104,8 @@ namespace Union::__330 {
         std::vector<std::wstring> ret;
         for (const auto &[key, value] : m_data) {
             std::vector<uint16_t> temp;
-            temp.resize(key.info_buf[1]);
-            memcpy(temp.data(), &key.info_buf[2], key.info_buf[1] * 2);
+            temp.resize(key.info_buf[0]);
+            memcpy(temp.data(), &key.info_buf[1], key.info_buf[0] * 2);
             ret.emplace_back(Union::LocationCodeToUTF8(temp).toStdWString());
         }
         return ret;
