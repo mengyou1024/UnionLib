@@ -5,15 +5,6 @@
 #include <cstdint>
 #include <memory>
 
-namespace Union::AScan::Special {
-
-    // 钢轨焊缝示意图特化
-    class RailWeldDigramSpecial {
-    public:
-        virtual ~RailWeldDigramSpecial() = default;
-    };
-} // namespace Union::AScan::Special
-
 namespace Union::__390 {
 
     struct _390Extra {

@@ -72,10 +72,6 @@ namespace Union::__390N_T8 {
         return ret;
     }
 
-    bool VDATA::hasCameraImage() const {
-        return true;
-    }
-
     QImage VDATA::getCameraImage(int idx) const {
         return m_image.at(idx);
     }
