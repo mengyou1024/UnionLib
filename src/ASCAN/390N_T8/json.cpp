@@ -86,12 +86,12 @@ namespace Union::__390N_T8 {
 
     double T8_390N_JSON::getZeroPointBias(int idx) const {
         (void)idx;
-        return m_ascan->zeroPointBias;
+        return m_ascan->zeroPointBias / 10000.0;
     }
 
     double T8_390N_JSON::getSamplingDelay(int idx) const {
         (void)idx;
-        return m_ascan->samplingDelay;
+        return Union::us2mm(m_ascan->samplingDelay / 10000.0);
     }
 
     int T8_390N_JSON::getChannel(int idx) const {

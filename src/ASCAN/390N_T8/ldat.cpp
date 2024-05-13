@@ -119,11 +119,11 @@ namespace Union::__390N_T8 {
     }
 
     double LDAT::getZeroPointBias(int idx) const {
-        return ldat.at(idx).chanel_data.ch_zero_point / 10.0;
+        return ldat.at(idx).chanel_data.ch_zero_point / 100000.0;
     }
 
     double LDAT::getSamplingDelay(int idx) const {
-        return ldat.at(idx).chanel_data.ch_sampling_delay;
+        return us2mm(ldat.at(idx).chanel_data.ch_sampling_delay / 10000.0);
     }
 
     int LDAT::getChannel(int idx) const {

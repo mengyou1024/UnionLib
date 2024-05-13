@@ -150,10 +150,10 @@ namespace Union::AScan {
         virtual double getZeroPointBias(int idx) const = 0;
 
         /**
-         * @brief 获取采样延时(μs)
+         * @brief 获取采样延时(mm)
          *
          * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
-         * @return double(μs)
+         * @return double(mm)
          */
         virtual double getSamplingDelay(int idx) const = 0;
 
@@ -371,7 +371,7 @@ namespace Union::AScan {
                 {QObject::tr("仪器型号"), QString::fromStdString(getInstrumentName())},
                 {QObject::tr("灵敏度"), sensitivity},
                 {QObject::tr("回波抑制"), QString::number(getSupression(idx)) + "%"},
-                {QObject::tr("回波延时"), QString::number(getSamplingDelay(idx), 'f', 1) + "mm"},
+                {QObject::tr("回波延时"), QString::number(Union::us2mm(getSamplingDelay(idx)), 'f', 1) + "mm"},
                 {QObject::tr("声程范围"), soundDistance},
                 {QObject::tr("声速"), QString::number(getSoundVelocity(idx), 'f', 0) + "m/s"},
                 {QObject::tr("距离"), gateValue[0].toObject()["dist_c"].toString()},
@@ -534,7 +534,7 @@ namespace Union::AScan {
                 {QObject::tr("声程"), QString::number(getAxisLen(idx), 'f', 1) + " mm"},
                 {QObject::tr("前沿"), QString::number(getFrontDistance(idx), 'f', 1) + " mm"},
                 {QObject::tr("零点"), QString::number(getZeroPointBias(idx), 'f', 2) + " μs"},
-                {QObject::tr("延时"), QString::number(getSamplingDelay(idx), 'f', 1) + " mm"},
+                {QObject::tr("延时"), QString::number(Union::us2mm(getSamplingDelay(idx)), 'f', 1) + " mm"},
                 {QObject::tr("声速"), QString::number(getSoundVelocity(idx), 'f', 0) + " m/s"},
                 {QObject::tr("通道"), QString::number(getChannel(idx))},
                 {QObject::tr("K值"), QString::number(Union::Base::Probe::Degree2K(getAngle(idx)), 'f', 2)},
