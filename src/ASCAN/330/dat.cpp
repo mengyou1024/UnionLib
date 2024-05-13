@@ -103,11 +103,10 @@ namespace Union::__330 {
     std::vector<std::wstring> DATType::getFileNameList(void) const {
         std::vector<std::wstring> ret;
         for (const auto &[key, value] : m_data) {
-            std::wstring s;
-            for (int i = 0; i < key.info_buf[0]; i += 1) {
-                s += (key.info_buf[i + 1]);
-            }
-            ret.emplace_back(std::move(s));
+            std::vector<uint16_t> temp;
+            temp.resize(key.info_buf[1]);
+            memcpy(temp.data(), &key.info_buf[2], key.info_buf[1] * 2);
+            ret.emplace_back(Union::LocationCodeToUTF8(temp).toStdWString());
         }
         return ret;
     }

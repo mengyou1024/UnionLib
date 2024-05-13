@@ -49,7 +49,7 @@ namespace Union::__330 {
     }
 
     size_t DASType::__Read(std::ifstream &file, size_t file_size) {
-        if (file_size <= 454 + 480 || file_size >= 454 + 580) {
+        if (file_size != 1026) {
             return 0;
         }
         size_t ret = 0;
