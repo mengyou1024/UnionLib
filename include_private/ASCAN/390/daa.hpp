@@ -5,6 +5,15 @@
 #include <cstdint>
 #include <memory>
 
+namespace Union::AScan::Special {
+
+    // 钢轨焊缝示意图特化
+    class RailWeldDigramSpecial {
+    public:
+        virtual ~RailWeldDigramSpecial() = default;
+    };
+} // namespace Union::AScan::Special
+
 namespace Union::__390 {
 
     struct _390Extra {
@@ -39,7 +48,7 @@ namespace Union::__390 {
 
     inline constexpr auto SIZE_390_EXTRA = sizeof(_390Extra);
 
-    class DAAType : public Union::__330::DASType {
+    class DAAType : public Union::__330::DASType, public Union::AScan::Special::RailWeldDigramSpecial {
         _390Extra m_390Extra;
 
     public:
