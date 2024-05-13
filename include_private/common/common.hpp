@@ -120,4 +120,30 @@ namespace Union {
         return distance_mm * 1000.0 * coef / velocity_m_per_s;
     }
 
+    /**
+     * @brief 汉字区位码转UTF-8字符串
+     * @param code 汉字区位码
+     * @return UTF-8字符串
+     */
+    QString LocationCodeToUTF8(const std::vector<uint16_t>& code);
+
+    /**
+     * @brief 毫米转微秒
+     * @param mm
+     * @param speed_m_per_s 声速m/s
+     * @return us
+     */
+    constexpr double mm2us(double mm, double speed_m_per_s = 5900) {
+        return mm * 2000 / speed_m_per_s;
+    }
+
+    /**
+     * @brief 微秒转毫米
+     * @param us
+     * @param speed_m_per_s 声速m/s
+     * @return mm
+     */
+    constexpr double us2mm(double us, double speed_m_per_s = 5900) {
+        return us * speed_m_per_s / 2000;
+    }
 } // namespace Union
