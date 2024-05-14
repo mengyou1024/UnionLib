@@ -55,6 +55,10 @@ namespace Union::__390 {
         virtual QVariantMap createReportValueMap(int idx, double soft_gain) const override final;
         virtual std::string getDate(int idx) const override final;
 
+        virtual double getDotX(void) const override;
+        virtual double getDotY(void) const override;
+        virtual double getDotZ(void) const override;
+
     private:
         QString getStationName() const;
         QString getStockType() const;

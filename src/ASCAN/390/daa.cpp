@@ -157,6 +157,18 @@ namespace Union::__390 {
         return QString("%1-%2-%3").arg(m_390Extra.yearTemp).arg(m_390Extra.monthTemp).arg(m_390Extra.dateTemp).toStdString();
     }
 
+    double DAAType::getDotX() const {
+        return m_390Extra.num35;
+    }
+
+    double DAAType::getDotY() const {
+        return m_390Extra.num36;
+    }
+
+    double DAAType::getDotZ() const {
+        return m_390Extra.num37;
+    }
+
     QString DAAType::getFineType() const {
         switch (m_390Extra.linetype) {
             case 1:

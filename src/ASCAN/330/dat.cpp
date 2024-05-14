@@ -273,6 +273,7 @@ namespace Union::__330 {
     }
 
     Union::AScan::DAC_Standard DATType::getDACStandard(int idx) const {
+        (void)idx;
         return Union::AScan::DAC_Standard();
     }
 
@@ -409,7 +410,10 @@ namespace Union::__330 {
         }
     }
 
-    void DATType::setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3> &dat, int idx) {}
+    void DATType::setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3> &dat, int idx) {
+        (void)dat;
+        (void)idx;
+    }
 
     int DATType::getOption(int idx) const noexcept {
         (void)idx;

@@ -8,6 +8,9 @@ namespace Union::AScan::Special {
     class RailWeldDigramSpecial {
     public:
         virtual ~RailWeldDigramSpecial() = default;
+        virtual double getDotX(void) const = 0;
+        virtual double getDotY(void) const = 0;
+        virtual double getDotZ(void) const = 0;
     };
 
     // 摄像头图像特化
