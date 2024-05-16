@@ -107,11 +107,67 @@ namespace Union::TOFD_PE::TPE {
     }
 
     void TpeType::pullThroughWaveEvent(double x, double y, double w, double h) {
-        (void)x;
-        (void)y;
-        (void)w;
-        (void)h;
-        // TODO: 实现拉直通波功能
+        const auto maxLines     = std::max(getTofdLines(), getPeLines());
+        const auto start_x      = static_cast<int>(x * (maxLines - 1));
+        const auto end_x        = static_cast<int>((x + w) * (maxLines - 1));
+        const auto start_y      = static_cast<int>(y * static_cast<double>(getAScanSize() - 1.0));
+        const auto end_y        = static_cast<int>((y + h) * static_cast<double>(getAScanSize() - 1.0));
+        const auto CalculateMin = [=, this](int x, int start_y, int end_y) {
+            int m_iStartPlot = start_y;
+            int m_iEndPlot   = end_y;
+            int z            = m_iStartPlot;
+            if (m_iEndPlot - m_iStartPlot < 45) {
+                for (int k = m_iStartPlot + 1; k <= m_iEndPlot; k++) {
+                    if (m_data.data[x * getAScanSize() + k] < m_data.data[x * getAScanSize() + z]) {
+                        z = k;
+                    }
+                }
+            } else {
+                for (int k = m_iStartPlot + 1; k < m_iStartPlot + 45; k++) {
+                    if (m_data.data[x * getAScanSize() + k] < m_data.data[x * getAScanSize() + z]) {
+                        z = k;
+                    }
+                }
+            }
+            if ((float(m_data.data[x * getAScanSize()] - m_data.data[x * getAScanSize() + z]) /
+                 float(m_data.data[x * getAScanSize()])) < 0.1) {
+                z = m_iStartPlot;
+            }
+
+            return z;
+        };
+
+        auto ascan_data_copy = m_data.data;
+
+        auto startPlotIndex = CalculateMin(start_x, start_y, end_y);
+        for (int i = start_x + 1; std::cmp_less_equal(i, end_x); i++) {
+            auto tempPlotIndex           = CalculateMin(i, start_y, end_y);
+            auto tempDataStraightenBegin = ascan_data_copy.begin() + (i * getAScanSize());
+            auto tempDataStraightenEnd   = ascan_data_copy.begin() + (i * getAScanSize()) + getAScanSize();
+            auto tempDataStraighten      = std::vector<uint8_t>(tempDataStraightenBegin, tempDataStraightenEnd);
+
+            if (startPlotIndex > tempPlotIndex) {
+                for (int m = 0; m < startPlotIndex - tempPlotIndex; m++) {
+                    tempDataStraighten[m] = tempDataStraighten[0];
+                }
+                for (int m = startPlotIndex - tempPlotIndex; m < getAScanSize(); m++) {
+                    ascan_data_copy[i * getAScanSize() + m] = tempDataStraighten[m - startPlotIndex + tempPlotIndex];
+                }
+            } else if (startPlotIndex < tempPlotIndex) {
+                for (int m = 0; m < getAScanSize() + startPlotIndex - tempPlotIndex; m++) {
+                    ascan_data_copy[i * getAScanSize() + m] = tempDataStraighten[m - startPlotIndex + tempPlotIndex];
+                }
+                for (int m = getAScanSize() + startPlotIndex - tempPlotIndex; m < getAScanSize(); m++) {
+                    ascan_data_copy[i * getAScanSize() + m] = tempDataStraighten[0];
+                }
+            }
+        }
+
+        for (auto i = start_x; std::cmp_less_equal(i, end_x); i++) {
+            for (auto j = start_y; std::cmp_less_equal(j, end_y); j++) {
+                m_data.data[i * getAScanSize() + j] = ascan_data_copy[i * getAScanSize() + j];
+            }
+        }
     }
 
     void TpeType::backup(void) {
