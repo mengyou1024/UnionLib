@@ -93,9 +93,15 @@ namespace Union::TOFD_PE::TPE {
     }
 
     void TpeType::removeThroughWaveEvent(double x, double y, double w, double h) {
-        for (auto i = static_cast<int>(x * getTofdLines() + 1.5); std::cmp_less_equal(i, static_cast<int>((x + w) * getTofdLines() + 1.5)); i++) {
-            for (auto j = static_cast<int>(y * static_cast<float>(getAScanSize()) + 1.5); std::cmp_less_equal(j, static_cast<int>((y + h) * static_cast<float>(getAScanSize()) + 1.5)); j++) {
-                m_data.data[i * getAScanSize() + j] += -m_data.data[static_cast<int>(x * getTofdLines() - 0.5) * getAScanSize() + j] + 128;
+        const auto maxLines = std::max(getTofdLines(), getPeLines());
+        const auto start_x  = static_cast<int>(x * (maxLines - 1));
+        const auto end_x    = static_cast<int>((x + w) * (maxLines - 1));
+        const auto start_y  = static_cast<int>(y * static_cast<double>(getAScanSize() - 1.0));
+        const auto end_y    = static_cast<int>((y + h) * static_cast<double>(getAScanSize() - 1.0));
+
+        for (auto i = start_x + 1; std::cmp_less_equal(i, end_x); i++) {
+            for (auto j = start_y; std::cmp_less_equal(j, end_y); j++) {
+                m_data.data[i * getAScanSize() + j] += -m_data.data[start_x * getAScanSize() + j] + 128;
             }
         }
     }
