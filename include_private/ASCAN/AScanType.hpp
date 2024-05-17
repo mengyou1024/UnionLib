@@ -333,9 +333,12 @@ namespace Union::AScan {
          * @return QVariantMap
          */
         virtual QVariantMap createReportValueMap(int idx, double soft_gain) const {
-            auto    gateValue     = createGateValue(idx, soft_gain);
-            auto    sensitivity   = QString("%1+%2+%3dB").arg(QString::number(getBaseGain(idx), 'f', 1), QString::number(getScanGain(idx), 'f', 1), QString::number(getSurfaceCompentationGain(idx), 'f', 1));
-            QString soundDistance = QString::number(getAxisLen(idx), 'f', 1) + "mm";
+            auto gateValue   = createGateValue(idx, soft_gain);
+            auto sensitivity = QString("%1+%2+%3dB")
+                                   .arg(QString::number(KeepDecimals<1>(getBaseGain(idx)), 'f', 1))
+                                   .arg(QString::number(KeepDecimals<1>(getScanGain(idx)), 'f', 1))
+                                   .arg(QString::number(KeepDecimals<1>(getSurfaceCompentationGain(idx)), 'f', 1));
+            QString soundDistance = QString::number(KeepDecimals<1>(getAxisLen(idx)), 'f', 1) + "mm";
             switch (getDistanceMode(idx)) {
                 case Union::AScan::DistanceMode::DistanceMode_S:
                     soundDistance += "(S)";
@@ -364,17 +367,17 @@ namespace Union::AScan {
                 {QObject::tr("探头型号"), ""},
                 {QObject::tr("晶片尺寸"), QString::fromStdString(getProbeChipShape(idx))},
                 {QObject::tr("探头类型"), QString::fromStdWString(getProbe(idx))},
-                {QObject::tr("前沿"), QString::number(getFrontDistance(idx), 'f', 1) + "mm"},
-                {QObject::tr("探头K值"), QString::number(Union::Base::Probe::Degree2K(getAngle(idx)), 'f', 2)},
-                {QObject::tr("频率"), QString::number(getProbeFrequence(idx), 'f', 2) + "MHz"},
-                {QObject::tr("折射角"), QString::number(getAngle(idx), 'f', 1) + "°"},
-                {QObject::tr("零点"), QString::number(getZeroPointBias(idx), 'f', 2) + "μs"},
+                {QObject::tr("前沿"), QString::number(KeepDecimals<1>(getFrontDistance(idx)), 'f', 1) + "mm"},
+                {QObject::tr("探头K值"), QString::number(KeepDecimals(Union::Base::Probe::Degree2K(getAngle(idx))), 'f', 2)},
+                {QObject::tr("频率"), QString::number(KeepDecimals(getProbeFrequence(idx)), 'f', 2) + "MHz"},
+                {QObject::tr("折射角"), QString::number(KeepDecimals<1>(getAngle(idx)), 'f', 1) + "°"},
+                {QObject::tr("零点"), QString::number(KeepDecimals(getZeroPointBias(idx)), 'f', 2) + "μs"},
                 {QObject::tr("仪器型号"), QString::fromStdString(getInstrumentName())},
                 {QObject::tr("灵敏度"), sensitivity},
                 {QObject::tr("回波抑制"), QString::number(getSupression(idx)) + "%"},
-                {QObject::tr("回波延时"), QString::number(Union::us2mm(getSamplingDelay(idx)), 'f', 1) + "mm"},
+                {QObject::tr("回波延时"), QString::number(KeepDecimals<1>(getSamplingDelay(idx)), 'f', 1) + "mm"},
                 {QObject::tr("声程范围"), soundDistance},
-                {QObject::tr("声速"), QString::number(getSoundVelocity(idx), 'f', 0) + "m/s"},
+                {QObject::tr("声速"), QString::number(KeepDecimals<0>(getSoundVelocity(idx)), 'f', 0) + "m/s"},
                 {QObject::tr("距离"), gateValue[0].toObject()["dist_c"].toString()},
                 {QObject::tr("水平"), gateValue[0].toObject()["dist_a"].toString()},
                 {QObject::tr("垂直"), gateValue[0].toObject()["dist_b"].toString()},
@@ -463,15 +466,15 @@ namespace Union::AScan {
                 }
 
                 if (a) {
-                    _a = QString::number(a.value(), 'f', 1);
+                    _a = QString::number(KeepDecimals<1>(a.value()), 'f', 1);
                 }
 
                 if (b) {
-                    _b = QString::number(b.value(), 'f', 1);
+                    _b = QString::number(KeepDecimals<1>(b.value()), 'f', 1);
                 }
 
                 if (c) {
-                    _c = QString::number(c.value(), 'f', 1);
+                    _c = QString::number(KeepDecimals<1>(c.value()), 'f', 1);
                 }
 
                 QString _equi = "-";
@@ -483,7 +486,7 @@ namespace Union::AScan {
                                       getSurfaceCompentationGain(idx) - getDAC(idx)->baseGain +
                                       getDACStandard(idx).slBias;
                     slValue = Union::CalculateGainOutput(slValue, modifyGain);
-                    _equi   = QString::asprintf("SL%+.1fdB", Union::CalculatedGain(slValue, r_amp));
+                    _equi   = QString::asprintf("SL%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue, r_amp)));
                 } else if (getAVG(idx) && b.has_value()) {
                     auto r_amp      = Union::CalculateGainOutput(_amp, getSurfaceCompentationGain(idx));
                     auto lineExpr   = getAVGLineExpr(idx);
@@ -492,7 +495,7 @@ namespace Union::AScan {
                                       getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain +
                                       getDACStandard(idx).slBias;
                     slValue = Union::CalculateGainOutput(slValue, modifyGain);
-                    _equi   = QString::asprintf("Φ%+.1fdB", Union::CalculatedGain(slValue, r_amp));
+                    _equi   = QString::asprintf("Φ%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue, r_amp)));
                 }
 
                 auto _gate_amp = amp / 2.0;
@@ -520,27 +523,27 @@ namespace Union::AScan {
          */
         virtual QVariantMap createTechnologicalParameter(int idx) const {
             QVariantMap gainPrarameter = {
-                {QObject::tr("基本增益"), QString::number(getBaseGain(idx),                'f', 1) + " dB"},
-                {QObject::tr("扫查增益"), QString::number(getScanGain(idx),                'f', 1) + " dB"},
-                {QObject::tr("表面补偿"), QString::number(getSurfaceCompentationGain(idx), 'f', 1) + " dB"},
+                {QObject::tr("基本增益"), QString::number(KeepDecimals<1>(getBaseGain(idx)),                'f', 1) + " dB"},
+                {QObject::tr("扫查增益"), QString::number(KeepDecimals<1>(getScanGain(idx)),                'f', 1) + " dB"},
+                {QObject::tr("表面补偿"), QString::number(KeepDecimals<1>(getSurfaceCompentationGain(idx)), 'f', 1) + " dB"},
             };
 
             QVariantMap probeParameter = {
                 {QObject::tr("探头类型"), QString::fromStdWString(getProbe(idx))},
-                {QObject::tr("探头频率"), QString::number(getProbeFrequence(idx), 'f', 1) + " MHz"},
+                {QObject::tr("探头频率"), QString::number(KeepDecimals<1>(getProbeFrequence(idx)), 'f', 1) + " MHz"},
                 {QObject::tr("晶片尺寸"), QString::fromStdString(getProbeChipShape(idx))},
             };
 
             QVariantMap basicParameter = {
-                {QObject::tr("声程"), QString::number(getAxisLen(idx), 'f', 1) + " mm"},
-                {QObject::tr("前沿"), QString::number(getFrontDistance(idx), 'f', 1) + " mm"},
-                {QObject::tr("零点"), QString::number(getZeroPointBias(idx), 'f', 2) + " μs"},
-                {QObject::tr("延时"), QString::number(Union::us2mm(getSamplingDelay(idx)), 'f', 1) + " mm"},
-                {QObject::tr("声速"), QString::number(getSoundVelocity(idx), 'f', 0) + " m/s"},
+                {QObject::tr("声程"), QString::number(KeepDecimals<1>(getAxisLen(idx)), 'f', 1) + " mm"},
+                {QObject::tr("前沿"), QString::number(KeepDecimals<1>(getFrontDistance(idx)), 'f', 1) + " mm"},
+                {QObject::tr("零点"), QString::number(KeepDecimals(getZeroPointBias(idx)), 'f', 2) + " μs"},
+                {QObject::tr("延时"), QString::number(KeepDecimals<1>(getSamplingDelay(idx)), 'f', 1) + " mm"},
+                {QObject::tr("声速"), QString::number(KeepDecimals<0>(getSoundVelocity(idx)), 'f', 0) + " m/s"},
                 {QObject::tr("通道"), QString::number(getChannel(idx))},
                 {QObject::tr("K值"), QString::number(Union::Base::Probe::Degree2K(getAngle(idx)), 'f', 2)},
                 {QObject::tr("抑制"), QString::number(getSupression(idx)) + "%"},
-                {QObject::tr("角度"), QString::number(getAngle(idx), 'f', 1) + "°"},
+                {QObject::tr("角度"), QString::number(KeepDecimals<1>(getAngle(idx)), 'f', 1) + "°"},
             };
             return {
                 {QObject::tr("增益参数"), gainPrarameter},

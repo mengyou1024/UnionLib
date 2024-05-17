@@ -129,7 +129,7 @@ namespace Union::__330 {
 
     double DASType::getSamplingDelay(int idx) const {
         (void)idx;
-        return channelParam.delay;
+        return KeepDecimals<1>(getAxisBias(idx));
     }
 
     int DASType::getChannel(int idx) const {

@@ -141,7 +141,10 @@ namespace Union::__330 {
 
     std::string DATType::getProbeChipShape(int idx) const {
         (void)idx;
-        return Union::Base::Probe::CreateProbeChipShape(((getHead().channel_status.sys >> 12) & 0x07), getHead().channel_param.Crystal_l / 1000, getHead().channel_param.Crystal_w / 1000);
+        return Union::Base::Probe::CreateProbeChipShape(
+            (getHead().channel_status.sys >> 12) & 0x07,
+            getHead().channel_param.Crystal_l / 1000,
+            getHead().channel_param.Crystal_w / 1000);
     }
 
     double DATType::getAngle(int idx) const {
@@ -166,7 +169,7 @@ namespace Union::__330 {
 
     double DATType::getSamplingDelay(int idx) const {
         (void)idx;
-        return getHead().channel_param.Delay;
+        return KeepDecimals<1>(getAxisBias(idx));
     }
 
     int DATType::getChannel(int idx) const {
