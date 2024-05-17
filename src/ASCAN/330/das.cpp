@@ -341,8 +341,11 @@ namespace Union::__330 {
         }
         qDebug(QLoggingCategory("DAS")) << "strMRange" << strMRange;
         qDebug(QLoggingCategory("DAS")) << ret;
-        auto obj1      = ret[0].toObject();
-        auto obj2      = ret[1].toObject();
+        auto obj1 = ret[0].toObject();
+        auto obj2 = ret[1].toObject();
+        if (strMRange.isEmpty()) {
+            strMRange = "-";
+        }
         obj1["equi"]   = strMRange;
         obj1["dist_c"] = QString::number(channelParam.wavepara[0] / 10.0, 'f', 1);
         obj1["dist_a"] = QString::number(channelParam.wavepara[1] / 10.0, 'f', 1);
