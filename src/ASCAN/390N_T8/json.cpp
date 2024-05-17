@@ -86,12 +86,12 @@ namespace Union::__390N_T8 {
 
     double T8_390N_JSON::getZeroPointBias(int idx) const {
         (void)idx;
-        return m_ascan->zeroPointBias / 10000.0;
+        return KeepDecimals(m_ascan->zeroPointBias / 1000.0);
     }
 
     double T8_390N_JSON::getSamplingDelay(int idx) const {
         (void)idx;
-        return Union::us2mm(m_ascan->samplingDelay / 10000.0);
+        return KeepDecimals<1>(m_ascan->samplingDelay);
     }
 
     int T8_390N_JSON::getChannel(int idx) const {
@@ -317,7 +317,7 @@ namespace Union::__390N_T8 {
                 // zero point bias
                 ret.zeroPointBias = obj[CHANNEL_ZEROPOINT.data()].toDouble();
                 // scanpling delay
-                ret.samplingDelay  = obj[CHANNEL_SAMPLING_DELAY.data()].toDouble();
+                ret.samplingDelay  = obj["ch_timedelay"].toDouble();
                 ret.channel        = obj[SYS_CHANNEL_ID.data()].toInt(-1);
                 ret.instrumentName = "390N&T8 Single";
 
