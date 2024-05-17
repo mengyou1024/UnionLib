@@ -253,4 +253,42 @@ namespace Union::__390N_T8 {
     void LDAT::pushFileNameList(const std::wstring& fileName) {
         m_fileNameList.push_back(fileName);
     }
+    QJsonArray LDAT::createGateValue(int idx, double soft_gain) const {
+        QJsonArray ret = Union::AScan::AScanIntf::createGateValue(idx, soft_gain);
+
+        std::array<QString, 2> m_equi = {"-", "-"};
+        std::array<QString, 2> m_a    = {"-", "-"};
+        std::array<QString, 2> m_b    = {"-", "-"};
+        std::array<QString, 2> m_c    = {"-", "-"};
+
+        if (ldat.at(idx).dac_data.ch_already_dac) {
+            auto                 index      = ldat.at(idx).chanel_data.ch_equivalent_standard;
+            double               equivalent = ldat.at(idx).chanel_data.ch_flaw_equivalent / 10.0;
+            constexpr std::array lstrequi   = {" ", "RL", "SL", "EL"};
+            m_equi[0]                       = QString::asprintf("%s %+.1fdB", lstrequi[index], equivalent);
+        } else if (ldat.at(idx).avg_data.ch_already_avg) {
+            auto reflector_diameter = ldat.at(idx).avg_data.ch_avg_reflector_diameter;
+            auto equivlant          = ldat.at(idx).chanel_data.ch_flaw_equivalent / 10.0;
+            auto avg_diameter       = ldat.at(idx).avg_data.ch_avg_diameter;
+            m_equi[0]               = QString::asprintf("Φ%.1f Φ%.1f %+.1fdB", avg_diameter, reflector_diameter, equivlant);
+        }
+
+        m_c[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_actual_dist / 10.0);
+        m_a[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_horizontal_dist / 10.0);
+        m_b[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_depth / 10.0);
+
+        auto obj1      = ret[0].toObject();
+        auto obj2      = ret[1].toObject();
+        obj1["equi"]   = m_equi[0];
+        obj1["dist_c"] = m_c[0];
+        obj1["dist_a"] = m_a[0];
+        obj1["dist_b"] = m_b[0];
+        obj2["equi"]   = m_equi[1];
+        obj2["dist_c"] = m_c[1];
+        obj2["dist_a"] = m_a[1];
+        obj2["dist_b"] = m_b[1];
+        ret.replace(0, obj1);
+        ret.replace(1, obj2);
+        return ret;
+    }
 } // namespace Union::__390N_T8

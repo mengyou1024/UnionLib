@@ -159,6 +159,7 @@ namespace Union::__390N_T8 {
 
     class LDAT : public Union::AScan::AScanIntf {
         friend class VDATA;
+
     private:
         std::string time = []() -> std::string {
             auto const        now = std::chrono::system_clock::now();
@@ -176,6 +177,7 @@ namespace Union::__390N_T8 {
 
     protected:
         std::string convertTime(std::array<char, 14> arr) const;
+
     public:
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& fileName);
 
@@ -217,6 +219,8 @@ namespace Union::__390N_T8 {
         std::function<double(double)> getDACLineExpr(int idx) const override;
 
         void pushFileNameList(const std::wstring& fileName);
+
+        virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
     };
 
 } // namespace Union::__390N_T8

@@ -189,6 +189,23 @@ namespace Union::__390N_T8 {
         return nullptr;
     }
 
+    QJsonArray T8_390N_JSON::createGateValue(int idx, double soft_gain) const {
+        QJsonArray ret  = Union::AScan::AScanIntf::createGateValue(idx, soft_gain);
+        auto       obj1 = ret[0].toObject();
+        auto       obj2 = ret[1].toObject();
+        obj1["equi"]    = m_equi[0];
+        obj1["dist_c"]  = m_c[0];
+        obj1["dist_a"]  = m_a[0];
+        obj1["dist_b"]  = m_b[0];
+        obj2["equi"]    = m_equi[1];
+        obj2["dist_c"]  = m_c[1];
+        obj2["dist_a"]  = m_a[1];
+        obj2["dist_b"]  = m_b[1];
+        ret.replace(0, obj1);
+        ret.replace(1, obj2);
+        return ret;
+    }
+
     std::optional<T8_390N_JSON::AScanType> T8_390N_JSON::__390N_T8_JSON_READ(const std::wstring &fileName) {
         QFile file(QString::fromStdWString(fileName));
         file.open(QIODevice::ReadOnly);
@@ -311,6 +328,29 @@ namespace Union::__390N_T8 {
                 for (auto i = 0; std::cmp_less(i, ascan.ascan.size()); i++) {
                     ascan.ascan[i] = static_cast<uint8_t>(obj[CHANNEL_SCAN_VALUE.data()].toArray()[i].toInt());
                 }
+                if (obj[CHANNEL_ALREADY_DAC.data()].toBool()) {
+                    int                  index        = obj[CHANNEL_EQUIVALENT_STANDARD.data()].toInt();
+                    double               equivalent   = obj[CHANNEL_FLAW_EQUIVALENT.data()].toDouble();
+                    double               equivalent_b = obj[CHANNEL_FLAW_EQUIVALENT_B.data()].toDouble();
+                    constexpr std::array lstrequi     = {" ", "RL", "SL", "EL"};
+                    m_equi[0]                         = QString::asprintf("%s %+.1fdB", lstrequi[index], equivalent);
+                    m_equi[1]                         = QString::asprintf("%s %+.1fdB", lstrequi[index], equivalent_b);
+                } else if (obj[CHANNEL_ALREADY_AVG.data()].toBool()) {
+                    auto reflector_diameter = obj[CHANNEL_AVG_REFLECTOR_DIAMETER.data()].toDouble();
+                    auto equivlant          = obj[CHANNEL_FLAW_EQUIVALENT.data()].toDouble();
+                    auto avg_diameter       = obj[CHANNEL_AVG_DIAMETER.data()].toDouble();
+                    auto equivlant_b        = obj[CHANNEL_FLAW_EQUIVALENT_B.data()].toDouble();
+                    m_equi[0]               = QString::asprintf("Φ%.1f Φ%.1f %+.1fdB", avg_diameter, reflector_diameter, equivlant);
+                    m_equi[1]               = QString::asprintf("Φ%.1f Φ%.1f %+.1fdB", avg_diameter, reflector_diameter, equivlant_b);
+                }
+
+                m_c[0] = QString::asprintf("%.1f", obj[CHANNEL_FLAW_ACTUAL_DIST.data()].toDouble());
+                m_c[1] = QString::asprintf("%.1f", obj[CHANNEL_FLAW_ACTUAL_DIST_B.data()].toDouble());
+                m_a[0] = QString::asprintf("%.1f", obj[CHANNEL_FLAW_HORIZONTAL_DIST.data()].toDouble());
+                m_a[1] = QString::asprintf("%.1f", obj[CHANNEL_FLAW_HORIZONTAL_DIST_B.data()].toDouble());
+                m_b[0] = QString::asprintf("%.1f", obj[CHANNEL_FLAW_DEPTH.data()].toDouble());
+                m_b[1] = QString::asprintf("%.1f", obj[CHANNEL_FLAW_DEPTH_B.data()].toDouble());
+
                 return ret;
             } catch (std::exception &e) {
                 qCritical(QLoggingCategory("390N&T8.JSON")) << e.what();

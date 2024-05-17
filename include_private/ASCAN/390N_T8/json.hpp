@@ -247,6 +247,8 @@ namespace Union::__390N_T8 {
 
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& file_name);
 
+        virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
+
     private:
         std::vector<std::wstring> m_fileNameList = {};
         struct AScanData {
@@ -279,6 +281,11 @@ namespace Union::__390N_T8 {
             int                    channel        = {}; ///< 通道
             std::string            instrumentName = {}; ///< 仪器型号
         };
+
+        std::array<QString, 2> m_equi = {"-", "-"};
+        std::array<QString, 2> m_a    = {"-", "-"};
+        std::array<QString, 2> m_b    = {"-", "-"};
+        std::array<QString, 2> m_c    = {"-", "-"};
 
         std::optional<AScanType> __390N_T8_JSON_READ(const std::wstring& fileName);
         std::optional<AScanType> m_ascan = std::nullopt;
