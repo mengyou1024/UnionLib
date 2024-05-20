@@ -15,62 +15,8 @@ namespace Union::AScan {
         return ret;
     }
 
-    std::function<double(double)> AScanIntf::getLineExpr(int idx, const std::vector<int>& _index, const std::vector<uint8_t>& value, const std::array<double, 2>& r_range, const std::array<double, 2>& v_range, std::function<double(double, double)> func_db_diff) const {
-        // TODO: 曲线平滑
-        using Union::ValueMap;
-
-        std::vector<double> index;
-        for (auto& it : _index) {
-            index.emplace_back(ValueMap((double)it, r_range, v_range));
-        }
-
-        return [=, this](double val) -> double {
-            try {
-                val = ValueMap(val, {getAxisBias(idx), getAxisBias(idx) + getAxisLen(idx)}, v_range);
-                if (val <= index.at(0)) {
-                    return value.at(0);
-                } else {
-                    std::pair<double, double>                first  = {};
-                    std::optional<std::pair<double, double>> second = std::nullopt;
-                    if (index.size() == 1) {
-                        first = {index.at(0), value.at(0)};
-                    } else {
-                        bool in_range = false;
-                        for (int i = 1; std::cmp_less(i, index.size()); i++) {
-                            if (val >= index.at(i - 1) && val <= index.at(i)) {
-                                first    = {index.at(i - 1), value.at(i - 1)};
-                                second   = {index.at(i), value.at(i)};
-                                in_range = true;
-                            }
-                        }
-                        if (!in_range) {
-                            first  = {index.back(), value.back()};
-                            second = std::nullopt;
-                        }
-                    }
-
-                    auto CalcluateValue = [=](std::pair<double, double> pt = {}) -> double {
-                        return Union::CalculateGainOutput(pt.second, func_db_diff(val, pt.first));
-                    };
-
-                    if (second.has_value()) {
-                        auto value_first   = CalcluateValue(first);
-                        auto vallue_second = CalcluateValue(second.value());
-                        auto first_rate    = (val - first.first) / (second->first - first.first);
-                        auto second_rate   = (second->first - val) / (second->first - first.first);
-                        return value_first * second_rate + vallue_second * first_rate;
-                    }
-                    return CalcluateValue(first);
-                }
-            } catch (std::exception& e) {
-                qDebug(QLoggingCategory("AScanType")) << "getLineExpr error! msg:" << e.what();
-                return 0;
-            }
-        };
-    }
-
     std::optional<std::tuple<double, uint8_t>> AScanIntf::getGateResult(int idx, int gate_idx, bool find_center_if_overflow, bool enable_supression) const {
-        const auto& _data = getScanData(idx);
+        const auto &_data = getScanData(idx);
         const auto  _gate = getGate(idx).at(gate_idx);
         auto        start = _gate.pos;
         double      end   = (double)(_gate.pos + _gate.width);

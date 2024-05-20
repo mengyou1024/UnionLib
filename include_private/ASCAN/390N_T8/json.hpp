@@ -242,9 +242,6 @@ namespace Union::__390N_T8 {
         virtual std::optional<Base::DAC>    getDAC(int idx) const override final;
         virtual Union::AScan::DAC_Standard  getDACStandard(int idx) const override final;
 
-        virtual std::function<double(double)> getAVGLineExpr(int idx) const override final;
-        virtual std::function<double(double)> getDACLineExpr(int idx) const override final;
-
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& file_name);
 
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;

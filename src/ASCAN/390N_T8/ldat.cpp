@@ -234,23 +234,6 @@ namespace Union::__390N_T8 {
         return ret;
     }
 
-    std::function<double(double)> LDAT::getAVGLineExpr(int idx) const {
-        auto func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
-        auto _ret = getLineExpr(idx, getAVG(idx)->index, getAVG(idx)->value, {0.0, 160.0}, {0.0, 520.0}, func);
-        return [=, this](double val) -> double {
-            auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain + getAVG(idx)->biasGain;
-            return Union::CalculateGainOutput(_ret(val), modifyGain);
-        };
-    }
-
-    std::function<double(double)> LDAT::getDACLineExpr(int idx) const {
-        auto _ret = getLineExpr(idx, getDAC(idx)->index, getDAC(idx)->value, {0.0, 106.59}, {0.0, 520.0});
-        return [=, this](double val) -> double {
-            auto modifyGain = getBaseGain(idx) + getScanGain(idx) - getDAC(idx)->baseGain + getDAC(idx)->biasGain;
-            return Union::CalculateGainOutput(_ret(val), modifyGain);
-        };
-    }
-
     void LDAT::pushFileNameList(const std::wstring& fileName) {
         m_fileNameList.push_back(fileName);
     }

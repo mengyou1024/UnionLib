@@ -163,23 +163,6 @@ namespace Union::__390N_T8 {
         return m_ascan->data[0].std;
     }
 
-    std::function<double(double)> T8_390N_JSON::getAVGLineExpr(int idx) const {
-        auto func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
-        auto _ret = getLineExpr(idx, getAVG(idx)->index, getAVG(idx)->value, {0.0, 160.0}, {0.0, 520.0}, func);
-        return [=, this](double val) -> double {
-            auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain + getAVG(idx)->biasGain;
-            return Union::CalculateGainOutput(_ret(val), modifyGain);
-        };
-    }
-
-    std::function<double(double)> T8_390N_JSON::getDACLineExpr(int idx) const {
-        auto _ret = getLineExpr(idx, getDAC(idx)->index, getDAC(idx)->value, {0.0, 106.59}, {0.0, 520.0});
-        return [=, this](double val) -> double {
-            auto modifyGain = getBaseGain(idx) + getScanGain(idx) - getDAC(idx)->baseGain + getDAC(idx)->biasGain;
-            return Union::CalculateGainOutput(_ret(val), modifyGain);
-        };
-    }
-
     std::unique_ptr<Union::AScan::AScanIntf> T8_390N_JSON::FromFile(const std::wstring &file_name) {
         try {
             return std::make_unique<T8_390N_JSON>(file_name);

@@ -279,7 +279,47 @@ namespace Union::AScan {
          *         图像中曲线的坐标系X轴范围为: [0~N] 其中N为(A扫图像的点数-1)
          *         图像中曲线的坐标系Y轴范围为: [0~200]
          */
-        virtual std::function<double(double)> getAVGLineExpr(int idx) const = 0;
+        virtual std::function<double(double)> getAVGLineExpr(int idx) const {
+            auto avg_param = getAVG(idx);
+            if (!avg_param.has_value()) {
+                return [](double) -> double { return 0.0; };
+            }
+            std::vector<double> index_on_dac_view;
+            index_on_dac_view.resize(avg_param->index.size());
+            std::transform(avg_param->index.begin(), avg_param->index.end(), index_on_dac_view.begin(), [&](int x) -> double {
+                return ValueMap((double)x, {0.0, 160.0}, {0.0, 520.0});
+            });
+            auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain + getAVG(idx)->biasGain;
+            if (avg_param->index.size() == 1) {
+                return [=, this](double _val) -> double {
+                    auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
+                    if (val < index_on_dac_view[0]) {
+                        return CalculateGainOutput(avg_param->value[0], modifyGain);
+                    } else {
+                        auto Func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
+                        return CalculateGainOutput(avg_param->value[0], modifyGain - Func(index_on_dac_view[0], val));
+                    }
+                };
+            }
+            std::vector<double> decay = {};
+            for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                auto _decay = (std::log(avg_param->value[i + 1]) - std::log(avg_param->value[i])) / (index_on_dac_view[i + 1] - index_on_dac_view[i]);
+                decay.emplace_back(_decay);
+            }
+            return [=, this](double _val) -> double {
+                auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
+                if (val < index_on_dac_view[0]) {
+                    return CalculateGainOutput(avg_param->value[0], modifyGain);
+                } else {
+                    for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                        if (val >= index_on_dac_view[i]) {
+                            return CalculateGainOutput(avg_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
+                        }
+                    }
+                }
+                return 0.0;
+            };
+        }
 
         /**
          * @brief 获取AVG曲线的表达式
@@ -290,12 +330,47 @@ namespace Union::AScan {
          *         图像中曲线的坐标系X轴范围为: [0~N] 其中N为(A扫图像的点数-1)
          *         图像中曲线的坐标系Y轴范围为: [0~200]
          */
-        virtual std::function<double(double)> getDACLineExpr(int idx) const = 0;
+        virtual std::function<double(double)> getDACLineExpr(int idx) const {
+            auto dac_param = getDAC(idx);
+            if (!dac_param.has_value()) {
+                return [](double) -> double { return 0.0; };
+            }
+            std::vector<double> index_on_dac_view;
+            index_on_dac_view.resize(dac_param->index.size());
+            std::transform(dac_param->index.begin(), dac_param->index.end(), index_on_dac_view.begin(), [&](int x) -> double {
+                return ValueMap((double)x, {0.0, 100.0}, {0.0, 520.0});
+            });
+            auto modifyGain = getBaseGain(idx) + getScanGain(idx) - getDAC(idx)->baseGain + getDAC(idx)->biasGain;
+            if (dac_param->index.size() == 1) {
+                return [=, this](double _val) -> double {
+                    auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
+                    if (val < index_on_dac_view[0]) {
+                        return CalculateGainOutput(dac_param->value[0], modifyGain);
+                    } else {
+                        return CalculateGainOutput(dac_param->value[0], modifyGain + Union::EchoDbDiffOfPlan(index_on_dac_view[0], val));
+                    }
+                };
+            }
+            std::vector<double> decay = {};
+            for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                auto _decay = (std::log(dac_param->value[i + 1]) - std::log(dac_param->value[i])) / (index_on_dac_view[i + 1] - index_on_dac_view[i]);
+                decay.emplace_back(_decay);
+            }
+            return [=, this](double _val) -> double {
+                auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
+                if (val < index_on_dac_view[0]) {
+                    return CalculateGainOutput(dac_param->value[0], modifyGain);
+                } else {
+                    for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                        if (val >= index_on_dac_view[i]) {
+                            return CalculateGainOutput(dac_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
+                        }
+                    }
+                }
+                return 0.0;
+            };
+        }
 
-        virtual std::function<double(double)> getLineExpr(int idx, const std::vector<int> &_index, const std::vector<uint8_t> &value,
-                                                          const std::array<double, 2>          &r_range      = {0.0, 105.0} /*TODO: 声程计算*/,
-                                                          const std::array<double, 2>          &v_range      = {0, 520.0},
-                                                          std::function<double(double, double)> func_db_diff = Union::EchoDbDiffOfPlan) const final;
         /**
          * @brief 获取波门的计算结果
          *
@@ -307,7 +382,7 @@ namespace Union::AScan {
          *         [pos, max_amp]
          *         其中pos的范围为:0-1
          */
-        virtual std::optional<std::tuple<double, uint8_t>> getGateResult(int idx, int gate_idx = 0, bool find_center_if_overflow = true, bool enable_supression=true) const final;
+        virtual std::optional<std::tuple<double, uint8_t>> getGateResult(int idx, int gate_idx = 0, bool find_center_if_overflow = true, bool enable_supression = true) const final;
 
         /**
          * @brief 获取坐标范围
