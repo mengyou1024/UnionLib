@@ -2,10 +2,6 @@
 
 #include "ldat.hpp"
 
-namespace Union::AScan::Special {
-
-} // namespace Union::AScan::Special
-
 namespace Union::__390N_T8 {
 
     class VDATA : public LDAT, public AScan::Special::CameraImageSpecial {

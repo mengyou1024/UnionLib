@@ -69,7 +69,7 @@ namespace Union::AScan {
         };
     }
 
-    std::optional<std::tuple<double, uint8_t>> AScanIntf::getGateResult(int idx, int gate_idx, bool find_center_if_overflow) const {
+    std::optional<std::tuple<double, uint8_t>> AScanIntf::getGateResult(int idx, int gate_idx, bool find_center_if_overflow, bool enable_supression) const {
         const auto& _data = getScanData(idx);
         const auto  _gate = getGate(idx).at(gate_idx);
         auto        start = _gate.pos;
@@ -91,6 +91,9 @@ namespace Union::AScan {
             max = minMaxVec[0] + minMaxVec.size() / 2;
         }
         auto pos = ((double)std::distance(_data.begin(), max) / (double)_data.size());
+        if (enable_supression && *max <= 255 * getSupression(idx)) {
+            return std::nullopt;
+        }
         if (pos < 0.0f) {
             return std::nullopt;
         }

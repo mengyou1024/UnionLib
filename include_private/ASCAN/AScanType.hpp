@@ -302,11 +302,12 @@ namespace Union::AScan {
          * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
          * @param gate_idx 波门序号 0-2
          * @param find_center_if_overflow true:在最高波超过屏幕宽度时寻找中心， false: 寻找第一个最高位置
+         * @param enable_supression 使能抑制, 当波高百分比<=`getSupression`时, 返回 std::nullopt
          * @return std::optional<std::tuple<double, uint8_t>>
          *         [pos, max_amp]
          *         其中pos的范围为:0-1
          */
-        virtual std::optional<std::tuple<double, uint8_t>> getGateResult(int idx, int gate_idx = 0, bool find_center_if_overflow = true) const final;
+        virtual std::optional<std::tuple<double, uint8_t>> getGateResult(int idx, int gate_idx = 0, bool find_center_if_overflow = true, bool enable_supression=true) const final;
 
         /**
          * @brief 获取坐标范围
