@@ -119,11 +119,11 @@ namespace Union::__390N_T8 {
     }
 
     double LDAT::getZeroPointBias(int idx) const {
-        return ldat.at(idx).chanel_data.ch_zero_point / 100000.0;
+        return KeepDecimals((ldat.at(idx).chanel_data.ch_zero_point) / 100000.0);
     }
 
     double LDAT::getSamplingDelay(int idx) const {
-        return us2mm(ldat.at(idx).chanel_data.ch_sampling_delay / 10000.0);
+        return getAxisBias(idx);
     }
 
     int LDAT::getChannel(int idx) const {
@@ -155,11 +155,12 @@ namespace Union::__390N_T8 {
     }
 
     double LDAT::getAxisBias(int idx) const {
-        return ldat.at(idx).chanel_data.ch_yangshi;
+        return KeepDecimals<1>(ldat.at(idx).chanel_data.ch_yangshi / 100.0);
     }
 
     double LDAT::getAxisLen(int idx) const {
-        return ldat.at(idx).chanel_data.ch_sound_distance[ldat.at(idx).chanel_data.ch_sound_distance_type];
+        const auto distanceMode = ldat.at(idx).chanel_data.ch_sound_distance_type;
+        return ldat.at(idx).chanel_data.ch_sound_distance[static_cast<int>(distanceMode)];
     }
 
     double LDAT::getBaseGain(int idx) const {
@@ -175,7 +176,7 @@ namespace Union::__390N_T8 {
     }
 
     int LDAT::getSupression(int idx) const {
-        return ldat.at(idx).chanel_data.ch_suppression;
+        return KeepDecimals<0>(ldat.at(idx).chanel_data.ch_suppression / 10.0);
     }
 
     Union::AScan::DistanceMode LDAT::getDistanceMode(int idx) const {
