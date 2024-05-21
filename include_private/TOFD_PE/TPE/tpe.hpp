@@ -1,5 +1,6 @@
-#include "../TofdPeType.hpp"
+#pragma once
 
+#include "../TofdPeType.hpp"
 #include <memory>
 #include <optional>
 
@@ -48,14 +49,14 @@ namespace Union::TOFD_PE::TPE {
     };
 
     class TpeType : public TofdPeIntf {
+    protected:
         Data m_data = {};
-
         std::optional<Data> m_data_bak = std::nullopt;
 
     public:
         static std::unique_ptr<TofdPeIntf> FromFile(const std::wstring& fileName);
 
-        virtual size_t __Read(std::ifstream& file, size_t file_size) override final;
+        virtual size_t __Read(std::ifstream& file, size_t file_size) override;
 
         virtual int getAScanSize(void) const override final;
 

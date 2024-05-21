@@ -37,6 +37,8 @@ TEST(Union, readFile) {
     EXPECT_TRUE(Union::__330::Serial_330::FromFile(L"test_file/serial.cod"));
     EXPECT_TRUE(Union::__390N_T8::VDATA::FromFile(LR"(test_file/2024-0510-103927.vdata)"));
     EXPECT_TRUE(Union::__390::DAAType::FromFile(LR"(test_file\2024-05-13.daa)"));
+    EXPECT_TRUE(Union::TOFD_PE::TOF::TofType::FromFile(L"test_file/1.tof"));
+    EXPECT_TRUE(Union::TOFD_PE::TOF::TofType::FromFile(L"test_file/3322.tof"));
 }
 
 TEST(__330, lzw_decompressed) {
