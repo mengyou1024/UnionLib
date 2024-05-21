@@ -172,7 +172,7 @@ namespace Union::__390N_T8 {
     }
 
     double LDAT::getSurfaceCompentationGain(int idx) const {
-        return ldat.at(idx).chanel_data.ch_offset_gain;
+        return ldat.at(idx).chanel_data.ch_offset_gain / 10.0;
     }
 
     int LDAT::getSupression(int idx) const {
