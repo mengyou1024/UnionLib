@@ -356,6 +356,11 @@ namespace Union::__330 {
         return ret;
     }
 
+    std::pair<double, double> DASType::getProbeSize(int idx) const {
+        (void)idx;
+        return std::make_pair(channelParam.crystal_l / 1000.0, channelParam.crystal_w / 1000.0);
+    }
+
     int DASType::getOption(void) const noexcept {
         auto ret = channelStatus.option;
         ret >>= 24;

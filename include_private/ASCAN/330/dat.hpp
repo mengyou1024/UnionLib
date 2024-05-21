@@ -246,6 +246,8 @@ namespace Union::__330 {
 
         virtual void setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx) override;
 
+        virtual std::pair<double, double> getProbeSize(int idx) const override;
+
     private:
         int                                                    getOption(int idx) const noexcept;
         double                                                 getUnit(int idx) const noexcept;

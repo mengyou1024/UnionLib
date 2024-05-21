@@ -189,6 +189,11 @@ namespace Union::__390N_T8 {
         return ret;
     }
 
+    std::pair<double, double> T8_390N_JSON::getProbeSize(int idx) const {
+        (void)idx;
+        return m_probeSize;
+    }
+
     std::optional<T8_390N_JSON::AScanType> T8_390N_JSON::__390N_T8_JSON_READ(const std::wstring &fileName) {
         QFile file(QString::fromStdWString(fileName));
         file.open(QIODevice::ReadOnly);
@@ -290,6 +295,7 @@ namespace Union::__390N_T8 {
                 ret.probeFrequence = obj[CHANNEL_PROBE_FREQ.data()].toDouble();
                 // probe chip size
                 auto _chipSize     = obj[CHANNEL_PROBE_SIZE.data()].toArray();
+                m_probeSize        = std::make_pair(_chipSize[0].toDouble(), _chipSize[1].toDouble());
                 ret.probeChipShape = Union::Base::Probe::CreateProbeChipShape(probeIndex, _chipSize[0].toInt(), _chipSize[1].toInt());
                 // angle
                 ret.angle = obj[CHANNEL_K_VALUE.data()].toArray()[1].toDouble();

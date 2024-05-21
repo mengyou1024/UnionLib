@@ -421,6 +421,12 @@ namespace Union::__330 {
         (void)idx;
     }
 
+    std::pair<double, double> DATType::getProbeSize(int idx) const {
+        (void)idx;
+        return std::make_pair(getHead().channel_param.Crystal_l / 1000.0,
+                              getHead().channel_param.Crystal_w / 1000.0);
+    }
+
     int DATType::getOption(int idx) const noexcept {
         (void)idx;
         auto ret = getHead().channel_status.option;

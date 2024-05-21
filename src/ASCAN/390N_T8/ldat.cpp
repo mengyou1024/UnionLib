@@ -275,4 +275,9 @@ namespace Union::__390N_T8 {
         ret.replace(1, obj2);
         return ret;
     }
+
+    std::pair<double, double> LDAT::getProbeSize(int idx) const {
+        auto [_a, _b] = ldat.at(idx).chanel_data.ch_probe_size;
+        return std::make_pair(static_cast<double>(_a), static_cast<double>(_b));
+    }
 } // namespace Union::__390N_T8

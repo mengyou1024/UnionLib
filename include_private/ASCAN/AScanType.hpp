@@ -404,7 +404,7 @@ namespace Union::AScan {
         /**
          * @brief 创建报表Map
          *
-         * @param idx idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
+         * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
          * @param soft_gain 软件增益
          * @return QVariantMap
          */
@@ -473,7 +473,7 @@ namespace Union::AScan {
         /**
          * @brief 创建波门结果值
          *
-         * @param idx idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
+         * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
          * @param soft_gain 软件增益
          * @return QJsonArray
          */
@@ -594,7 +594,7 @@ namespace Union::AScan {
         /**
          * @brief 创建工艺参数
          *
-         * @param idx idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
+         * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
          * @return 工艺参数
          */
         virtual QVariantMap createTechnologicalParameter(int idx) const {
@@ -626,6 +626,23 @@ namespace Union::AScan {
                 {QObject::tr("探头信息"), probeParameter},
                 {QObject::tr("基本信息"), basicParameter},
             };
+        }
+
+        /**
+         * @brief 获取探头尺寸
+         * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
+         * @return [l, w] or [d, 0]
+         */
+        virtual std::pair<double, double> getProbeSize(int idx) const = 0;
+
+        /**
+         * @brief 获取近场区的长度
+         * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
+         * @return 近场区长度(mm)
+         */
+        virtual double getNearField(int idx) const final {
+            auto [l, w] = getProbeSize(idx);
+            return Union::CalculateNearField(l, w, getProbeFrequence(idx), getSoundVelocity(idx));
         }
     };
 

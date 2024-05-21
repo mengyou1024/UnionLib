@@ -1,6 +1,7 @@
 
 #include "common.hpp"
 #include <Yo/Types>
+#include <stdexcept>
 
 double Union::CalculatedGain(double input, double output) {
     return 20.0 * std::log10(output / input);
@@ -43,4 +44,16 @@ QString Union::LocationCodeToUTF8(const std::vector<uint16_t>& code) {
         }
     }
     return QString::fromStdString(Yo::Types::GB2312ToUtf8(str));
+}
+
+double Union::CalculateNearField(double l_or_d, double w_or_zero, double probe_freq, double speed) {
+    double temp = 0.0;
+    if (l_or_d != 0 && w_or_zero != 0) {
+        temp = l_or_d * w_or_zero;
+    } else if (l_or_d == 0 && w_or_zero == 0) {
+        temp = 25.0;
+    } else {
+        temp = std::pow(l_or_d + w_or_zero, 2);
+    }
+    return (1000.0 * temp * probe_freq) / (4 * speed);
 }

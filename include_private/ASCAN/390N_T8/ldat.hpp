@@ -218,6 +218,8 @@ namespace Union::__390N_T8 {
         void pushFileNameList(const std::wstring& fileName);
 
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
+
+        virtual std::pair<double, double> getProbeSize(int idx) const override final;
     };
 
 } // namespace Union::__390N_T8

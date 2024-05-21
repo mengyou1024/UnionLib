@@ -146,4 +146,14 @@ namespace Union {
     constexpr double us2mm(double us, double speed_m_per_s = 5900) {
         return us * speed_m_per_s / 2000;
     }
+
+    /**
+     * @brief 计算近场区的长度
+     * @param l_or_d 探头长度或直径(mm)
+     * @param w_or_zero 探头宽度或0(mm)
+     * @param probe_freq 探头频率(MHz)
+     * @param speed 声速(m/s)
+     * @return
+     */
+    double CalculateNearField(double l_or_d, double w_or_zero, double probe_freq, double speed);
 } // namespace Union

@@ -7,6 +7,8 @@
 namespace Union::Base::Probe {
     QString Index2Name_QtExtra(int index);
     int Name2Index_QtExtra(QString name);
+    bool IsStraightBeamProbe(QString name);
+    bool IsStraightBeamProbe(int idx);
 
     std::string      CreateProbeChipShape(int index, int a, int b);
     constexpr double Degree2Rd(double deg) {
