@@ -49,11 +49,11 @@ namespace Union::TOFD_PE::TPE {
     }
 
     double TpeType::getTofdDelay(void) const {
-        return m_data.delay / 100.0;
+        return m_data.delay / 100.0 * 5.92 / 2.0;
     }
 
     double TpeType::getTofdRange(void) const {
-        return m_data.range / 10.0;
+        return m_data.range / 10.0 * 5.92 / 2.0;
     }
 
     bool TpeType::hasPe(void) const {
