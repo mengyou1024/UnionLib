@@ -53,7 +53,8 @@ namespace Union::TOFD_PE::TPE {
     }
 
     double TpeType::getTofdRange(void) const {
-        return m_data.range / 10.0 * 5.92 / 2.0;
+        auto range = m_data.range / 10.0 * 5.92 / 2.0;
+        return range - getTofdDelay();
     }
 
     bool TpeType::hasPe(void) const {
