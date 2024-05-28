@@ -150,7 +150,7 @@ typedef struct
     // d9d8核查用探头00组合探头01小于K1斜探头10单晶直探头11双晶直探头
     // d11初查用d12核查用组合探头d13小于K1斜探头d14单晶直探头d15双晶直探头=0未测1已测,
 
-    u_int option; // d31－d28当量标准:0000母线/从上到下，
+        u_int option; // d31－d28当量标准:0000母线/从上到下，
     // d27d26当量显示：%/dB值/孔径,d25d24标度：垂直\水平\距离
     // d23-d16参量锁
     // d15-d9参量步长,d15d14基准增益，d13d12调节增益，d11声程，d10延时，d9声速
@@ -242,8 +242,8 @@ public:
     int C_TEST_AVG    = 3;
     int C_MAKE_DACAVG = 4;
 
-    double dac_line[500] = {};
-    double dac_gate[600] = {};
+    short dac_line[500] = {};
+    short dac_gate[600] = {};
 
     int Last_Test_Dist = 0;
 
@@ -271,10 +271,10 @@ public:
 private:
     int   CalcuDac();
     int   GetMiddleValue(int dist1, int db1, int dist2, int db2, int dist);
-    int   GetLine_TwoDot(double line[], int dist1, int dist2);
+    int   GetLine_TwoDot(short line[], int dist1, int dist2);
     void  GetDacLine();
     float Mexpf(float ex, u_int len); // 指数函数，得到e^ex,位数不大于len×8
-    std::array<std::array<double, 500>, 10> dac_points = {};
+    std::array<std::array<int, 500>, 10> dac_points = {};
 };
 
 #endif // DAT330_SINGLE_H
