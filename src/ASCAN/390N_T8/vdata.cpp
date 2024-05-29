@@ -19,7 +19,7 @@ namespace Union::__390N_T8 {
         auto ret  = Yo::File::ReadFile(fileName, *(vdat.get()));
         if (ret) {
             QFileInfo info(QString::fromStdWString(fileName));
-            vdat->pushFileNameList(info.baseName().toStdWString());
+            vdat->pushFileNameList(info.completeBaseName().toStdWString());
             return vdat;
         }
         return nullptr;

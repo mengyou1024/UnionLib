@@ -13,7 +13,7 @@ namespace Union::__390N_T8 {
             throw std::runtime_error("can't resolve json file.");
         }
         QFileInfo info(QString::fromStdWString(fileName));
-        m_fileNameList.push_back(info.baseName().toStdWString());
+        m_fileNameList.push_back(info.completeBaseName().toStdWString());
     }
 
     size_t T8_390N_JSON::__Read(std::ifstream &file, size_t file_size) {

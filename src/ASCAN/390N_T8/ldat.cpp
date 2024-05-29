@@ -32,7 +32,7 @@ namespace Union::__390N_T8 {
         auto ret  = Yo::File::ReadFile(fileName, *(ldat.get()));
         if (ret) {
             QFileInfo info(QString::fromStdWString(fileName));
-            ldat->pushFileNameList(info.baseName().toStdWString());
+            ldat->pushFileNameList(info.completeBaseName().toStdWString());
             return ldat;
         }
         return nullptr;

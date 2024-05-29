@@ -41,7 +41,7 @@ namespace Union::__390 {
             _temp.m_range_a      = _raw->getAxisLen(0);
             _raw->setUnResolvedGetDacLines(DrawDac(_temp), 0);
             QFileInfo info(QString::fromStdWString(fileName));
-            _raw->m_fileNameList.push_back(info.baseName().toStdWString());
+            _raw->m_fileNameList.push_back(info.completeBaseName().toStdWString());
             return ret;
         }
         return nullptr;
