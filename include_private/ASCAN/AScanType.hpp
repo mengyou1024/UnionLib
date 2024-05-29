@@ -644,6 +644,14 @@ namespace Union::AScan {
             auto [l, w] = getProbeSize(idx);
             return Union::CalculateNearField(l, w, getProbeFrequence(idx), getSoundVelocity(idx));
         }
+
+        /**
+         * @brief 回放定时器每一帧的间隔
+         * @return (ms)
+         */
+        virtual int getReplayTimerInterval() const {
+            return 40;
+        }
     };
 
     /**

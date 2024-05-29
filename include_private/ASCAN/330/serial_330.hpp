@@ -96,6 +96,8 @@ namespace Union::__330 {
 
         virtual std::pair<double, double> getProbeSize(int idx) const override final;
 
+        virtual int getReplayTimerInterval() const override final;
+
     private:
         int                                                    getOption(void) const noexcept;
         double                                                 getUnit(void) const noexcept;

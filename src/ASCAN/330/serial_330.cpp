@@ -456,6 +456,10 @@ namespace Union::__330 {
         return std::make_pair(crystal_l / 1000.0, crystal_w / 1000.0);
     }
 
+    int Serial_330::getReplayTimerInterval() const {
+        return 1500;
+    }
+
     int Serial_330::getOption(void) const noexcept {
         auto ret = m_data[m_fileName_index].systemStatus.option;
         ret >>= 24;

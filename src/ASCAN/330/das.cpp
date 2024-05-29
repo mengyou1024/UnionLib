@@ -361,6 +361,10 @@ namespace Union::__330 {
         return std::make_pair(channelParam.crystal_l / 1000.0, channelParam.crystal_w / 1000.0);
     }
 
+    int DASType::getReplayTimerInterval() const {
+        return 1500;
+    }
+
     int DASType::getOption(void) const noexcept {
         auto ret = channelStatus.option;
         ret >>= 24;

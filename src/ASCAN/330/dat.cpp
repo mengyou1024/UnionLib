@@ -427,6 +427,10 @@ namespace Union::__330 {
                               getHead().channel_param.Crystal_w / 1000.0);
     }
 
+    int DATType::getReplayTimerInterval() const {
+        return 1500;
+    }
+
     int DATType::getOption(int idx) const noexcept {
         (void)idx;
         auto ret = getHead().channel_status.option;
