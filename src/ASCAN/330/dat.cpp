@@ -1,12 +1,15 @@
 #include "dat.hpp"
 #include "./_330_draw_dac.hpp"
 #include "lzw.hpp"
+#include <QLoggingCategory>
 #include <Yo/File>
 #include <Yo/Types>
 #include <ctime>
 #include <numeric>
 #include <regex>
 #include <stdexcept>
+
+static Q_LOGGING_CATEGORY(TAG, "330.DAT");
 
 static constexpr uint8_t BCD2INT(uint8_t bcd) {
     return (bcd >> 4) * 10 + (bcd & 0x0F);
@@ -49,7 +52,13 @@ namespace Union::__330 {
         ret += Yo::File::__Read(file, bufferCount, file_size);
         ret += Yo::File::__Read(file, _330CFlag, file_size); // TODO: 这个标志位用来判断330N、330C？
         if (_330CFlag >= 10) {
-            throw std::runtime_error("_330CFlag < 10");
+            constexpr auto msg = "_330CFlag >= 10";
+#if defined(QT_DEBUG)
+            qFatal(msg);
+#else
+            qCritical(TAG) << msg;
+            return 0;
+#endif
         }
         for (int32_t i = 0; i < bufferCount; i++) {
             int32_t encoderLen = 0;
@@ -64,7 +73,14 @@ namespace Union::__330 {
             ret += Yo::File::__Read(file, rawData, file_size);
             auto decoderBuf = Union::__330::lzw_decompress(rawData.data(), encoderLen);
             if (infoLen < 0 || (infoLen != (decoderBuf->size() % ASCAN_FRAME_SIZE))) {
-                throw std::runtime_error("info lenght error!");
+                qFatal("info lenght error!");
+                constexpr auto msg = "info lenght error!";
+#if defined(QT_DEBUG)
+                qFatal(msg);
+#else
+                qCritical(TAG) << msg;
+                return 0;
+#endif
             }
 
             if (infoLen > 0) {

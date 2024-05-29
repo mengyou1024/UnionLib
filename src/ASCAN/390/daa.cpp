@@ -169,6 +169,98 @@ namespace Union::__390 {
         return m_390Extra.num37;
     }
 
+    QJsonArray DAAType::createGateValue(int idx, double soft_gain) const {
+        QJsonArray ret = Union::__330::DASType::createGateValue(idx, soft_gain);
+
+        QString strMRange;
+        int     mode;
+        if (((channelStatus.status >> 2) & 0x01) == 1) {
+            mode = (((channelStatus.option >> 28) & 0x0f) % 6) + 1;
+        } else if (((channelStatus.status >> 3) & 0x01) == 1) {
+            int Ax = channelStatus.option; /*标度：垂直\水平\距离2位	d3d2*/
+            Ax     = (Ax >> 26);
+            Ax     = (Ax & 0x03);
+            mode   = Ax + 10;
+        } else
+            mode = -1;
+
+        if (mode == 1) {
+            if (systemStatus.unit % 4) {
+                strMRange = "Φ" + QString::number(dacParam.diameter / 10.0 / 25.4, 'f', 3) + " x " + QString::number(dacParam.length / 10.0 / 25.4, 'f', 3);
+
+            } else {
+                strMRange = "Φ" + QString::number(dacParam.diameter / 10) + " x " + QString::number(dacParam.length / 10);
+            }
+            float fOffset = int(channelParam.wavepara[3]) / 10.0;
+            if (fOffset > 0) {
+                strMRange += " +" + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+            } else {
+                strMRange += " " + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+            }
+            strMRange += "dB";
+        } else if (mode > 1) {
+            if ((mode - 2) == 0)
+                strMRange = "";
+            else if ((mode - 3) == 0)
+                strMRange = "";
+            else if ((mode - 4) == 0)
+                strMRange = "";
+            else if ((mode - 5) == 0)
+                strMRange = "";
+            else if ((mode - 6) == 0)
+                strMRange = "";
+            else if ((mode - 7) == 0)
+                strMRange = "";
+            else if ((mode - 10) == 0 || (mode - 11) == 0) {
+                if (systemStatus.unit % 4)
+                    strMRange = "Φ" + QString::number(((float)(10 * pow(10, (int(channelParam.wavepara[3]) + channelParam.lineGain[2] + 120) / 400.0))) / 10.0 / 25.4, 'f', 2);
+                else
+                    strMRange = "Φ" + QString::number(((int)(10 * pow(10, (int(channelParam.wavepara[3]) + channelParam.lineGain[2] + 120) / 400.0) + 0.5)) / 10.0, 'f', 1);
+                strMRange += "  ";
+                if (systemStatus.unit % 4)
+                    strMRange += "Φ" + QString::number((float)(pow(10, (channelParam.lineGain[2] + 120) / 400.0)) / 25.4, 'f', 2);
+                else
+                    strMRange += "Φ" + QString::number((int)(pow(10, (channelParam.lineGain[2] + 120) / 400.0) + 0.5));
+                float fOffset = int(channelParam.wavepara[3]) / 10.0;
+                if (fOffset > 0)
+                    strMRange += " +" + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+                else
+                    strMRange += " " + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
+                strMRange += "dB";
+            }
+
+            if ((mode < 10) || (mode > 11)) {
+                auto Mid        = int(channelParam.wavepara[3]);
+                auto strMRange1 = QString::number(channelParam.wavepara[2] / (10.0), 'f', 1);
+                if (Mid > 0)
+                    strMRange1 = " +" + QString::number(abs(Mid / 10.0), 'f', 1);
+                else
+                    strMRange1 = " -" + QString::number(abs(Mid / (10.0)), 'f', 1);
+                strMRange = strMRange + strMRange1 + "dB";
+            }
+
+        } else if (mode < 1) {
+            QString s0 = QString::asprintf("∧%0.1f %", (float)(int(channelParam.wavepara[3]) / 10.0));
+            (void)s0;
+            strMRange = "";
+        }
+        qDebug(QLoggingCategory("DAS")) << "strMRange" << strMRange;
+        qDebug(QLoggingCategory("DAS")) << ret;
+        auto obj1 = ret[0].toObject();
+        auto obj2 = ret[1].toObject();
+        if (strMRange.isEmpty()) {
+            strMRange = "-";
+        }
+        obj1["equi"]   = strMRange;
+        obj1["dist_c"] = QString::number(channelParam.wavepara[0] / 10.0, 'f', 1);
+        obj1["dist_a"] = QString::number(channelParam.wavepara[1] / 10.0, 'f', 1);
+        obj1["dist_b"] = QString::number(channelParam.wavepara[2] / 10.0, 'f', 1);
+        obj2["equi"]   = "-";
+        ret.replace(0, obj1);
+        ret.replace(1, obj2);
+        return ret;
+    }
+
     QString DAAType::getFineType() const {
         switch (m_390Extra.linetype) {
             case 1:

@@ -58,6 +58,7 @@ namespace Union::__390 {
         virtual double getDotX(void) const override;
         virtual double getDotY(void) const override;
         virtual double getDotZ(void) const override;
+        virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
 
     private:
         QString getStationName() const;
