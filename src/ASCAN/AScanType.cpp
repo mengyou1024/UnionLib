@@ -1,5 +1,10 @@
 #include "AScanType.hpp"
+#include <QLoggingCategory>
 #include <tuple>
+
+#ifndef QT_DEBUG
+static Q_LOGGING_CATEGORY(TAG, "ASCAN.INTF");
+#endif
 
 namespace Union::AScan {
     QList<QPointF> AScanIntf::getAScanSeriesData(int index, double softGain) const {
@@ -124,7 +129,12 @@ namespace Union::AScan {
                         b = Union::Base::Probe::Degree2K(getAngle(idx)) * b.value();
                         c = b.value() / std::cos(Union::Base::Probe::Degree2Rd(getAngle(idx)));
                     } else {
-                        throw std::runtime_error("The Angle of refraction cannot be less than 0 in X path mode");
+                        constexpr auto msg = "The Angle of refraction cannot be less than 0 in X path mode";
+#if defined(QT_DEBUG)
+                        qFatal(msg);
+#else
+                        qCritical(TAG) << msg;
+#endif
                     }
                     break;
                 }

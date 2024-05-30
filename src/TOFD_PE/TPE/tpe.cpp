@@ -1,7 +1,10 @@
 #include "tpe.hpp"
 #include "common/common.hpp"
+#include <QLoggingCategory>
 #include <Yo/File>
 #include <stdexcept>
+
+static Q_LOGGING_CATEGORY(TAG, "TOFD/PE.tpe");
 
 namespace Yo::File {
     template <>
@@ -70,7 +73,9 @@ namespace Union::TOFD_PE::TPE {
 
     const std::vector<uint8_t> &TpeType::getPeData(void) const {
         if (!hasPe()) {
-            throw std::runtime_error("No PE data");
+            qCritical(TAG) << "No PE data";
+            static std::vector<uint8_t> empty;
+            return empty;
         }
         return m_data.subData->data;
     }
