@@ -346,7 +346,7 @@ namespace Union::AScan {
             max = minMaxVec[0] + minMaxVec.size() / 2;
         }
         auto pos = ((double)std::distance(_data.begin(), max) / (double)_data.size());
-        if (enable_supression && *max <= 255 * getSupression(idx)) {
+        if (enable_supression && ((*max) <= (2.0 * (getSupression(idx))))) {
             return std::nullopt;
         }
         if (pos < 0.0f) {
