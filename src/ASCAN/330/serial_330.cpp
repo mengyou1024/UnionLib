@@ -457,7 +457,7 @@ namespace Union::__330 {
     }
 
     int Serial_330::getReplayTimerInterval() const {
-        return 1500;
+        return 800;
     }
 
     int Serial_330::getOption(void) const noexcept {

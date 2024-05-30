@@ -39,6 +39,7 @@ TEST(Union, readFile) {
     EXPECT_TRUE(Union::__390::DAAType::FromFile(LR"(test_file\2024-05-13.daa)"));
     EXPECT_TRUE(Union::TOFD_PE::TOF::TofType::FromFile(L"test_file/1.tof"));
     EXPECT_TRUE(Union::TOFD_PE::TOF::TofType::FromFile(L"test_file/3322.tof"));
+    EXPECT_TRUE(Union::__330::DATType::FromFile(LR"(test_file/PXUT-390.DAT)"));
 }
 
 TEST(__330, lzw_decompressed) {

@@ -305,6 +305,9 @@ namespace Union::AScan {
 
         /**
          * @brief 回放定时器每一帧的间隔(默认返回40ms)
+         *
+         * @note 改参数只有在连续图像`getDataSize`返回值大于1时有效
+         *
          * @return (ms)
          */
         virtual int getReplayTimerInterval() const;

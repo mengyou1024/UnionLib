@@ -167,9 +167,12 @@ namespace Union::__330 {
         uint32_t deep3  :10; // 坡内深度，< 100mm;
     };
 
+    struct __DATHead;
+
     struct __DATType {
-        std::vector<uint8_t>    ascan_data;
-        std::array<uint32_t, 4> wave_para;
+        std::vector<uint8_t>       ascan_data;
+        std::array<uint32_t, 4>    wave_para;
+        std::shared_ptr<__DATHead> head;
     };
 #pragma pack()
 
@@ -193,15 +196,17 @@ namespace Union::__330 {
 
     class DATType : public Union::AScan::AScanIntf, public Union::__330::_330_DAC_C {
     private:
-        using _My_T = std::vector<std::pair<__DATHead, std::vector<__DATType>>>;
+        using _My_T = std::vector<std::vector<__DATType>>;
 
-        _My_T       m_data           = {};
-        int         m_fileName_index = 0;
-        std::string m_date           = "";
+        _My_T        m_data           = {};
+        int          m_fileName_index = {};
+        std::string  m_date           = {};
+        QString m_fileName       = {};
 
     public:
         void setDate(const std::string& date);
 
+        friend std::unique_ptr<Union::AScan::AScanIntf> _FromFile(const std::wstring& fileName);
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring& fileName);
 
         virtual size_t __Read(std::ifstream& file, size_t file_size) final;
@@ -253,7 +258,7 @@ namespace Union::__330 {
     private:
         int                                                    getOption(int idx) const noexcept;
         double                                                 getUnit(int idx) const noexcept;
-        const __DATHead&                                       getHead() const;
+        const __DATHead&                                       getHead(int idx) const;
         uint8_t                                                convertDB2GateAMP(int idx, int db) const;
         mutable std::map<int, std::array<QVector<QPointF>, 3>> m_dac_map;
     };

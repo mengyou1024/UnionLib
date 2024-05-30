@@ -7,7 +7,6 @@
 #include <ctime>
 #include <numeric>
 #include <regex>
-#include <stdexcept>
 
 static Q_LOGGING_CATEGORY(TAG, "330.DAT");
 
@@ -28,8 +27,9 @@ namespace Union::__330 {
         m_date = date;
     }
 
-    std::unique_ptr<Union::AScan::AScanIntf> DATType::FromFile(const std::wstring &filename) {
-        auto ret = std::make_unique<DATType>();
+    std::unique_ptr<Union::AScan::AScanIntf> _FromFile(const std::wstring &filename) {
+        auto ret        = std::make_unique<DATType>();
+        ret->m_fileName = QString::fromStdWString(filename);
         if (!Yo::File::ReadFile(filename, *(ret.get()))) {
             return nullptr;
         }
@@ -40,6 +40,10 @@ namespace Union::__330 {
             dynamic_cast<DATType *>(ret.get())->setDate(Yo::Types::StringFromWString(dateStr));
         }
         return ret;
+    }
+
+    std::unique_ptr<Union::AScan::AScanIntf> DATType::FromFile(const std::wstring &fileName) {
+        return _FromFile(fileName);
     }
 
     size_t DATType::__Read(std::ifstream &file, size_t file_size) {
@@ -53,12 +57,7 @@ namespace Union::__330 {
         ret += Yo::File::__Read(file, _330CFlag, file_size); // TODO: 这个标志位用来判断330N、330C？
         if (_330CFlag >= 10) {
             constexpr auto msg = "_330CFlag >= 10";
-#if defined(QT_DEBUG)
-            qFatal(msg);
-#else
-            qCritical(TAG) << msg;
-            return 0;
-#endif
+            qWarning(TAG) << msg << "fileName: " << m_fileName;
         }
         for (int32_t i = 0; i < bufferCount; i++) {
             int32_t encoderLen = 0;
@@ -83,45 +82,58 @@ namespace Union::__330 {
 #endif
             }
 
+            auto head_ptr = std::make_shared<__DATHead>();
             if (infoLen > 0) {
-                auto temp_head = __DATHead();
+                auto temp_head = std::make_shared<__DATHead>();
                 auto ptr       = &(*decoderBuf)[decoderBuf->size() - infoLen];
-                memcpy(&temp_head, ptr, Union::__330::DAT_HEAD_SIZE);
-                temp_head.info_buf.resize((infoLen - Union::__330::DAT_HEAD_SIZE) / 2);
+                memcpy(temp_head.get(), ptr, Union::__330::DAT_HEAD_SIZE);
+                temp_head->info_buf.resize((infoLen - Union::__330::DAT_HEAD_SIZE) / 2);
                 ptr = &(*decoderBuf)[decoderBuf->size() - infoLen + Union::__330::DAT_HEAD_SIZE];
-                memcpy(temp_head.info_buf.data(), ptr, temp_head.info_buf.size() * 2);
-                temp_head.header_timestamp.hour      = BCD2INT(temp_head.header_timestamp.hour);
-                temp_head.header_timestamp.minute    = BCD2INT(temp_head.header_timestamp.minute);
-                temp_head.header_timestamp.second    = BCD2INT(temp_head.header_timestamp.second);
-                temp_head.header_timestamp.notes_len = BCD2INT(temp_head.header_timestamp.notes_len);
-                m_data.emplace_back(std::make_pair<__DATHead, std::vector<__DATType>>(std::move(temp_head), {}));
+                memcpy(temp_head->info_buf.data(), ptr, temp_head->info_buf.size() * 2);
+                temp_head->header_timestamp.hour      = BCD2INT(temp_head->header_timestamp.hour);
+                temp_head->header_timestamp.minute    = BCD2INT(temp_head->header_timestamp.minute);
+                temp_head->header_timestamp.second    = BCD2INT(temp_head->header_timestamp.second);
+                temp_head->header_timestamp.notes_len = BCD2INT(temp_head->header_timestamp.notes_len);
+                if (temp_head->info_buf.size() == 1) {
+                    auto &end_head = m_data.back().back();
+                    // 当没有文件信息时拷贝上一次的文件信息
+                    temp_head->info_buf = end_head.head->info_buf;
+                } else {
+                    m_data.push_back({});
+                }
+                head_ptr = temp_head;
+            } else {
+                head_ptr = m_data.back().back().head;
             }
 
             for (auto f = 0; std::cmp_less(f, (decoderBuf->size() - infoLen) / ASCAN_FRAME_SIZE); f++) {
                 Union::__330::__DATType temp;
+                temp.head = head_ptr;
                 temp.ascan_data.resize(ASCAN_DATA_SIZE);
                 memcpy(temp.ascan_data.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE], ASCAN_DATA_SIZE);
                 memcpy(temp.wave_para.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE + ASCAN_DATA_SIZE], sizeof(temp.wave_para));
                 // FIXME:这边还有284个字节未使用?
                 if (std::accumulate(temp.ascan_data.begin(), temp.ascan_data.end(), 0, [](auto a, auto b) { return a + b; }) != 0) {
-                    auto &list = m_data.back().second;
+                    auto &list = m_data.back();
                     list.emplace_back(std::move(temp));
                 }
             }
         }
-        return ret;
+        if (ret != file_size) {
+            qWarning(TAG) << "ret != file_size" << "fileName: " << m_fileName;
+        }
+        return file_size;
     }
 
     int DATType::getDataSize(void) const {
-        return static_cast<int>(m_data[m_fileName_index].second.size());
+        return static_cast<int>(m_data[m_fileName_index].size());
     }
 
     std::vector<std::wstring> DATType::getFileNameList(void) const {
         std::vector<std::wstring> ret;
-        for (const auto &[key, value] : m_data) {
-            std::vector<uint16_t> temp;
-            temp.resize(key.info_buf[0]);
-            memcpy(temp.data(), &key.info_buf[1], key.info_buf[0] * 2);
+        for (const auto &it : m_data) {
+            const auto info_buf = it.at(0).head->info_buf;
+            auto       temp     = std::vector<uint16_t>(info_buf.begin() + 1, info_buf.end());
             ret.emplace_back(Union::LocationCodeToUTF8(temp).toStdWString());
         }
         return ret;
@@ -147,40 +159,40 @@ namespace Union::__330 {
 
     std::wstring DATType::getProbe(int idx) const {
         (void)idx;
-        return Union::Base::Probe::Index2Name_QtExtra((getHead().channel_status.sys >> 12) & 0x07).toStdWString();
+        return Union::Base::Probe::Index2Name_QtExtra((getHead(idx).channel_status.sys >> 12) & 0x07).toStdWString();
     }
 
     double DATType::getProbeFrequence(int idx) const {
         (void)idx;
-        return getHead().channel_param.Frequence / 100.0;
+        return getHead(idx).channel_param.Frequence / 100.0;
     }
 
     std::string DATType::getProbeChipShape(int idx) const {
         (void)idx;
         return Union::Base::Probe::CreateProbeChipShape(
-            (getHead().channel_status.sys >> 12) & 0x07,
-            getHead().channel_param.Crystal_l / 1000,
-            getHead().channel_param.Crystal_w / 1000);
+            (getHead(idx).channel_status.sys >> 12) & 0x07,
+            getHead(idx).channel_param.Crystal_l / 1000,
+            getHead(idx).channel_param.Crystal_w / 1000);
     }
 
     double DATType::getAngle(int idx) const {
         (void)idx;
-        return getHead().channel_param.Angle / 10.0;
+        return getHead(idx).channel_param.Angle / 10.0;
     }
 
     double DATType::getSoundVelocity(int idx) const {
         (void)idx;
-        return getHead().channel_param.Speed;
+        return getHead(idx).channel_param.Speed;
     }
 
     double DATType::getFrontDistance(int idx) const {
         (void)idx;
-        return getHead().channel_param.Forward / 10.0;
+        return getHead(idx).channel_param.Forward / 10.0;
     }
 
     double DATType::getZeroPointBias(int idx) const {
         (void)idx;
-        return getHead().channel_param.Offset / 160.0;
+        return getHead(idx).channel_param.Offset / 160.0;
     }
 
     double DATType::getSamplingDelay(int idx) const {
@@ -190,7 +202,7 @@ namespace Union::__330 {
 
     int DATType::getChannel(int idx) const {
         (void)idx;
-        return ((getHead().channel_status.sys >> 12) & 0x0F) + 1;
+        return ((getHead(idx).channel_status.sys >> 12) & 0x0F) + 1;
     }
 
     std::string DATType::getInstrumentName(void) const {
@@ -201,9 +213,9 @@ namespace Union::__330 {
         (void)idx;
         std::array<Base::Gate, 2> ret;
         for (auto i = 0; i < 2; i++) {
-            ret[i].pos    = getHead().gate_param[i].Position / 500.0;
-            ret[i].width  = getHead().gate_param[i].Width / 500.0;
-            ret[i].height = getHead().gate_param[i].Height / 200.0;
+            ret[i].pos    = getHead(idx).gate_param[i].Position / 500.0;
+            ret[i].width  = getHead(idx).gate_param[i].Width / 500.0;
+            ret[i].height = getHead(idx).gate_param[i].Height / 200.0;
             if (ret[i].height > 0.0) {
                 ret[i].enable = true;
             }
@@ -212,7 +224,7 @@ namespace Union::__330 {
     }
 
     const std::vector<uint8_t> &DATType::getScanData(int idx) const {
-        return m_data[m_fileName_index].second.at(idx).ascan_data;
+        return m_data[m_fileName_index].at(idx).ascan_data;
     }
 
     double DATType::getAxisBias(int idx) const {
@@ -220,11 +232,11 @@ namespace Union::__330 {
         auto       ret = 0.0;
         const auto opt = getOption(idx);
         if (opt == 0) {
-            ret = static_cast<double>(getHead().channel_param.Delay) * static_cast<double>(getHead().channel_param.Speed) / (20000.0) * std::cos(getAngle(idx) * std::numbers::pi / 180.0);
+            ret = static_cast<double>(getHead(idx).channel_param.Delay) * static_cast<double>(getHead(idx).channel_param.Speed) / (20000.0) * std::cos(getAngle(idx) * std::numbers::pi / 180.0);
         } else if (opt == 1) {
-            ret = static_cast<double>(getHead().channel_param.Delay) * static_cast<double>(getHead().channel_param.Speed) / (20000.0) * std::sin(getAngle(idx) * std::numbers::pi / 180.0);
+            ret = static_cast<double>(getHead(idx).channel_param.Delay) * static_cast<double>(getHead(idx).channel_param.Speed) / (20000.0) * std::sin(getAngle(idx) * std::numbers::pi / 180.0);
         } else {
-            ret = static_cast<double>(getHead().channel_param.Delay) * static_cast<double>(getHead().channel_param.Speed) / (20000.0);
+            ret = static_cast<double>(getHead(idx).channel_param.Delay) * static_cast<double>(getHead(idx).channel_param.Speed) / (20000.0);
         }
         if (getUnit(idx) > 1.0) {
             return Union::KeepDecimals(ret / (10.0 * getUnit(idx)));
@@ -237,11 +249,11 @@ namespace Union::__330 {
         const auto opt = getOption(idx);
         auto       ret = 0.0;
         if (opt == 0) {
-            ret = static_cast<double>(getHead().channel_param.Range) * std::cos(getAngle(idx) * std::numbers::pi / 180.0);
+            ret = static_cast<double>(getHead(idx).channel_param.Range) * std::cos(getAngle(idx) * std::numbers::pi / 180.0);
         } else if (opt == 1) {
-            ret = static_cast<double>(getHead().channel_param.Range) * std::sin(getAngle(idx) * std::numbers::pi / 180.0);
+            ret = static_cast<double>(getHead(idx).channel_param.Range) * std::sin(getAngle(idx) * std::numbers::pi / 180.0);
         } else {
-            ret = static_cast<double>(getHead().channel_param.Range);
+            ret = static_cast<double>(getHead(idx).channel_param.Range);
         }
         if (getUnit(idx) > 1.0) {
             return Union::KeepDecimals<1>(ret / (10.0 * getUnit(idx)));
@@ -251,22 +263,22 @@ namespace Union::__330 {
 
     double DATType::getBaseGain(int idx) const {
         (void)idx;
-        return getHead().channel_param.BaseGain / 10.0;
+        return getHead(idx).channel_param.BaseGain / 10.0;
     }
 
     double DATType::getScanGain(int idx) const {
         (void)idx;
-        return getHead().channel_param.CompGain / 10.0;
+        return getHead(idx).channel_param.CompGain / 10.0;
     }
 
     double DATType::getSurfaceCompentationGain(int idx) const {
         (void)idx;
-        return getHead().channel_param.SurfGain / 10.0;
+        return getHead(idx).channel_param.SurfGain / 10.0;
     }
 
     int DATType::getSupression(int idx) const {
         (void)idx;
-        return getHead().channel_param.Reject;
+        return getHead(idx).channel_param.Reject;
     }
 
     Union::AScan::DistanceMode DATType::getDistanceMode(int idx) const {
@@ -313,11 +325,11 @@ namespace Union::__330 {
 
         QString strMRange;
         int     mode;
-        auto    channelStatus = getHead().channel_status;
-        auto    channelParam  = getHead().channel_param;
-        auto    systemStatus  = getHead().system_status;
-        auto    dacParam      = getHead().dac;
-        auto    wavepara      = m_data.at(m_fileName_index).second.at(idx).wave_para;
+        auto    channelStatus = getHead(idx).channel_status;
+        auto    channelParam  = getHead(idx).channel_param;
+        auto    systemStatus  = getHead(idx).system_status;
+        auto    dacParam      = getHead(idx).dac;
+        auto    wavepara      = m_data.at(m_fileName_index).at(idx).wave_para;
         if (((channelStatus.status >> 2) & 0x01) == 1) {
             mode = (((channelStatus.option >> 28) & 0x0f) % 6) + 1;
         } else if (((channelStatus.status >> 3) & 0x01) == 1) {
@@ -409,23 +421,23 @@ namespace Union::__330 {
             return m_dac_map.at(m_fileName_index);
         } else {
             Union::Temp::Unresovled::DrawDacParam _temp;
-            _temp.m_unit         = getHead().system_status.unit;
-            _temp.m_sys          = getHead().system_status.sys;
-            _temp.m_ch_status    = getHead().channel_status.status;
-            _temp.m_ch_option    = getHead().channel_status.option;
-            _temp.m_ch_sys       = getHead().channel_status.status;
-            _temp.m_ch_Range     = getHead().channel_param.Range;
-            _temp.m_ch_Delay     = getHead().channel_param.Delay;
-            _temp.m_ch_Speed     = getHead().channel_param.Speed;
-            _temp.m_ch_Crystal_w = getHead().channel_param.Crystal_w;
-            _temp.m_ch_Crystal_l = getHead().channel_param.Crystal_l;
-            _temp.m_ch_Frequence = getHead().channel_param.Frequence;
-            _temp.m_ch_lineGain  = getHead().channel_param.lineGain;
-            _temp.m_ch_BaseGain  = getHead().channel_param.BaseGain;
-            _temp.m_ch_gatedB    = getHead().channel_param.gatedB;
-            _temp.m_dac_db       = getHead().dac.db;
-            _temp.m_dac_dist     = getHead().dac.dist;
-            _temp.m_dac_num      = getHead().dac.num;
+            _temp.m_unit         = getHead(idx).system_status.unit;
+            _temp.m_sys          = getHead(idx).system_status.sys;
+            _temp.m_ch_status    = getHead(idx).channel_status.status;
+            _temp.m_ch_option    = getHead(idx).channel_status.option;
+            _temp.m_ch_sys       = getHead(idx).channel_status.status;
+            _temp.m_ch_Range     = getHead(idx).channel_param.Range;
+            _temp.m_ch_Delay     = getHead(idx).channel_param.Delay;
+            _temp.m_ch_Speed     = getHead(idx).channel_param.Speed;
+            _temp.m_ch_Crystal_w = getHead(idx).channel_param.Crystal_w;
+            _temp.m_ch_Crystal_l = getHead(idx).channel_param.Crystal_l;
+            _temp.m_ch_Frequence = getHead(idx).channel_param.Frequence;
+            _temp.m_ch_lineGain  = getHead(idx).channel_param.lineGain;
+            _temp.m_ch_BaseGain  = getHead(idx).channel_param.BaseGain;
+            _temp.m_ch_gatedB    = getHead(idx).channel_param.gatedB;
+            _temp.m_dac_db       = getHead(idx).dac.db;
+            _temp.m_dac_dist     = getHead(idx).dac.dist;
+            _temp.m_dac_num      = getHead(idx).dac.num;
             _temp.m_range_a      = getAxisLen(idx);
             m_dac_map.insert(std::make_pair(m_fileName_index, Temp::Unresovled::DrawDac(_temp)));
             return m_dac_map.at(m_fileName_index);
@@ -439,17 +451,17 @@ namespace Union::__330 {
 
     std::pair<double, double> DATType::getProbeSize(int idx) const {
         (void)idx;
-        return std::make_pair(getHead().channel_param.Crystal_l / 1000.0,
-                              getHead().channel_param.Crystal_w / 1000.0);
+        return std::make_pair(getHead(idx).channel_param.Crystal_l / 1000.0,
+                              getHead(idx).channel_param.Crystal_w / 1000.0);
     }
 
     int DATType::getReplayTimerInterval() const {
-        return 1500;
+        return 800;
     }
 
     int DATType::getOption(int idx) const noexcept {
         (void)idx;
-        auto ret = getHead().channel_status.option;
+        auto ret = getHead(idx).channel_status.option;
         ret >>= 24;
         ret &= 0x03;
         return static_cast<int>(ret);
@@ -457,13 +469,13 @@ namespace Union::__330 {
 
     double DATType::getUnit(int idx) const noexcept {
         (void)idx;
-        if (getHead().system_status.unit) {
+        if (getHead(idx).system_status.unit) {
             return 100.0;
         }
         return 1.0;
     }
-    const __DATHead &DATType::getHead() const {
-        return m_data.at(m_fileName_index).first;
+    const __DATHead &DATType::getHead(int idx) const {
+        return *(m_data.at(m_fileName_index).at(idx).head);
     }
 
     uint8_t DATType::convertDB2GateAMP(int idx, int db) const {
