@@ -52,7 +52,7 @@ namespace Union::__390N_T8 {
             file.read(reinterpret_cast<char*>(img_buf), img_size);
             ret += img_size;
             QImage img(img_buf, 160, 120, QImage::Format::Format_RGB888, [](void* buf) { delete[] static_cast<uint8_t*>(buf); });
-            m_image.emplace_back(img);
+            m_image.emplace_back(img.mirrored());
         } while (file_size - ret > 4);
         if (file_size - ret == 4) {
             int all_buf_size = 0;
