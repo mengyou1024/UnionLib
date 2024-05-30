@@ -54,8 +54,9 @@ namespace Union::Base::Probe {
             case 0:
                 return (ss << "Φ" << a << "mm", ss.str());
             case 1:
-                return (ss << a << "×" << b, ss.str());
+                return (ss << a << "mm × " << b << "mm", ss.str());
             case 2:
+            case 3:
                 return (ss << a << "mm", ss.str());
             default: return (ss << a << "×" << b, ss.str());
         }
