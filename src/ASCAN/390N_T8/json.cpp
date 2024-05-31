@@ -6,6 +6,8 @@
 #include <QJsonObject>
 #include <QLoggingCategory>
 
+static Q_LOGGING_CATEGORY(TAG, "390N&T8.JSON");
+
 namespace Union::__390N_T8 {
     T8_390N_JSON::T8_390N_JSON(const std::wstring &fileName) {
         m_ascan = __390N_T8_JSON_READ(fileName);
@@ -167,7 +169,7 @@ namespace Union::__390N_T8 {
         try {
             return std::make_unique<T8_390N_JSON>(file_name);
         } catch (const std::exception &e) {
-            qCritical(QLoggingCategory("390N&T8.JSON")) << e.what();
+            qCritical(TAG) << e.what();
         }
         return nullptr;
     }
@@ -270,8 +272,8 @@ namespace Union::__390N_T8 {
                     auto avg_index = obj[CHANNEL_AVG_SAMPLE_INDEX.data()].toArray();
                     auto avg_value = obj[CHANNEL_AVG_SAMPLE_VALUE.data()].toArray();
                     for (auto i = 0; i < obj[CHANNEL_AVG_SAMPLE_LENGTH.data()].toInt(); i++) {
-                        ascan.avg->index.emplace_back(avg_index[i].toInt());
-                        ascan.avg->value.emplace_back(static_cast<uint8_t>(avg_value[i].toInt()));
+                        ascan.avg->index.emplace_back(avg_index[i].toDouble());
+                        ascan.avg->value.emplace_back(avg_value[i].toDouble());
                     }
                     ascan.avg->samplingDepth    = obj[CHANNEL_AVG_SAMPLE_DEPTH.data()].toInt();
                     ascan.avg->decimationFactor = obj[CHANNEL_AVG_SAMPLING_FACTOR.data()].toDouble();
@@ -314,8 +316,10 @@ namespace Union::__390N_T8 {
                 if (!obj[CHANNEL_SCAN_VALUE.data()].isArray()) {
                     throw std::exception("ch_scan_value is not array");
                 }
+                auto _array = obj[CHANNEL_SCAN_VALUE.data()].toArray();
+                qDebug(TAG) << "ch_scan_value size:" << _array.size();
                 for (auto i = 0; std::cmp_less(i, ascan.ascan.size()); i++) {
-                    ascan.ascan[i] = static_cast<uint8_t>(obj[CHANNEL_SCAN_VALUE.data()].toArray()[i].toInt());
+                    ascan.ascan[i] = static_cast<uint8_t>(_array[i].toInt());
                 }
                 if (obj[CHANNEL_ALREADY_DAC.data()].toBool()) {
                     int                  index        = obj[CHANNEL_EQUIVALENT_STANDARD.data()].toInt();
@@ -342,12 +346,12 @@ namespace Union::__390N_T8 {
 
                 return ret;
             } catch (std::exception &e) {
-                qCritical(QLoggingCategory("390N&T8.JSON")) << e.what();
+                qCritical(TAG) << e.what();
                 return std::nullopt;
             }
         } else {
-            qWarning(QLoggingCategory("390N&T8.JSON")) << "parser 390N & T8 json data error";
-            qCritical(QLoggingCategory("390N&T8.JSON")) << err.errorString();
+            qWarning(TAG) << "parser 390N & T8 json data error";
+            qCritical(TAG) << err.errorString();
         }
         return std::nullopt;
     }

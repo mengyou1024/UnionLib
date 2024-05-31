@@ -120,7 +120,8 @@ namespace Union::__330 {
             }
         }
         if (ret != file_size) {
-            qWarning(TAG) << "ret != file_size" << "fileName: " << m_fileName;
+            qWarning(TAG) << "ret != file_size"
+                          << "fileName: " << m_fileName;
         }
         return file_size;
     }
@@ -306,18 +307,6 @@ namespace Union::__330 {
     Union::AScan::DAC_Standard DATType::getDACStandard(int idx) const {
         (void)idx;
         return Union::AScan::DAC_Standard();
-    }
-
-    std::function<double(double)> DATType::getAVGLineExpr(int idx) const {
-        (void)idx;
-        // 330 不使用该参数
-        return [](double) { return 0.0; };
-    }
-
-    std::function<double(double)> DATType::getDACLineExpr(int idx) const {
-        (void)idx;
-        // 330 不使用该参数
-        return [](double) { return 0.0; };
     }
 
     QJsonArray DATType::createGateValue(int idx, double soft_gain) const {

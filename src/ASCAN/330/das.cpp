@@ -242,18 +242,6 @@ namespace Union::__330 {
         return Union::AScan::DAC_Standard();
     }
 
-    std::function<double(double)> DASType::getAVGLineExpr(int idx) const {
-        (void)idx;
-        // 330 不使用该参数
-        return [](double) { return 0.0; };
-    }
-
-    std::function<double(double)> DASType::getDACLineExpr(int idx) const {
-        (void)idx;
-        // 330 不使用该参数
-        return [](double) { return 0.0; };
-    }
-
     const std::array<QVector<QPointF>, 3> &DASType::unResolvedGetDacLines(int idx) const {
         (void)idx;
         return m_dacLines;

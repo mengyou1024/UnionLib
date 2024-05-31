@@ -290,7 +290,7 @@ namespace Union::AScan {
          *         图像中曲线的坐标系X轴范围为: [0~N] 其中N为(A扫图像的点数-1)
          *         图像中曲线的坐标系Y轴范围为: [0~200]
          */
-        virtual std::function<double(double)> getAVGLineExpr(int idx) const;
+        virtual std::function<std::optional<double>(double)> getAVGLineExpr(int idx) const;
 
         /**
          * @brief 获取AVG曲线的表达式
@@ -301,7 +301,7 @@ namespace Union::AScan {
          *         图像中曲线的坐标系X轴范围为: [0~N] 其中N为(A扫图像的点数-1)
          *         图像中曲线的坐标系Y轴范围为: [0~200]
          */
-        virtual std::function<double(double)> getDACLineExpr(int idx) const;
+        virtual std::function<std::optional<double>(double)> getDACLineExpr(int idx) const;
 
         /**
          * @brief 回放定时器每一帧的间隔(默认返回40ms)

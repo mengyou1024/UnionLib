@@ -144,8 +144,12 @@ namespace Union::__390N_T8 {
     };
     constexpr int CHANEL_DAT_LEN = sizeof(PARAM_CHANEL_DAT);
 
-    constexpr int InfoLen    = DAC_DAT_LEN + AVG_DAT_LEN + CHANEL_DAT_LEN;
-    constexpr int EncoderLen = ECHO_PACKAGE_SIZE + GATE_PEAK_SIZE;
+    constexpr auto T8_ECHO_PACKAGE_SIZE = 800;
+    constexpr auto _390N_ECHO_PACKGAGE_SIZE = 580;
+
+    constexpr auto INFO_LEN = DAC_DAT_LEN + AVG_DAT_LEN + CHANEL_DAT_LEN;
+    constexpr auto T8_ENCODER_LEN = T8_ECHO_PACKAGE_SIZE + GATE_PEAK_SIZE;
+    constexpr auto _390N_ENCODER_LEN = T8_ECHO_PACKAGE_SIZE + GATE_PEAK_SIZE;
 
     struct _ldat {
         std::vector<uint8_t> AScan       = {};
@@ -155,7 +159,8 @@ namespace Union::__390N_T8 {
     };
 
     constexpr int HEAD_LEN = 22;
-    constexpr int BODY_LEN = EncoderLen + 8;
+    constexpr int T8_BODY_LEN = T8_ENCODER_LEN + 8;
+    constexpr int _390N_BODY_LEN = _390N_ENCODER_LEN  + 8;
 
     class LDAT : public Union::AScan::AScanIntf {
         friend class VDATA;

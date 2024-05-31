@@ -171,8 +171,8 @@ namespace Union::AScan {
                 auto modifyGain = getBaseGain(idx) + getScanGain(idx) +
                                   getSurfaceCompentationGain(idx) - getDAC(idx)->baseGain +
                                   getDACStandard(idx).slBias;
-                slValue = Union::CalculateGainOutput(slValue, modifyGain);
-                _equi   = QString::asprintf("SL%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue, r_amp)));
+                slValue = Union::CalculateGainOutput(slValue.value_or(0), modifyGain);
+                _equi   = QString::asprintf("SL%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue.value_or(0), r_amp)));
             } else if (getAVG(idx) && b.has_value()) {
                 auto r_amp      = Union::CalculateGainOutput(_amp, getSurfaceCompentationGain(idx));
                 auto lineExpr   = getAVGLineExpr(idx);
@@ -180,8 +180,8 @@ namespace Union::AScan {
                 auto modifyGain = getBaseGain(idx) + getScanGain(idx) +
                                   getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain +
                                   getDACStandard(idx).slBias;
-                slValue = Union::CalculateGainOutput(slValue, modifyGain);
-                _equi   = QString::asprintf("Φ%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue, r_amp)));
+                slValue = Union::CalculateGainOutput(slValue.value_or(0), modifyGain);
+                _equi   = QString::asprintf("Φ%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue.value_or(0), r_amp)));
             }
 
             auto _gate_amp = amp / 2.0;
@@ -237,22 +237,25 @@ namespace Union::AScan {
         return Union::CalculateNearField(l, w, getProbeFrequence(idx), getSoundVelocity(idx));
     }
 
-    std::function<double(double)> AScanIntf::getAVGLineExpr(int idx) const {
-        auto avg_param = getAVG(idx);
+    std::function<std::optional<double>(double)> AScanIntf::getAVGLineExpr(int idx) const {
+        auto            avg_param     = getAVG(idx);
+        constexpr float AVG_ECHO_SIZE = 495.0;
         if (!avg_param.has_value()) {
             return [](double) -> double { return 0.0; };
         }
         std::vector<double> index_on_dac_view;
         index_on_dac_view.resize(avg_param->index.size());
-        std::transform(avg_param->index.begin(), avg_param->index.end(), index_on_dac_view.begin(), [&](int x) -> double {
-            return ValueMap((double)x, {0.0, 160.0}, {0.0, 520.0});
+        std::transform(avg_param->index.begin(), avg_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
+            return ValueMap(x, {0.0, 250.0}, {0.0, AVG_ECHO_SIZE});
         });
         auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - avg_param->baseGain + avg_param->biasGain;
         if (avg_param->index.size() == 1) {
-            return [=, this](double _val) -> double {
-                auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
-                if (val < index_on_dac_view[0]) {
-                    return CalculateGainOutput(avg_param->value[0], modifyGain);
+            return [=, this](double _val) -> std::optional<double> {
+                auto val             = ValueMap(_val, getAxisRange(idx), {0.0, AVG_ECHO_SIZE});
+                auto three_nearField = 3 * getNearField(idx);
+                if (val < three_nearField) {
+                    auto Func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
+                    return CalculateGainOutput(avg_param->value[0], modifyGain - Func(index_on_dac_view[0], three_nearField));
                 } else {
                     auto Func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
                     return CalculateGainOutput(avg_param->value[0], modifyGain - Func(index_on_dac_view[0], val));
@@ -264,59 +267,63 @@ namespace Union::AScan {
             auto _decay = (std::log(avg_param->value[i + 1]) - std::log(avg_param->value[i])) / (index_on_dac_view[i + 1] - index_on_dac_view[i]);
             decay.emplace_back(_decay);
         }
-        return [=, this](double _val) -> double {
-            auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
+        return [=, this](double _val) -> std::optional<double> {
+            auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, AVG_ECHO_SIZE});
             if (val < index_on_dac_view[0]) {
                 return CalculateGainOutput(avg_param->value[0], modifyGain);
             } else {
                 for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
-                    if (val >= index_on_dac_view[i]) {
+                    if (val < index_on_dac_view[i + 1]) {
+                        qDebug(QLoggingCategory("TEST")) << "i=" << i;
                         return CalculateGainOutput(avg_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
                     }
                 }
             }
-            return 0.0;
+            return std::nullopt;
         };
     }
 
-    std::function<double(double)> AScanIntf::getDACLineExpr(int idx) const {
-        auto dac_param = getDAC(idx);
+    std::function<std::optional<double>(double)> AScanIntf::getDACLineExpr(int idx) const {
+        auto             dac_param     = getDAC(idx);
+        constexpr double DAC_ECHO_SIZE = 495.0;
         if (!dac_param.has_value()) {
             return [](double) -> double { return 0.0; };
         }
         std::vector<double> index_on_dac_view;
         index_on_dac_view.resize(dac_param->index.size());
-        std::transform(dac_param->index.begin(), dac_param->index.end(), index_on_dac_view.begin(), [&](int x) -> double {
-            return ValueMap((double)x, {0.0, 100.0}, {0.0, 520.0});
+        std::transform(dac_param->index.begin(), dac_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
+            return ValueMap(x, {0.0, 100.0}, {0.0, DAC_ECHO_SIZE});
         });
         auto modifyGain = getBaseGain(idx) + getScanGain(idx) - dac_param->baseGain + dac_param->biasGain;
         if (dac_param->index.size() == 1) {
             return [=, this](double _val) -> double {
-                auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
-                if (val < index_on_dac_view[0]) {
-                    return CalculateGainOutput(dac_param->value[0], modifyGain);
+                auto val             = ValueMap(_val, getAxisRange(idx), {0.0, DAC_ECHO_SIZE});
+                auto three_nearField = 3 * getNearField(idx);
+                if (val < three_nearField) {
+                    return CalculateGainOutput(dac_param->value[0], modifyGain + Union::EchoDbDiffOfPlan(index_on_dac_view[0], three_nearField));
                 } else {
                     return CalculateGainOutput(dac_param->value[0], modifyGain + Union::EchoDbDiffOfPlan(index_on_dac_view[0], val));
                 }
             };
         }
+
         std::vector<double> decay = {};
         for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
             auto _decay = (std::log(dac_param->value[i + 1]) - std::log(dac_param->value[i])) / (index_on_dac_view[i + 1] - index_on_dac_view[i]);
             decay.emplace_back(_decay);
         }
-        return [=, this](double _val) -> double {
-            auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
+        return [=, this](double _val) -> std::optional<double> {
+            auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, DAC_ECHO_SIZE});
             if (val < index_on_dac_view[0]) {
                 return CalculateGainOutput(dac_param->value[0], modifyGain);
             } else {
                 for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
-                    if (val >= index_on_dac_view[i]) {
+                    if (val < index_on_dac_view[i + 1]) {
                         return CalculateGainOutput(dac_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
                     }
                 }
             }
-            return 0.0;
+            return std::nullopt;
         };
     }
 

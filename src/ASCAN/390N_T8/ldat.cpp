@@ -40,25 +40,26 @@ namespace Union::__390N_T8 {
 
     size_t LDAT::__Read(std::ifstream& file, size_t file_size) {
         using namespace Yo::File;
-        if (file_size < Union::__390N_T8::HEAD_LEN + Union::__390N_T8::BODY_LEN ||
-            ((file_size - Union::__390N_T8::HEAD_LEN) % Union::__390N_T8::BODY_LEN != 0)) {
+        if (file_size <= HEAD_LEN) {
             return 0;
         }
-        const auto ldat_size = (file_size - Union::__390N_T8::HEAD_LEN) / Union::__390N_T8::BODY_LEN;
-        ldat.resize(ldat_size);
         size_t               read_size = 0;
         std::array<char, 14> dateTime;
         read_size += Yo::File::__Read(file, SkipSize(8), file_size);
         read_size += Yo::File::__Read(file, dateTime, file_size);
         time = convertTime(dateTime);
-        for (auto& it : ldat) {
-            read_size += Yo::File::__Read(file, SkipSize(8), file_size);
-            it.AScan.resize(Union::__390N_T8::ECHO_PACKAGE_SIZE);
-            read_size += Yo::File::__Read(file, it.AScan, file_size);
+        while (read_size < file_size) {
+            _ldat temp = {};
+            int   i = 0, j = 0;
+            read_size += Yo::File::__Read(file, i, file_size);
+            read_size += Yo::File::__Read(file, j, file_size);
+            temp.AScan.resize(i - GATE_PEAK_SIZE);
+            read_size += Yo::File::__Read(file, temp.AScan, file_size);
             read_size += Yo::File::__Read(file, SkipSize(42), file_size);
-            read_size += Yo::File::__Read(file, it.dac_data, file_size);
-            read_size += Yo::File::__Read(file, it.avg_data, file_size);
-            read_size += Yo::File::__Read(file, it.chanel_data, file_size);
+            read_size += Yo::File::__Read(file, temp.dac_data, file_size);
+            read_size += Yo::File::__Read(file, temp.avg_data, file_size);
+            read_size += Yo::File::__Read(file, temp.chanel_data, file_size);
+            ldat.emplace_back(std::move(temp));
         }
         return read_size;
     }
@@ -131,7 +132,12 @@ namespace Union::__390N_T8 {
     }
 
     std::string LDAT::getInstrumentName(void) const {
-        return "390N&T8 multiple";
+        if (getScanData(0).size() == T8_ECHO_PACKAGE_SIZE) {
+            return "T8";
+        } else if (getScanData(0).size() == _390N_ECHO_PACKGAGE_SIZE) {
+            return "390N";
+        }
+        return "Unknow";
     }
 
     std::array<Base::Gate, 2> LDAT::getGate(int idx) const {
@@ -189,7 +195,7 @@ namespace Union::__390N_T8 {
         }
         Base::AVG ret;
         ret.baseGain           = ldat.at(idx).avg_data.ch_avg_base_gain / 10.0;
-        ret.biasGain           = ldat.at(idx).avg_data.ch_avg_offset_gain;
+        ret.biasGain           = ldat.at(idx).avg_data.ch_avg_offset_gain / 10.0;
         ret.equivalent         = ldat.at(idx).avg_data.ch_avg_dangliang;
         ret.diameter           = ldat.at(idx).avg_data.ch_avg_diameter;
         ret.isSubline          = ldat.at(idx).avg_data.ch_avg_is_subline;
@@ -257,7 +263,7 @@ namespace Union::__390N_T8 {
             m_equi[0]               = QString::asprintf("Φ%.1f Φ%.1f %+.1fdB", avg_diameter, reflector_diameter, equivlant);
         }
 
-        m_c[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_actual_dist / 10.0);
+        m_c[0] = QString::asprintf("%.1f", static_cast<double>(ldat.at(idx).chanel_data.ch_flaw_actual_dist));
         m_a[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_horizontal_dist / 10.0);
         m_b[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_depth / 10.0);
 

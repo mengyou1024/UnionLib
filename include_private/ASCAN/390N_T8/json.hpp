@@ -281,10 +281,10 @@ namespace Union::__390N_T8 {
             std::string            instrumentName = {}; ///< 仪器型号
         };
 
-        std::array<QString, 2> m_equi = {"-", "-"};
-        std::array<QString, 2> m_a    = {"-", "-"};
-        std::array<QString, 2> m_b    = {"-", "-"};
-        std::array<QString, 2> m_c    = {"-", "-"};
+        std::array<QString, 2>    m_equi      = {"-", "-"};
+        std::array<QString, 2>    m_a         = {"-", "-"};
+        std::array<QString, 2>    m_b         = {"-", "-"};
+        std::array<QString, 2>    m_c         = {"-", "-"};
         std::pair<double, double> m_probeSize = {};
 
         std::optional<AScanType> __390N_T8_JSON_READ(const std::wstring& fileName);

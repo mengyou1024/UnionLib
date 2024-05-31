@@ -242,9 +242,6 @@ namespace Union::__330 {
         std::optional<Base::DAC>    getDAC(int idx = 0) const override final;
         Union::AScan::DAC_Standard  getDACStandard(int idx = 0) const override final;
 
-        virtual std::function<double(double)> getAVGLineExpr(int idx) const override final;
-        virtual std::function<double(double)> getDACLineExpr(int idx) const override final;
-
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
 
         virtual const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const override;
