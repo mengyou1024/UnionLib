@@ -2,9 +2,7 @@
 #include <QLoggingCategory>
 #include <tuple>
 
-#ifndef QT_DEBUG
 static Q_LOGGING_CATEGORY(TAG, "ASCAN.INTF");
-#endif
 
 namespace Union::AScan {
     QList<QPointF> AScanIntf::getAScanSeriesData(int index, double softGain) const {
@@ -66,12 +64,12 @@ namespace Union::AScan {
             {QObject::tr("回波延时"), QString::number(KeepDecimals<1>(getSamplingDelay(idx)), 'f', 1) + "mm"},
             {QObject::tr("声程范围"), soundDistance},
             {QObject::tr("声速"), QString::number(KeepDecimals<0>(getSoundVelocity(idx)), 'f', 0) + "m/s"},
-            {QObject::tr("距离"), gateValue[0].toObject()["dist_c"].toString()},
-            {QObject::tr("水平"), gateValue[0].toObject()["dist_a"].toString()},
-            {QObject::tr("垂直"), gateValue[0].toObject()["dist_b"].toString()},
-            {QObject::tr("当量"), gateValue[0].toObject()["equi"].toString()},
+            {QObject::tr("距离"), gateValue.at(0).toObject()["dist_c"].toString()},
+            {QObject::tr("水平"), gateValue.at(0).toObject()["dist_a"].toString()},
+            {QObject::tr("垂直"), gateValue.at(0).toObject()["dist_b"].toString()},
+            {QObject::tr("当量"), gateValue.at(0).toObject()["equi"].toString()},
             {QObject::tr("长度"), ""},
-            {QObject::tr("高度"), gateValue[0].toObject()["amp"].toString()},
+            {QObject::tr("高度"), gateValue.at(0).toObject()["amp"].toString()},
             {QObject::tr("等级"), ""},
             {QObject::tr("探伤结果"), ""},
             {QObject::tr("探伤标准"), ""},
@@ -198,7 +196,7 @@ namespace Union::AScan {
             };
         }
 
-        return QJsonArray::fromVariantList({_gateValue[0], _gateValue[1]});
+        return QJsonArray::fromVariantList({_gateValue.at(0), _gateValue.at(1)});
     }
 
     QVariantMap AScanIntf::createTechnologicalParameter(int idx) const {
@@ -238,93 +236,107 @@ namespace Union::AScan {
     }
 
     std::function<std::optional<double>(double)> AScanIntf::getAVGLineExpr(int idx) const {
-        auto            avg_param     = getAVG(idx);
-        constexpr float AVG_ECHO_SIZE = 495.0;
-        if (!avg_param.has_value()) {
-            return [](double) -> double { return 0.0; };
-        }
-        std::vector<double> index_on_dac_view;
-        index_on_dac_view.resize(avg_param->index.size());
-        std::transform(avg_param->index.begin(), avg_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
-            return ValueMap(x, {0.0, 250.0}, {0.0, AVG_ECHO_SIZE});
-        });
-        auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - avg_param->baseGain - avg_param->biasGain;
-        if (avg_param->index.size() == 1) {
+        try {
+            auto            avg_param     = getAVG(idx);
+            constexpr float AVG_ECHO_SIZE = 495.0;
+            if (!avg_param.has_value()) {
+                return [](double) -> double { return 0.0; };
+            }
+            std::vector<double> index_on_dac_view;
+            index_on_dac_view.resize(avg_param->index.size());
+            std::transform(avg_param->index.begin(), avg_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
+                return ValueMap(x, {0.0, 250.0}, {0.0, AVG_ECHO_SIZE});
+            });
+            auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - avg_param->baseGain - avg_param->biasGain;
+            if (avg_param->index.size() == 1) {
+                return [=, this](double _val) -> std::optional<double> {
+                    auto val             = ValueMap(_val, getAxisRange(idx), {0.0, AVG_ECHO_SIZE});
+                    auto three_nearField = 3 * getNearField(idx);
+                    if (val < three_nearField) {
+                        auto Func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
+                        return CalculateGainOutput(avg_param->value.at(0), modifyGain - Func(index_on_dac_view.at(0), three_nearField));
+                    } else {
+                        auto Func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
+                        return CalculateGainOutput(avg_param->value.at(0), modifyGain - Func(index_on_dac_view.at(0), val));
+                    }
+                };
+            }
+            std::vector<double> decay = {};
+            for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                auto _decay = (std::log(avg_param->value[i + 1]) - std::log(avg_param->value[i])) / (index_on_dac_view[i + 1] - index_on_dac_view[i]);
+                decay.emplace_back(_decay);
+            }
             return [=, this](double _val) -> std::optional<double> {
-                auto val             = ValueMap(_val, getAxisRange(idx), {0.0, AVG_ECHO_SIZE});
-                auto three_nearField = 3 * getNearField(idx);
-                if (val < three_nearField) {
-                    auto Func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
-                    return CalculateGainOutput(avg_param->value[0], modifyGain - Func(index_on_dac_view[0], three_nearField));
+                auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, AVG_ECHO_SIZE});
+                if (val < index_on_dac_view.at(0)) {
+                    return CalculateGainOutput(avg_param->value.at(0), modifyGain);
                 } else {
-                    auto Func = std::bind(Union::EchoDbDiffOfHole, std::placeholders::_1, 2.0, std::placeholders::_2, 2.0);
-                    return CalculateGainOutput(avg_param->value[0], modifyGain - Func(index_on_dac_view[0], val));
-                }
-            };
-        }
-        std::vector<double> decay = {};
-        for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
-            auto _decay = (std::log(avg_param->value[i + 1]) - std::log(avg_param->value[i])) / (index_on_dac_view[i + 1] - index_on_dac_view[i]);
-            decay.emplace_back(_decay);
-        }
-        return [=, this](double _val) -> std::optional<double> {
-            auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, AVG_ECHO_SIZE});
-            if (val < index_on_dac_view[0]) {
-                return CalculateGainOutput(avg_param->value[0], modifyGain);
-            } else {
-                for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
-                    if (val < index_on_dac_view[i + 1]) {
-                        qDebug(QLoggingCategory("TEST")) << "i=" << i;
-                        return CalculateGainOutput(avg_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
+                    for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                        if (val < index_on_dac_view[i + 1]) {
+                            qDebug(QLoggingCategory("TEST")) << "i=" << i;
+                            return CalculateGainOutput(avg_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
+                        }
                     }
                 }
-            }
-            return std::nullopt;
-        };
+                return std::nullopt;
+            };
+        } catch (std::exception &e) {
+            qWarning(TAG) << e.what();
+            return [](double) -> std::optional<double> {
+                return std::nullopt;
+            };
+        }
     }
 
     std::function<std::optional<double>(double)> AScanIntf::getDACLineExpr(int idx) const {
-        auto             dac_param     = getDAC(idx);
-        constexpr double DAC_ECHO_SIZE = 495.0;
-        if (!dac_param.has_value()) {
-            return [](double) -> double { return 0.0; };
-        }
-        std::vector<double> index_on_dac_view;
-        index_on_dac_view.resize(dac_param->index.size());
-        std::transform(dac_param->index.begin(), dac_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
-            return ValueMap(x, {0.0, 100.0}, {0.0, DAC_ECHO_SIZE});
-        });
-        auto modifyGain = getBaseGain(idx) + getScanGain(idx) - dac_param->baseGain - dac_param->biasGain;
-        if (dac_param->index.size() == 1) {
-            return [=, this](double _val) -> double {
-                auto val             = ValueMap(_val, getAxisRange(idx), {0.0, DAC_ECHO_SIZE});
-                auto three_nearField = 3 * getNearField(idx);
-                if (val < three_nearField) {
-                    return CalculateGainOutput(dac_param->value[0], modifyGain + Union::EchoDbDiffOfPlan(index_on_dac_view[0], three_nearField));
-                } else {
-                    return CalculateGainOutput(dac_param->value[0], modifyGain + Union::EchoDbDiffOfPlan(index_on_dac_view[0], val));
-                }
-            };
-        }
+        try {
+            auto             dac_param     = getDAC(idx);
+            constexpr double DAC_ECHO_SIZE = 495.0;
+            if (!dac_param.has_value()) {
+                return [](double) -> double { return 0.0; };
+            }
+            std::vector<double> index_on_dac_view;
+            index_on_dac_view.resize(dac_param->index.size());
+            std::transform(dac_param->index.begin(), dac_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
+                return ValueMap(x, {0.0, 100.0}, {0.0, DAC_ECHO_SIZE});
+            });
+            auto modifyGain = getBaseGain(idx) + getScanGain(idx) - dac_param->baseGain - dac_param->biasGain;
+            if (dac_param->index.size() == 1) {
+                return [=, this](double _val) -> double {
+                    auto val             = ValueMap(_val, getAxisRange(idx), {0.0, DAC_ECHO_SIZE});
+                    auto three_nearField = 3 * getNearField(idx);
+                    if (val < three_nearField) {
+                        return CalculateGainOutput(dac_param->value.at(0), modifyGain + Union::EchoDbDiffOfPlan(index_on_dac_view.at(0), three_nearField));
+                    } else {
+                        return CalculateGainOutput(dac_param->value.at(0), modifyGain + Union::EchoDbDiffOfPlan(index_on_dac_view.at(0), val));
+                    }
+                };
+            }
 
-        std::vector<double> decay = {};
-        for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
-            auto _decay = (std::log(dac_param->value[i + 1]) - std::log(dac_param->value[i])) / (index_on_dac_view[i + 1] - index_on_dac_view[i]);
-            decay.emplace_back(_decay);
-        }
-        return [=, this](double _val) -> std::optional<double> {
-            auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, DAC_ECHO_SIZE});
-            if (val < index_on_dac_view[0]) {
-                return CalculateGainOutput(dac_param->value[0], modifyGain);
-            } else {
-                for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
-                    if (val < index_on_dac_view[i + 1]) {
-                        return CalculateGainOutput(dac_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
+            std::vector<double> decay = {};
+            for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                auto _decay = (std::log(dac_param->value.at(i + 1)) - std::log(dac_param->value.at(i))) / (index_on_dac_view.at(i + 1) - index_on_dac_view.at(i));
+                decay.emplace_back(_decay);
+            }
+            return [=, this](double _val) -> std::optional<double> {
+                auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, DAC_ECHO_SIZE});
+                if (val < index_on_dac_view.at(0)) {
+                    return CalculateGainOutput(dac_param->value.at(0), modifyGain);
+                } else {
+                    for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
+                        if (val < index_on_dac_view.at(i + 1)) {
+                            return CalculateGainOutput(dac_param->value.at(i) * std::exp(decay.at(i) * (val - index_on_dac_view.at(i))), modifyGain);
+                        }
                     }
                 }
-            }
-            return std::nullopt;
-        };
+                return std::nullopt;
+            };
+        } catch (std::exception &e) {
+            qWarning(TAG) << e.what();
+            return [](double) -> std::optional<double> {
+                return std::nullopt;
+            };
+        }
     }
 
     int AScanIntf::getReplayTimerInterval() const {
@@ -350,7 +362,7 @@ namespace Union::AScan {
                     minMaxVec.push_back(_left);
                 }
             }
-            max = minMaxVec[0] + minMaxVec.size() / 2;
+            max = minMaxVec.at(0) + minMaxVec.size() / 2;
         }
         auto pos = ((double)std::distance(_data.begin(), max) / (double)_data.size());
         if (enable_supression && ((*max) <= (2.0 * (getSupression(idx))))) {
