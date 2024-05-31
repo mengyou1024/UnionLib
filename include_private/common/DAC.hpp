@@ -6,16 +6,7 @@
 
 namespace Union::Base {
     class DAC {
-    private:
-        double mBias  = {};
-        double mLen   = {};
-        int    mCount = {};
-
     public:
-        DAC(double bias = 0.0, double len = 250.0, int count = 520) :
-        mBias(bias),
-        mLen(len),
-        mCount(count) {}
         double               baseGain         = {}; ///< 基础增益
         double               biasGain         = {}; ///< 补偿增益
         int                  gate             = {};
