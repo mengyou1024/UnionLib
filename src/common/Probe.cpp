@@ -58,7 +58,7 @@ namespace Union::Base::Probe {
             case 2:
             case 3:
                 return (ss << a << "mm", ss.str());
-            default: return (ss << a << "×" << b, ss.str());
+            default: return (ss << a << "mm × " << b << "mm", ss.str());
         }
     }
 
