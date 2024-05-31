@@ -247,7 +247,7 @@ namespace Union::AScan {
         std::transform(avg_param->index.begin(), avg_param->index.end(), index_on_dac_view.begin(), [&](int x) -> double {
             return ValueMap((double)x, {0.0, 160.0}, {0.0, 520.0});
         });
-        auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain + getAVG(idx)->biasGain;
+        auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - avg_param->baseGain + avg_param->biasGain;
         if (avg_param->index.size() == 1) {
             return [=, this](double _val) -> double {
                 auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
@@ -289,7 +289,7 @@ namespace Union::AScan {
         std::transform(dac_param->index.begin(), dac_param->index.end(), index_on_dac_view.begin(), [&](int x) -> double {
             return ValueMap((double)x, {0.0, 100.0}, {0.0, 520.0});
         });
-        auto modifyGain = getBaseGain(idx) + getScanGain(idx) - getDAC(idx)->baseGain + getDAC(idx)->biasGain;
+        auto modifyGain = getBaseGain(idx) + getScanGain(idx) - dac_param->baseGain + dac_param->biasGain;
         if (dac_param->index.size() == 1) {
             return [=, this](double _val) -> double {
                 auto val = ValueMap((double)_val, getAxisRange(idx), {0.0, 520.0});
