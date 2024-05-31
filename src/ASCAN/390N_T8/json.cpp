@@ -209,8 +209,10 @@ namespace Union::__390N_T8 {
                 ret.data.resize(1);
                 auto &ascan = ret.data[0];
                 // scan data
-                const auto _axisBias = obj["ch_timedelay"].toDouble();
-                const auto sdt       = obj[CHANNEL_SOUNDDIST_TYPE.data()].toInt();
+                const auto _ch_yanshi    = obj["ch_yangshi"].toDouble();
+                const auto _ch_timeDelay = obj["ch_timedelay"].toDouble(_ch_yanshi);
+                const auto _axisBias     = _ch_yanshi;
+                const auto sdt           = obj[CHANNEL_SOUNDDIST_TYPE.data()].toInt();
                 if (!obj[CHANNEL_SOUNDDIST.data()].isArray() || obj[CHANNEL_SOUNDDIST.data()].toArray().size() < sdt) {
                     throw std::exception("ch_sound_distance is not array or array will overflow");
                 }
@@ -308,7 +310,7 @@ namespace Union::__390N_T8 {
                 // zero point bias
                 ret.zeroPointBias = obj[CHANNEL_ZEROPOINT.data()].toDouble();
                 // scanpling delay
-                ret.samplingDelay  = obj["ch_timedelay"].toDouble();
+                ret.samplingDelay  = _ch_timeDelay;
                 ret.channel        = obj[SYS_CHANNEL_ID.data()].toInt(-1);
                 ret.instrumentName = "390N&T8 Single";
 

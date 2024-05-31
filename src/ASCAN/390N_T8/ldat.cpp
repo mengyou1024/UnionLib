@@ -197,10 +197,10 @@ namespace Union::__390N_T8 {
         ret.baseGain           = ldat.at(idx).avg_data.ch_avg_base_gain / 10.0;
         ret.biasGain           = ldat.at(idx).avg_data.ch_avg_offset_gain / 10.0;
         ret.equivalent         = ldat.at(idx).avg_data.ch_avg_dangliang;
-        ret.diameter           = ldat.at(idx).avg_data.ch_avg_diameter;
+        ret.diameter           = ldat.at(idx).avg_data.ch_avg_diameter / 10.0;
         ret.isSubline          = ldat.at(idx).avg_data.ch_avg_is_subline;
-        ret.reflectorDianmeter = ldat.at(idx).avg_data.ch_avg_reflector_diameter;
-        ret.reflectorMaxDepth  = ldat.at(idx).avg_data.ch_avg_reflector_max_depth;
+        ret.reflectorDianmeter = ldat.at(idx).avg_data.ch_avg_reflector_diameter / 10.0;
+        ret.reflectorMaxDepth  = ldat.at(idx).avg_data.ch_avg_reflector_max_depth / 10.0;
         ret.index.clear();
         ret.value.clear();
         for (auto avgIndex = 0; std::cmp_less(avgIndex, ldat.at(idx).avg_data.ch_avg_sample_length); avgIndex++) {
