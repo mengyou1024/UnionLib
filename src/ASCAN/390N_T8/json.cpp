@@ -214,12 +214,12 @@ namespace Union::__390N_T8 {
                 }
                 const auto _axisLen           = obj[CHANNEL_SOUNDDIST.data()].toArray()[sdt].toDouble();
                 ascan.gate[0].enable          = obj[CHANNEL_GATEA_ACTIVITY.data()].toBool();
-                ascan.gate[0].pos             = (obj[CHANNEL_GATEA_POS.data()].toDouble() - _axisBias) / _axisLen;
-                ascan.gate[0].width           = (obj[CHANNEL_GATEA_WIDTH.data()].toDouble() - _axisBias) / _axisLen;
+                ascan.gate[0].pos             = (obj[CHANNEL_GATEA_POS.data()].toDouble()) / _axisLen;
+                ascan.gate[0].width           = (obj[CHANNEL_GATEA_WIDTH.data()].toDouble()) / _axisLen;
                 ascan.gate[0].height          = obj[CHANNEL_GATEA_HEIGHT.data()].toDouble() / 100.0;
                 ascan.gate[1].enable          = obj[CHANNEL_GATEB_ACTIVITY.data()].toBool();
-                ascan.gate[1].pos             = (obj[CHANNEL_GATEB_POS.data()].toDouble() - _axisBias) / _axisLen;
-                ascan.gate[1].width           = (obj[CHANNEL_GATEB_WIDTH.data()].toDouble() - _axisBias) / _axisLen;
+                ascan.gate[1].pos             = (obj[CHANNEL_GATEB_POS.data()].toDouble()) / _axisLen;
+                ascan.gate[1].width           = (obj[CHANNEL_GATEB_WIDTH.data()].toDouble()) / _axisLen;
                 ascan.gate[1].height          = obj[CHANNEL_GATEB_HEIGHT.data()].toDouble() / 100.0;
                 ascan.axisBias                = _axisBias;
                 ascan.axisLen                 = _axisLen;

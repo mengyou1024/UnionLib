@@ -136,11 +136,11 @@ namespace Union::__390N_T8 {
 
     std::array<Base::Gate, 2> LDAT::getGate(int idx) const {
         std::array<Base::Gate, 2> ret;
-        ret.at(0).pos    = (ldat.at(idx).chanel_data.ch_gatea_pos - getAxisBias(idx)) / getAxisLen(idx);
-        ret.at(0).width  = (ldat.at(idx).chanel_data.ch_gatea_width - getAxisBias(idx)) / getAxisLen(idx);
+        ret.at(0).pos    = (ldat.at(idx).chanel_data.ch_gatea_pos) / getAxisLen(idx);
+        ret.at(0).width  = (ldat.at(idx).chanel_data.ch_gatea_width) / getAxisLen(idx);
         ret.at(0).height = ldat.at(idx).chanel_data.ch_gatea_height / 100.0;
-        ret.at(1).pos    = (ldat.at(idx).chanel_data.ch_gateb_pos - getAxisBias(idx)) / getAxisLen(idx);
-        ret.at(1).width  = (ldat.at(idx).chanel_data.ch_gateb_width - getAxisBias(idx)) / getAxisLen(idx);
+        ret.at(1).pos    = (ldat.at(idx).chanel_data.ch_gateb_pos) / getAxisLen(idx);
+        ret.at(1).width  = (ldat.at(idx).chanel_data.ch_gateb_width) / getAxisLen(idx);
         ret.at(1).height = ldat.at(idx).chanel_data.ch_gateb_height / 100.0;
         for (auto& it : ret) {
             if (it.height > 0.0) {
