@@ -71,7 +71,7 @@ namespace Union::AScan {
             {QObject::tr("垂直"), gateValue[0].toObject()["dist_b"].toString()},
             {QObject::tr("当量"), gateValue[0].toObject()["equi"].toString()},
             {QObject::tr("长度"), ""},
-            {QObject::tr("高度"), ""},
+            {QObject::tr("高度"), gateValue[0].toObject()["amp"].toString()},
             {QObject::tr("等级"), ""},
             {QObject::tr("探伤结果"), ""},
             {QObject::tr("探伤标准"), ""},
