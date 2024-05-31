@@ -228,9 +228,9 @@ namespace Union::__390N_T8 {
 
     Union::AScan::DAC_Standard LDAT::getDACStandard(int idx) const {
         Union::AScan::DAC_Standard ret;
-        ret.rlBias = ldat.at(idx).chanel_data.ch_xuan_rl;
-        ret.slBias = ldat.at(idx).chanel_data.ch_xuan_sl;
-        ret.elBias = ldat.at(idx).chanel_data.ch_xuan_el;
+        ret.rlBias = ldat.at(idx).chanel_data.ch_xuan_rl / 10.0;
+        ret.slBias = ldat.at(idx).chanel_data.ch_xuan_sl / 10.0;
+        ret.elBias = ldat.at(idx).chanel_data.ch_xuan_el / 10.0;
         return ret;
     }
 
