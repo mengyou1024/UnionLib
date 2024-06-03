@@ -6,6 +6,8 @@
 #include <QJsonObject>
 #include <QLoggingCategory>
 
+#define USE_CALCULATE_GATE_DISTANCE 1
+
 static Q_LOGGING_CATEGORY(TAG, "390N&T8.JSON");
 
 namespace Union::__390N_T8 {
@@ -92,8 +94,21 @@ namespace Union::__390N_T8 {
     }
 
     double T8_390N_JSON::getSamplingDelay(int idx) const {
-        (void)idx;
-        return KeepDecimals<1>(m_ascan->samplingDelay);
+        auto       delay_s = m_ascan->samplingDelay;
+        auto       ret     = delay_s;
+        const auto angle   = getAngle(idx);
+
+        switch (getDistanceMode(idx)) {
+            case Union::AScan::DistanceMode::DistanceMode_X:
+                ret = delay_s * std::sin(angle * M_PI / 180.0);
+                break;
+            case Union::AScan::DistanceMode::DistanceMode_Y:
+                ret = delay_s * std::cos(angle * M_PI / 180.0);
+                break;
+            default:
+                break;
+        }
+        return KeepDecimals<1>(ret);
     }
 
     int T8_390N_JSON::getChannel(int idx) const {
@@ -117,7 +132,7 @@ namespace Union::__390N_T8 {
 
     double T8_390N_JSON::getAxisBias(int idx) const {
         (void)idx;
-        return m_ascan->data[0].axisBias;
+        return getSamplingDelay(idx);
     }
 
     double T8_390N_JSON::getAxisLen(int idx) const {
@@ -179,13 +194,17 @@ namespace Union::__390N_T8 {
         auto       obj1 = ret[0].toObject();
         auto       obj2 = ret[1].toObject();
         obj1["equi"]    = m_equi[0];
-        obj1["dist_c"]  = m_c[0];
-        obj1["dist_a"]  = m_a[0];
-        obj1["dist_b"]  = m_b[0];
-        obj2["equi"]    = m_equi[1];
-        obj2["dist_c"]  = m_c[1];
-        obj2["dist_a"]  = m_a[1];
-        obj2["dist_b"]  = m_b[1];
+#if !USE_CALCULATE_GATE_DISTANCE
+        obj1["dist_c"] = m_c[0];
+        obj1["dist_a"] = m_a[0];
+        obj1["dist_b"] = m_b[0];
+#endif
+        obj2["equi"] = m_equi[1];
+#if !USE_CALCULATE_GATE_DISTANCE
+        obj2["dist_c"] = m_c[1];
+        obj2["dist_a"] = m_a[1];
+        obj2["dist_b"] = m_b[1];
+#endif
         ret.replace(0, obj1);
         ret.replace(1, obj2);
         return ret;
@@ -211,7 +230,7 @@ namespace Union::__390N_T8 {
                 // scan data
                 const auto _ch_yanshi    = obj["ch_yangshi"].toDouble();
                 const auto _ch_timeDelay = obj["ch_timedelay"].toDouble(_ch_yanshi);
-                const auto _axisBias     = _ch_yanshi;
+                const auto _axisBias     = _ch_timeDelay;
                 const auto sdt           = obj[CHANNEL_SOUNDDIST_TYPE.data()].toInt();
                 if (!obj[CHANNEL_SOUNDDIST.data()].isArray() || obj[CHANNEL_SOUNDDIST.data()].toArray().size() < sdt) {
                     throw std::exception("ch_sound_distance is not array or array will overflow");

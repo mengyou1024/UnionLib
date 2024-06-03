@@ -11,6 +11,8 @@ namespace Yo::File {
     }
 } // namespace Yo::File
 
+#define USE_CALCULATE_GATE_DISTANCE 1
+
 namespace Union::__390N_T8 {
     std::string LDAT::convertTime(std::array<char, 14> arr) const {
         std::ostringstream ss;
@@ -124,7 +126,21 @@ namespace Union::__390N_T8 {
     }
 
     double LDAT::getSamplingDelay(int idx) const {
-        return getAxisBias(idx);
+        auto       delay_s = ldat.at(idx).chanel_data.ch_yangshi / 100.0;
+        auto       ret     = delay_s;
+        const auto angle   = getAngle(idx);
+
+        switch (getDistanceMode(idx)) {
+            case Union::AScan::DistanceMode::DistanceMode_X:
+                ret = delay_s * std::sin(angle * M_PI / 180.0);
+                break;
+            case Union::AScan::DistanceMode::DistanceMode_Y:
+                ret = delay_s * std::cos(angle * M_PI / 180.0);
+                break;
+            default:
+                break;
+        }
+        return KeepDecimals<1>(ret);
     }
 
     int LDAT::getChannel(int idx) const {
@@ -161,7 +177,7 @@ namespace Union::__390N_T8 {
     }
 
     double LDAT::getAxisBias(int idx) const {
-        return KeepDecimals<1>(ldat.at(idx).chanel_data.ch_yangshi / 100.0);
+        return getSamplingDelay(idx);
     }
 
     double LDAT::getAxisLen(int idx) const {
@@ -240,6 +256,10 @@ namespace Union::__390N_T8 {
         return ret;
     }
 
+    int LDAT::getReplayTimerInterval() const {
+        return 200;
+    }
+
     void LDAT::pushFileNameList(const std::wstring& fileName) {
         m_fileNameList.push_back(fileName);
     }
@@ -267,16 +287,20 @@ namespace Union::__390N_T8 {
         m_a[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_horizontal_dist / 10.0);
         m_b[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_depth / 10.0);
 
-        auto obj1      = ret[0].toObject();
-        auto obj2      = ret[1].toObject();
-        obj1["equi"]   = m_equi[0];
+        auto obj1    = ret[0].toObject();
+        auto obj2    = ret[1].toObject();
+        obj1["equi"] = m_equi[0];
+#if !USE_CALCULATE_GATE_DISTANCE
         obj1["dist_c"] = m_c[0];
         obj1["dist_a"] = m_a[0];
         obj1["dist_b"] = m_b[0];
-        obj2["equi"]   = m_equi[1];
+#endif
+        obj2["equi"] = m_equi[1];
+#if !USE_CALCULATE_GATE_DISTANCE
         obj2["dist_c"] = m_c[1];
         obj2["dist_a"] = m_a[1];
         obj2["dist_b"] = m_b[1];
+#endif
         ret.replace(0, obj1);
         ret.replace(1, obj2);
         return ret;
