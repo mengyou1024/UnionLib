@@ -120,8 +120,7 @@ namespace Union::__330 {
             }
         }
         if (ret != file_size) {
-            qWarning(TAG) << "ret != file_size"
-                          << "fileName: " << m_fileName;
+            qWarning(TAG) << "ret != file_size, fileName:" << m_fileName;
         }
         return file_size;
     }

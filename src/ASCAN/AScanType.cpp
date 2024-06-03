@@ -10,7 +10,7 @@ namespace Union::AScan {
         const auto     AScanStep = getAxisLen(index) / static_cast<double>(getScanData(index).size());
         for (auto i = 0; std::cmp_less(i, getScanData(index).size()); i++) {
             auto ampValue = getScanData(index)[i] / 2.0;
-            if (ampValue <= getSupression(index)) {
+            if (ampValue < getSupression(index)) {
                 ampValue = 0;
             }
             ret.append({getAxisBias(index) + i * AScanStep, CalculateGainOutput(ampValue, softGain)});
@@ -365,7 +365,7 @@ namespace Union::AScan {
             max = minMaxVec.at(0) + minMaxVec.size() / 2;
         }
         auto pos = ((double)std::distance(_data.begin(), max) / (double)_data.size());
-        if (enable_supression && ((*max) <= (2.0 * (getSupression(idx))))) {
+        if (enable_supression && ((*max) < (2.0 * (getSupression(idx))))) {
             return std::nullopt;
         }
         if (pos < 0.0f) {
