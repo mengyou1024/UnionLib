@@ -122,23 +122,25 @@ namespace Union::AScan {
                     qCritical(TAG) << QObject::tr("当探头为斜探头时, 探头角度近乎为0").toStdString().c_str();
                     break;
                 }
+                const auto rad = Union::Base::Probe::Degree2Rd(getAngle(idx));
+                const auto k   = Union::Base::Probe::Degree2K(getAngle(idx));
                 switch (getDistanceMode(idx)) {
                     case Union::AScan::DistanceMode::DistanceMode_Y: {
                         b = Union::ValueMap(loc, getAxisRange(idx));
-                        a = b.value() / Union::Base::Probe::Degree2K(getAngle(idx));
-                        c = b.value() / std::sin(Union::Base::Probe::Degree2Rd(getAngle(idx)));
+                        a = b.value() / k;
+                        c = b.value() / std::sin(rad);
                         break;
                     }
                     case Union::AScan::DistanceMode::DistanceMode_X: {
                         a = Union::ValueMap(loc, getAxisRange(idx));
-                        b = Union::Base::Probe::Degree2K(getAngle(idx)) * b.value();
-                        c = b.value() / std::cos(Union::Base::Probe::Degree2Rd(getAngle(idx)));
+                        b = b.value() * k;
+                        c = b.value() / std::cos(rad);
                         break;
                     }
                     case Union::AScan::DistanceMode::DistanceMode_S: {
                         c = Union::ValueMap(loc, getAxisRange(idx));
-                        a = c.value() * std::cos(Union::Base::Probe::Degree2Rd(getAngle(idx)));
-                        b = c.value() * std::sin(Union::Base::Probe::Degree2Rd(getAngle(idx)));
+                        a = c.value() * std::cos(rad);
+                        b = c.value() * std::sin(rad);
                         break;
                     }
                 }
