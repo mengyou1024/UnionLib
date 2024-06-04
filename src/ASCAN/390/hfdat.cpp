@@ -19,11 +19,11 @@ std::unique_ptr<Union::AScan::AScanIntf> Union::__390::HFDATType::FromFile(const
         return nullptr;
     }
     ret->setFileName(QString::fromStdWString(fileName));
-    std::wregex  reg(LR"((\d+-\d+-\d+)\.dat)", std::regex_constants::icase);
+    std::wregex  reg(LR"((\d+-\d+-\d+)\.\w+)", std::regex_constants::icase);
     std::wsmatch match;
     if (std::regex_search(fileName, match, reg)) {
         std::wstring dateStr = match[1];
-        dynamic_cast<HFDATType *>(ret.get())->setDate(Yo::Types::StringFromWString(dateStr));
+        dynamic_cast<HFDATType *>(ret.get())->setDate(Yo::Types::StringFromWString(L"20" + dateStr));
     }
     return ret;
 }

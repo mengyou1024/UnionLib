@@ -33,11 +33,11 @@ namespace Union::__330 {
         if (!Yo::File::ReadFile(filename, *(ret.get()))) {
             return nullptr;
         }
-        std::wregex  reg(LR"((\d+-\d+-\d+)\.dat)", std::regex_constants::icase);
+        std::wregex  reg(LR"((\d+-\d+-\d+)\.\w+)", std::regex_constants::icase);
         std::wsmatch match;
         if (std::regex_search(filename, match, reg)) {
             std::wstring dateStr = match[1];
-            dynamic_cast<DATType *>(ret.get())->setDate(Yo::Types::StringFromWString(dateStr));
+            dynamic_cast<DATType *>(ret.get())->setDate(Yo::Types::StringFromWString(L"20" + dateStr));
         }
         return ret;
     }
