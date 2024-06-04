@@ -334,11 +334,11 @@ namespace Union::__330 {
         if (strMRange.isEmpty()) {
             strMRange = "-";
         }
-        obj1["equi"]   = strMRange;
-        obj1["dist_c"] = QString::number(channelParam.wavepara[0] / 10.0, 'f', 1);
-        obj1["dist_a"] = QString::number(channelParam.wavepara[1] / 10.0, 'f', 1);
-        obj1["dist_b"] = QString::number(channelParam.wavepara[2] / 10.0, 'f', 1);
-        obj2["equi"]   = "-";
+        obj1["equi"] = strMRange;
+        // obj1["dist_c"] = QString::number(channelParam.wavepara[0] / 10.0, 'f', 1);
+        // obj1["dist_a"] = QString::number(channelParam.wavepara[1] / 10.0, 'f', 1);
+        // obj1["dist_b"] = QString::number(channelParam.wavepara[2] / 10.0, 'f', 1);
+        obj2["equi"] = "-";
         ret.replace(0, obj1);
         ret.replace(1, obj2);
         return ret;

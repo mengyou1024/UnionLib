@@ -11,6 +11,7 @@ namespace Union::__390 {
         static std::unique_ptr<Union::AScan::AScanIntf> FromFile(const std::wstring &fileName);
 
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
+        std::string        getInstrumentName(void) const override;
 
     private:
     };

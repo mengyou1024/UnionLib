@@ -235,7 +235,7 @@ namespace Union::__330 {
         double            getZeroPointBias(int idx) const override final;
         double            getSamplingDelay(int idx) const override final;
         int               getChannel(int idx) const override final;
-        std::string       getInstrumentName(void) const override final;
+        std::string       getInstrumentName(void) const override;
 
         std::array<Base::Gate, 2>   getGate(int idx = 0) const override final;
         const std::vector<uint8_t>& getScanData(int idx = 0) const override final;

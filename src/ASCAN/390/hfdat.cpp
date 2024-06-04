@@ -99,3 +99,7 @@ QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) c
     ret.replace(1, obj2);
     return ret;
 }
+
+std::string Union::__390::HFDATType::getInstrumentName(void) const {
+    return "390 Continues";
+}
