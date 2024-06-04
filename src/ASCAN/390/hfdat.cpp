@@ -1,35 +1,13 @@
 #include "hfdat.hpp"
 #include "../330/_330_draw_dac.hpp"
-#include <Yo/File>
-#include <Yo/Types>
-#include <memory>
-#include <regex>
-
-namespace Yo::File {
-    template <>
-    size_t __Read(std::ifstream &file, Union::__390::HFDATType &data, [[maybe_unused]] size_t file_size) {
-        return data.__Read(file, file_size);
-    }
-
-} // namespace Yo::File
 
 std::unique_ptr<Union::AScan::AScanIntf> Union::__390::HFDATType::FromFile(const std::wstring &fileName) {
-    auto ret = std::make_unique<HFDATType>();
-    if (!Yo::File::ReadFile(fileName, *(ret.get()))) {
-        return nullptr;
-    }
-    ret->setFileName(QString::fromStdWString(fileName));
-    std::wregex  reg(LR"((\d+-\d+-\d+)\.\w+)", std::regex_constants::icase);
-    std::wsmatch match;
-    if (std::regex_search(fileName, match, reg)) {
-        std::wstring dateStr = match[1];
-        dynamic_cast<HFDATType *>(ret.get())->setDate(Yo::Types::StringFromWString(L"20" + dateStr));
-    }
-    return ret;
+    auto dat = Union::__330::DATType::FromFile(fileName);
+    return std::unique_ptr<Union::AScan::AScanIntf>(static_cast<Union::__390::HFDATType *>(dat.release()));
 }
 
 QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) const {
-    QJsonArray ret = Union::AScan::AScanIntf::createGateValue(idx, soft_gain);
+    QJsonArray ret = Union::__330::DATType::createGateValue(idx, soft_gain);
 
     QString strMRange;
     int     mode;
@@ -82,6 +60,7 @@ QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) c
     } else if (mode < 1) {
         QString s0 = QString::asprintf("∧%0.1f %", (float)(int(wavepara[3]) / 10.0));
         strMRange  = "";
+        (void)s0;
     }
     qDebug(QLoggingCategory("HFD")) << "strMRange" << strMRange;
     qDebug(QLoggingCategory("HFD")) << ret;

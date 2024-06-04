@@ -65,6 +65,7 @@ namespace Union::__330 {
             ret += Yo::File::__Read(file, encoderLen, file_size);
             ret += Yo::File::__Read(file, infoLen, file_size);
             if (std::cmp_greater_equal(encoderLen, file_size) || std::cmp_greater_equal(infoLen, file_size)) {
+                qWarning(TAG) << "encoderLen >= file_size" << "fileName: " << m_fileName;
                 return 0;
             }
             std::vector<uint8_t> rawData;
