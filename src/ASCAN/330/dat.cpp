@@ -394,11 +394,11 @@ namespace Union::__330 {
         if (strMRange.isEmpty()) {
             strMRange = "-";
         }
-        obj1["equi"]   = strMRange;
-        obj1["dist_a"] = QString::number(wavepara[0] / 10.0, 'f', 1);
-        obj1["dist_b"] = QString::number(wavepara[1] / 10.0, 'f', 1);
-        obj1["dist_c"] = QString::number(wavepara[2] / 10.0, 'f', 1);
-        obj2["equi"]   = "-";
+        obj1["equi"] = strMRange;
+        // obj1["dist_a"] = QString::number(wavepara[0] / 10.0, 'f', 1);
+        // obj1["dist_b"] = QString::number(wavepara[1] / 10.0, 'f', 1);
+        // obj1["dist_c"] = QString::number(wavepara[2] / 10.0, 'f', 1);
+        obj2["equi"] = "-";
         ret.replace(0, obj1);
         ret.replace(1, obj2);
         return ret;
@@ -468,5 +468,13 @@ namespace Union::__330 {
 
     uint8_t DATType::convertDB2GateAMP(int idx, int db) const {
         return static_cast<uint8_t>(std::pow(10.0, (200 * log10(255) - db + getBaseGain(idx) * 10.0 + getSurfaceCompentationGain(idx) * 10.0) / 200.0));
+    }
+
+    void DATType::setFileName(const QString &fileName) {
+        m_fileName = fileName;
+    }
+
+    const QString &DATType::getFileName() {
+        return m_fileName;
     }
 } // namespace Union::__330

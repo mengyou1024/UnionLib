@@ -199,34 +199,11 @@ namespace Union::__390 {
             }
             strMRange += "dB";
         } else if (mode > 1) {
-            if ((mode - 2) == 0)
-                strMRange = "";
-            else if ((mode - 3) == 0)
-                strMRange = "";
-            else if ((mode - 4) == 0)
-                strMRange = "";
-            else if ((mode - 5) == 0)
-                strMRange = "";
-            else if ((mode - 6) == 0)
-                strMRange = "";
-            else if ((mode - 7) == 0)
-                strMRange = "";
-            else if ((mode - 10) == 0 || (mode - 11) == 0) {
-                if (systemStatus.unit % 4)
-                    strMRange = "Φ" + QString::number(((float)(10 * pow(10, (int(channelParam.wavepara[3]) + channelParam.lineGain[2] + 120) / 400.0))) / 10.0 / 25.4, 'f', 2);
-                else
-                    strMRange = "Φ" + QString::number(((int)(10 * pow(10, (int(channelParam.wavepara[3]) + channelParam.lineGain[2] + 120) / 400.0) + 0.5)) / 10.0, 'f', 1);
-                strMRange += "  ";
-                if (systemStatus.unit % 4)
-                    strMRange += "Φ" + QString::number((float)(pow(10, (channelParam.lineGain[2] + 120) / 400.0)) / 25.4, 'f', 2);
-                else
-                    strMRange += "Φ" + QString::number((int)(pow(10, (channelParam.lineGain[2] + 120) / 400.0) + 0.5));
-                float fOffset = int(channelParam.wavepara[3]) / 10.0;
-                if (fOffset > 0)
-                    strMRange += " +" + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
-                else
-                    strMRange += " " + QString::number(int(channelParam.wavepara[3]) / 10.0, 'f', 1);
-                strMRange += "dB";
+            if (systemStatus.unit % 4) {
+                strMRange = "Φ" + QString::number(dacParam.diameter / 10.0 / 25.4, 'f', 3);
+
+            } else {
+                strMRange = "Φ" + QString::number(dacParam.diameter / 10);
             }
 
             if ((mode < 10) || (mode > 11)) {

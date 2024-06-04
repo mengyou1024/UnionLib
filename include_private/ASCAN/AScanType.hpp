@@ -376,6 +376,14 @@ namespace Union::AScan {
          * @return 近场区长度(mm)
          */
         virtual double getNearField(int idx) const final;
+
+        /**
+         * @brief 判断是否是直探头
+         *
+         * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
+         * @return boolean
+         */
+        virtual bool isStraightBeamProbe(int idx) const final;
     };
 
     /**

@@ -31,8 +31,16 @@ namespace Union::Base::Probe {
         return -1;
     }
 
-    bool IsStraightBeamProbe(QString name) {
+    bool IsStraightBeamProbe(const QString &name) {
         return IsStraightBeamProbe(Name2Index_QtExtra(name));
+    }
+
+    bool IsStraightBeamProbe(const std::string &name) {
+        return IsStraightBeamProbe(QString::fromStdString(name));
+    }
+
+    bool IsStraightBeamProbe(const std::wstring &name) {
+        return IsStraightBeamProbe(QString::fromStdWString(name));
     }
 
     bool IsStraightBeamProbe(int idx) {

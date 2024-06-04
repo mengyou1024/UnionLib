@@ -1,5 +1,6 @@
 #include "AScanType.hpp"
 #include <QLoggingCategory>
+#include <QString>
 #include <tuple>
 
 static Q_LOGGING_CATEGORY(TAG, "ASCAN.INTF");
@@ -109,43 +110,37 @@ namespace Union::AScan {
             std::optional<double> b  = std::nullopt;
             std::optional<double> c  = std::nullopt;
 
-            switch (getDistanceMode(idx)) {
-                case Union::AScan::DistanceMode::DistanceMode_Y: {
-                    b = Union::ValueMap(loc, getAxisRange(idx));
-                    if (std::abs(getAngle(idx)) > 0.0001) {
+            b = Union::ValueMap(loc, getAxisRange(idx));
+            c = b;
+
+            if (isStraightBeamProbe(idx)) {
+                if (getDistanceMode(idx) == Union::AScan::DistanceMode::DistanceMode_X) {
+                    qWarning(TAG) << QObject::tr("当探头为直探头时, 使用声程模式X").toStdString().c_str();
+                }
+            } else {
+                if (!(std::abs(getAngle(idx)) > 0.0001)) {
+                    qCritical(TAG) << QObject::tr("当探头为斜探头时, 探头角度近乎为0").toStdString().c_str();
+                    break;
+                }
+                switch (getDistanceMode(idx)) {
+                    case Union::AScan::DistanceMode::DistanceMode_Y: {
+                        b = Union::ValueMap(loc, getAxisRange(idx));
                         a = b.value() / Union::Base::Probe::Degree2K(getAngle(idx));
                         c = b.value() / std::sin(Union::Base::Probe::Degree2Rd(getAngle(idx)));
-                    } else {
-                        a = 0;
-                        c = b;
+                        break;
                     }
-                    break;
-                }
-                case Union::AScan::DistanceMode::DistanceMode_X: {
-                    a = Union::ValueMap(loc, getAxisRange(idx));
-                    if (std::abs(getAngle(idx)) > 0.0001) {
+                    case Union::AScan::DistanceMode::DistanceMode_X: {
+                        a = Union::ValueMap(loc, getAxisRange(idx));
                         b = Union::Base::Probe::Degree2K(getAngle(idx)) * b.value();
                         c = b.value() / std::cos(Union::Base::Probe::Degree2Rd(getAngle(idx)));
-                    } else {
-                        constexpr auto msg = "The Angle of refraction cannot be less than 0 in X path mode";
-#if defined(QT_DEBUG)
-                        qFatal(msg);
-#else
-                        qCritical(TAG) << msg;
-#endif
+                        break;
                     }
-                    break;
-                }
-                case Union::AScan::DistanceMode::DistanceMode_S: {
-                    c = Union::ValueMap(loc, getAxisRange(idx));
-                    if (std::abs(getAngle(idx)) > 0.0001) {
+                    case Union::AScan::DistanceMode::DistanceMode_S: {
+                        c = Union::ValueMap(loc, getAxisRange(idx));
                         a = c.value() * std::cos(Union::Base::Probe::Degree2Rd(getAngle(idx)));
                         b = c.value() * std::sin(Union::Base::Probe::Degree2Rd(getAngle(idx)));
-                    } else {
-                        a = 0;
-                        b = c;
+                        break;
                     }
-                    break;
                 }
             }
 
@@ -162,25 +157,6 @@ namespace Union::AScan {
             }
 
             QString _equi = "-";
-            if (getDAC(idx) && b.has_value()) {
-                auto r_amp      = Union::CalculateGainOutput(_amp, getSurfaceCompentationGain(idx));
-                auto lineExpr   = getDACLineExpr(idx);
-                auto slValue    = lineExpr((b.value() - getAxisBias(idx)) / getAxisLen(idx) * getScanData(idx).size());
-                auto modifyGain = getBaseGain(idx) + getScanGain(idx) +
-                                  getSurfaceCompentationGain(idx) - getDAC(idx)->baseGain +
-                                  getDACStandard(idx).slBias;
-                slValue = Union::CalculateGainOutput(slValue.value_or(0), modifyGain);
-                _equi   = QString::asprintf("SL%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue.value_or(0), r_amp)));
-            } else if (getAVG(idx) && b.has_value()) {
-                auto r_amp      = Union::CalculateGainOutput(_amp, getSurfaceCompentationGain(idx));
-                auto lineExpr   = getAVGLineExpr(idx);
-                auto slValue    = lineExpr((b.value() - getAxisBias(idx)) / getAxisLen(idx) * getScanData(idx).size());
-                auto modifyGain = getBaseGain(idx) + getScanGain(idx) +
-                                  getSurfaceCompentationGain(idx) - getAVG(idx)->baseGain +
-                                  getDACStandard(idx).slBias;
-                slValue = Union::CalculateGainOutput(slValue.value_or(0), modifyGain);
-                _equi   = QString::asprintf("Φ%+.1fdB", KeepDecimals<1>(Union::CalculatedGain(slValue.value_or(0), r_amp)));
-            }
 
             auto _gate_amp = amp / 2.0;
             if (_gate_amp > 100.0) {
@@ -233,6 +209,10 @@ namespace Union::AScan {
     double AScanIntf::getNearField(int idx) const {
         auto [l, w] = getProbeSize(idx);
         return Union::CalculateNearField(l, w, getProbeFrequence(idx), getSoundVelocity(idx));
+    }
+
+    bool AScanIntf::isStraightBeamProbe(int idx) const {
+        return Union::Base::Probe::IsStraightBeamProbe(getProbe(idx));
     }
 
     std::function<std::optional<double>(double)> AScanIntf::getAVGLineExpr(int idx) const {

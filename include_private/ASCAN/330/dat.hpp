@@ -7,6 +7,10 @@
 #include <memory>
 #include <string_view>
 
+namespace Union::__390 {
+    class HFDATType;
+}
+
 namespace Union::__330 {
 #pragma pack(1)
     struct HEADER_TIMESTAMP_DAT {
@@ -194,14 +198,18 @@ namespace Union::__330 {
                                                  sizeof(CHANNEL_PARAMETER_DAT) + sizeof(std::array<GATE_PARA_DAT, 2>) + sizeof(DAC_DAT) + sizeof(WELD_PARA_DAT);
     inline static constexpr auto ASCAN_FRAME_SIZE = 800;
 
+    std::unique_ptr<Union::AScan::AScanIntf> _FromFile(const std::wstring& filename);
+
     class DATType : public Union::AScan::AScanIntf, public Union::__330::_330_DAC_C {
     private:
         using _My_T = std::vector<std::vector<__DATType>>;
 
-        _My_T        m_data           = {};
-        int          m_fileName_index = {};
-        std::string  m_date           = {};
-        QString m_fileName       = {};
+        _My_T       m_data           = {};
+        int         m_fileName_index = {};
+        std::string m_date           = {};
+        QString     m_fileName       = {};
+
+        friend Union::__390::HFDATType;
 
     public:
         void setDate(const std::string& date);
@@ -242,7 +250,7 @@ namespace Union::__330 {
         std::optional<Base::DAC>    getDAC(int idx = 0) const override final;
         Union::AScan::DAC_Standard  getDACStandard(int idx = 0) const override final;
 
-        virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
+        virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
 
         virtual const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const override;
 
@@ -258,5 +266,7 @@ namespace Union::__330 {
         const __DATHead&                                       getHead(int idx) const;
         uint8_t                                                convertDB2GateAMP(int idx, int db) const;
         mutable std::map<int, std::array<QVector<QPointF>, 3>> m_dac_map;
+        void                                                   setFileName(const QString& fileName);
+        const QString&                                         getFileName();
     };
 } // namespace Union::__330
