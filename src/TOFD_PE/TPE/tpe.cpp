@@ -52,6 +52,9 @@ namespace Union::TOFD_PE::TPE {
     }
 
     double TpeType::getTofdDelay(void) const {
+        if (!m_data.subData.has_value()) {
+            return m_data.delay / 100.0;
+        }
         return m_data.delay / 100.0 * 5.92 / 2.0;
     }
 
