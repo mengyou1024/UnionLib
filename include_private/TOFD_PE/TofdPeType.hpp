@@ -302,7 +302,7 @@ namespace Union::TOFD_PE {
          * @param speed_m_per_s 声速m/s
          * @return us
          */
-        static double mm2us(double mm, double speed_m_per_s = 5900) {
+        static double mm2us(double mm, double speed_m_per_s = 5920) {
             return mm * 2000 / speed_m_per_s;
         }
 
@@ -312,7 +312,7 @@ namespace Union::TOFD_PE {
          * @param speed_m_per_s 声速m/s
          * @return mm
          */
-        static double us2mm(double us, double speed_m_per_s = 5900) {
+        static double us2mm(double us, double speed_m_per_s = 5920) {
             return us * speed_m_per_s / 2000;
         }
     };

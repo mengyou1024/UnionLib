@@ -52,7 +52,7 @@ namespace Union::TOFD_PE::TPE {
     }
 
     double TpeType::getTofdDelay(void) const {
-        return m_data.delay / 100.0;
+        return m_data.delay / 100.0 * 5.92 / 2.0;
     }
 
     double TpeType::getTofdRange(void) const {
@@ -222,8 +222,8 @@ namespace Union::TOFD_PE::TPE {
     const QJsonObject TpeType::getTofdChannelParam(void) const {
         QJsonObject ret;
         ret.insert(QObject::tr("增益"), QString::number(getTofdGain(), 'f', 1) + "db");
-        ret.insert(QObject::tr("声程"), QString::number(Union::KeepDecimals<1>(getTofdRange() / 5.9 * 2.0), 'f', 1) + "μs");
-        ret.insert(QObject::tr("延时"), QString::number(Union::KeepDecimals<1>(getTofdDelay()), 'f', 1) + "μs");
+        ret.insert(QObject::tr("声程"), QString::number(Union::KeepDecimals<1>(mm2us(getTofdRange())), 'f', 1) + "μs");
+        ret.insert(QObject::tr("延时"), QString::number(Union::KeepDecimals<1>(mm2us(getTofdDelay())), 'f', 1) + "μs");
         ret.insert(QObject::tr("滤波频带"), getFilterBand());
         ret.insert(QObject::tr("检波方式"), getDetectionMode());
         ret.insert(QObject::tr("探头类型"), getTofdProbeType());
