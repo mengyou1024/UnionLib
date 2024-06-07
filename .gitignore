@@ -698,3 +698,5 @@ FodyWeavers.xsd
 !docs/Makefile
 docs/build_doxygen
 docs/Doxyfile
+
+!lib/

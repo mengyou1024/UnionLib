@@ -3,15 +3,32 @@
 #include "../common/common.hpp"
 #include <QObject>
 #include <array>
+#include <atomic>
 #include <cstdint>
+#include <map>
+#include <mutex>
+#include <stack>
 #include <string_view>
 #include <vector>
 
 namespace Union::Bridge::MultiChannelHardwareBridge {
 
+    struct ScanData {
+        using _GateR  = std::vector<Union::Base::GateResult>;
+        using _AScanV = std::vector<uint8_t>;
+
+        int     package_index = {}; ///< 包序号
+        int     channel       = {}; ///< 通道号
+        _AScanV ascan         = {}; ///< A扫数据
+        _GateR  gate_result   = {}; ///< 波门计算结果
+    };
+
     class HDBridgeIntf {
     public:
-        ~HDBridgeIntf() = default;
+        explicit HDBridgeIntf();
+        virtual ~HDBridgeIntf();
+
+        using InftCallbackFunc = std::function<void(const ScanData &, const HDBridgeIntf &)>;
 
         /**
          * @brief 打开设备
@@ -38,109 +55,83 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         virtual bool isDeviceExist() = 0;
 
         /**
+         * @brief 获取通道数
+         *
+         * @return int
+         */
+        virtual int getChannelNumber() const = 0;
+
+        /**
+         * @brief 获取波门数量
+         *
+         * @return int
+         */
+        virtual int getGateNumber() const = 0;
+
+        /**
+         * @brief 加载默认配置
+         *
+         */
+        virtual void loadDefaultConfig() = 0;
+
+        /**
          * @brief 设置重复频率
-         * @param ch 通道号
          * @param freq 重复频率(MHz)
          * @return true if success
          */
-        virtual bool setFrequency(int ch, int freq) = 0;
+        virtual bool setFrequency(int freq) = 0;
 
         /**
          * @brief 获取重复频率
-         * @param ch 通道号
          * @return 重复频率(MHz)
          */
-        virtual int getFrequency(int ch) const = 0;
+        virtual int getFrequency() const final;
 
         /**
          * @brief 设置发射电压
-         * @param ch 通道号
-         * @param volt 发射电压(V)
+         * @param volt 发射电压 enum
          * @return true if success
          */
-        virtual bool setVoltage(int ch, int volt) = 0;
+        virtual bool setVoltage(int volt) = 0;
 
         /**
          * @brief 获取发射电压
-         * @param ch 通道号
-         * @return 发射电压(V)
+         * @return 发射电压 enum
          */
-        virtual int getVoltage(int ch) const = 0;
+        virtual int getVoltage() const final;
+
+        /**
+         * @brief 获取电压表
+         *
+         * @return const std::vector<int>
+         */
+        virtual const QVector<QString> &getVoltageTable() const = 0;
 
         /**
          * @brief 设置通道标志
-         * @param ch 通道号
          * @param flag 通道标志
          * @return true if success
          */
-        virtual bool setChannelFlag(int ch, uint32_t flag) = 0;
+        virtual bool setChannelFlag(uint32_t flag) = 0;
 
         /**
          * @brief 获取通道标志
-         * @param ch 通道号
          * @return 通道标志
          */
-        virtual uint32_t getChannelFlag(int ch) const = 0;
-
-        /**
-         * @brief 设置扫查增量
-         * @param ch 通道号
-         * @param inc 扫查增量(μs)
-         * @return true if success
-         */
-        virtual bool setScanIncrement(int ch, int inc) = 0;
-
-        /**
-         * @brief 获取扫查增量
-         * @param ch 通道号
-         * @return 扫查增量(μs)
-         */
-        virtual int getScanIncrement(int ch) const = 0;
-
-        /**
-         * @brief 设置LED状态
-         * @param ch 通道号
-         * @param status LED状态
-         * @return true if success
-         */
-        virtual bool setLedStatus(int ch, int status) = 0;
-
-        /**
-         * @brief 获取LED状态
-         * @param ch 通道号
-         * @return LED状态
-         */
-        virtual int getLedStatus(int ch) const = 0;
+        virtual uint32_t getChannelFlag() const final;
 
         /**
          * @brief 设置阻尼标志
-         * @param ch 通道号
          * @param flag 阻尼标志
          * @return true if success
          */
-        virtual bool setDamperFlag(int ch, int flag) = 0;
+        virtual bool setDamperFlag(int flag) = 0;
 
         /**
          * @brief 获取阻尼标志
-         * @param ch 通道号
          * @return 阻尼标志
          */
-        virtual int getDamperFlag(int ch) const = 0;
-
-        /**
-         * @brief 设置编码器脉冲
-         * @param ch 通道号
-         * @param pulse 编码器脉冲
-         * @return true if success
-         */
-        virtual bool setEncoderPulse(int ch, int pulse) = 0;
-
-        /**
-         * @brief 获取编码器脉冲
-         * @param ch 通道号
-         * @return 编码器脉冲
-         */
-        virtual int getEncoderPulse(int ch) const = 0;
+        virtual int getDamperFlag() const final;
 
         /**
          * @brief 设置声速
@@ -156,7 +147,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 声速(m/s)
          */
-        virtual double getSoundVelocity(int ch) const = 0;
+        virtual double getSoundVelocity(int ch) const final;
 
         /**
          * @brief 设置零点偏移
@@ -172,7 +163,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return double 零点偏移(μs)
          */
-        virtual double getZeroBias(int ch) const = 0;
+        virtual double getZeroBias(int ch) const final;
 
         /**
          * @brief 设置脉冲宽度
@@ -180,7 +171,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param width 脉冲宽度(μs)
          * @return true if success
          */
-        virtual bool setPulseWidth(int ch, int width_us) = 0;
+        virtual bool setPulseWidth(int ch, double width_us) = 0;
 
         /**
          * @brief 获取脉冲宽度
@@ -188,7 +179,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 脉冲宽度(μs)
          */
-        virtual double getPulseWidth(int ch) const = 0;
+        virtual double getPulseWidth(int ch) const final;
 
         /**
          * @brief 设置延时
@@ -196,7 +187,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param delay 延时(μs)
          * @return true if success
          */
-        virtual bool setDelay(int ch, int delay_us) = 0;
+        virtual bool setDelay(int ch, double delay_us) = 0;
 
         /**
          * @brief 获取延时
@@ -204,7 +195,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 延时(μs)
          */
-        virtual double getDelay(int ch) const = 0;
+        virtual double getDelay(int ch) const final;
 
         /**
          * @brief 设置采样深度
@@ -212,7 +203,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param depth 采样深度
          * @return true if success
          */
-        virtual bool setSampleDepth(int ch, int depth) = 0;
+        virtual bool setSampleDepth(int ch, double depth) = 0;
 
         /**
          * @brief 获取采样深度
@@ -220,7 +211,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 采样深度
          */
-        virtual double getSampleDepth(int ch) const = 0;
+        virtual double getSampleDepth(int ch) const final;
 
         /**
          * @brief 设置采样因子
@@ -236,7 +227,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 采样因子
          */
-        virtual int getSampleFactor(int ch) const = 0;
+        virtual int getSampleFactor(int ch) const final;
 
         /**
          * @brief 设置增益
@@ -252,7 +243,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 增益
          */
-        virtual double getGain(int ch) const = 0;
+        virtual double getGain(int ch) const final;
 
         /**
          * @brief 设置滤波器
@@ -268,7 +259,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 滤波器索引
          */
-        virtual int getFilter(int ch) const = 0;
+        virtual int getFilter(int ch) const final;
+
+        /**
+         * @brief 获取滤波频带表
+         *
+         * @return QVector<QString>&
+         */
+        virtual const QVector<QString> &getFilterTable() const = 0;
 
         /**
          * @brief 设置检波方式
@@ -284,7 +282,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 检波方式索引
          */
-        virtual int getDemodu(int ch) const = 0;
+        virtual int getDemodu(int ch) const final;
+
+        /**
+         * @brief 获取检波方式表
+         *
+         * @return QVector<QString>&
+         */
+        virtual const QVector<QString> &getDemoduTable() const = 0;
 
         /**
          * @brief 设置相位反转
@@ -300,7 +305,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param ch 通道号
          * @return 是否开启
          */
-        virtual bool getPhaseReverse(int ch) const = 0;
+        virtual bool getPhaseReverse(int ch) const final;
 
         /**
          * @brief 设置波门信息
@@ -309,7 +314,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param info 波门信息
          * @return true if success
          */
-        virtual bool setGateInfo(int ch, int idx, const Union::Base::Gate &gate) = 0;
+        virtual bool setGateInfo(int ch, int idx, const std::optional<Union::Base::Gate> &gate) final;
 
         /**
          * @brief 获取波门信息
@@ -318,7 +323,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param idx 波门索引
          * @return 波门信息
          */
-        virtual const Union::Base::Gate &getGateInfo(int ch, int idx) const = 0;
+        virtual const std::optional<Union::Base::Gate> &getGateInfo(int ch, int idx) const final;
 
         /**
          * @brief 同步参数至板卡
@@ -332,95 +337,130 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param dist 复制目标列表
          * @param max_gate_number 最大波门数量
          */
-        virtual void paramCopy(int src, std::vector<int> dist, int max_gate_number) {
-            auto freq          = getFrequency(src);
-            auto voltage       = getVoltage(src);
-            auto channelFlag   = getChannelFlag(src);
-            auto scanIncrement = getScanIncrement(src);
-            auto ledStatus     = getLedStatus(src);
-            auto damperFlag    = getDamperFlag(src);
-            auto encoderPulse  = getEncoderPulse(src);
-            auto soundVelocity = getSoundVelocity(src);
-            auto zeroBias      = getZeroBias(src);
-            auto pulseWidth    = getPulseWidth(src);
-            auto delay         = getDelay(src);
-            auto sampleDepth   = getSampleDepth(src);
-            auto sampleFactor  = getSampleFactor(src);
-            auto gain          = getGain(src);
-            auto filter        = getFilter(src);
-            auto demodu        = getDemodu(src);
-            auto phaseReverse  = getPhaseReverse(src);
+        virtual void paramCopy(int src, std::vector<int> dist, int max_gate_number) final;
 
-            std::vector<Union::Base::Gate> gate(static_cast<size_t>(max_gate_number));
-            for (int i = 0; i < max_gate_number; i++) {
-                gate.at(i) = getGateInfo(src, i);
-            }
+        /**
+         * @brief 序列化扫查数据
+         *
+         * @param file_name 文件名
+         * @return bool
+         */
+        virtual bool serializeScanData(const std::wstring &file_name) const = 0;
 
-            for (auto i : dist) {
-                setFrequency(i, freq);
-                setVoltage(i, voltage);
-                setChannelFlag(i, channelFlag);
-                setScanIncrement(i, scanIncrement);
-                setLedStatus(i, ledStatus);
-                setDamperFlag(i, damperFlag);
-                setEncoderPulse(i, encoderPulse);
-                setSoundVelocity(i, soundVelocity);
-                setZeroBias(i, zeroBias);
-                setPulseWidth(i, pulseWidth);
-                setDelay(i, delay);
-                setSampleDepth(i, sampleDepth);
-                setSampleFactor(i, sampleFactor);
-                setGain(i, gain);
-                setFilter(i, filter);
-                setDemodu(i, demodu);
-                setPhaseReverse(i, phaseReverse);
-                for (int j = 0; j < max_gate_number; j++) {
-                    setGateInfo(i, j, gate[i]);
-                }
-            }
-            sync2Board();
-        }
+        /**
+         * @brief 反序列化扫查数据
+         *
+         * @param file_name 文件名
+         * @return bool
+         */
+        virtual bool deserializeScanData(const std::wstring &file_name) = 0;
+
+        /**
+         * @brief 序列化配置文件
+         *
+         * @param file_name 文件名
+         * @return bool
+         */
+        virtual bool serializeConfigData(const std::wstring &file_name) const = 0;
+
+        /**
+         * @brief 反序列化配置文件
+         *
+         * @param file_name 文件名
+         * @return bool
+         */
+        virtual bool deserializeConfigData(const std::wstring &file_name) = 0;
+
+        /**
+         * @brief 添加回调函数
+         *
+         * @param func 回调函数
+         * @return bool
+         */
+        virtual bool appendCallback(InftCallbackFunc func) final;
+
+        /**
+         * @brief 清空回调函数
+         *
+         * @return bool
+         */
+        virtual bool clearCallback(void) final;
+
+        /**
+         * @brief 保存回调函数
+         *
+         * @return bool
+         */
+        virtual bool storeCallback(void) final;
+
+        /**
+         * @brief 恢复回调函数
+         *
+         * @return bool
+         */
+        virtual bool restoreCallback(void) final;
+
+    protected:
+        std::list<InftCallbackFunc>             m_callback_list  = {};
+        std::stack<std::list<InftCallbackFunc>> m_callback_stack = {};
+        std::mutex                              m_callback_mutex = {};
+        std::atomic<bool>                       m_thread_running = false;
+        std::thread                             m_read_thread    = {};
+
+        using _T_GateV = std::vector<std::vector<std::optional<Union::Base::Gate>>>;
+        using _T_DataV = std::shared_ptr<ScanData>;
+
+        // param
+        int                 m_frequency     = {}; ///< 重复频率
+        int                 m_voltage       = {}; ///< 电压
+        uint32_t            m_channel_flag  = {}; ///< 通道标志
+        int                 m_damper_flag   = {}; ///< 阻尼标志
+        std::vector<double> m_velocity      = {}; ///< 声速
+        std::vector<double> m_zero_bias     = {}; ///< 零点偏移
+        std::vector<double> m_pulse_width   = {}; ///< 脉冲宽度
+        std::vector<double> m_delay         = {}; ///< 延时
+        std::vector<double> m_sample_depth  = {}; ///< 采样深度
+        std::vector<int>    m_sample_factor = {}; ///< 采样因子
+        std::vector<double> m_gain          = {}; ///< 增益
+        std::vector<int>    m_filter        = {}; ///< 滤波频带
+        std::vector<int>    m_demodu        = {}; ///< 检波方式
+        std::vector<bool>   m_phase_reverse = {}; ///< 相位翻转
+        _T_GateV            m_gate_info     = {}; ///< 检波信息
+
+        _T_DataV m_scan_data = {}; ///< 扫查数据
+
+        bool m_param_is_init = false;
+
+        /**
+         * @brief 读取一帧数据
+         *
+         * @return std::shared_ptr<ScanData>
+         */
+        virtual std::shared_ptr<ScanData> readOneFrame(void) = 0;
+
+        /**
+         * @brief 运行读取线程
+         *
+         */
+        void runReadThread(void);
+
+        /**
+         * @brief 关闭读取线程并等待线程退出
+         *
+         */
+        void closeReadThreadAndWaitExit(void) noexcept;
+
+        /**
+         * @brief 读取线程
+         *
+         */
+        void readThread(void);
+
+        /**
+         * @brief 初始化参数
+         *
+         */
+        void initParam(void);
     };
 
-    // template <int CH_N, int GATE_M, const std::string_view &BRIDGE_NAME>
-    // class HDBrdgeTemplate : public QObject, public HDBridgeIntf {
-    //     Q_OBJECT
-    // private:
-    //     using CH_F = std::array<double, CH_N>;
-    //     using CH_I = std::array<int, CH_N>;
-    //     using CH_U = std::array<uint32_t, CH_N>;
-    //     using CH_B = std::array<bool, CH_N>;
-    //     template <typename T>
-    //     using CH_T = std::array<T, CH_N>;
-
-    //     using _GateType = CH_T<std::array<Union::Base::Gate, GATE_M>>;
-
-    //     int       m_frequency     = 0; ///< 重复频率
-    //     int       m_voltage       = 0; ///< 发射电压
-    //     uint32_t  m_channelFlag   = 0; ///< 通道标志
-    //     int       m_scanIncrement = 0; ///< 扫查增量
-    //     int       m_ledStatus     = 0; ///< LED状态
-    //     int       m_damperFlag    = 0; ///< 阻尼标志
-    //     int       m_encoderPulse  = 0; ///< 编码器脉冲
-    //     CH_F      m_soundVelocity = 0; ///< 声速
-    //     CH_F      m_zeroBias      = 0; ///< 零点偏移(μs)
-    //     CH_F      m_pulseWidth    = 0; ///< 脉冲宽度
-    //     CH_F      m_delay         = 0; ///< 延时(μs)
-    //     CH_F      m_sampleDepth   = 0; ///< 采样深度
-    //     CH_I      m_sampleFactor  = 0; ///< 采样因子
-    //     CH_F      m_gain          = 0; ///< 增益
-    //     CH_I      m_filter        = 0; ///< 滤波
-    //     CH_I      m_demodu        = 0; ///< 检波方式
-    //     CH_B      m_phaseReverse  = 0; ///< 相位翻转
-    //     _GateType m_gate          = 0; /// 波门信息
-
-    //     bool m_isValid = false; ///< 是否有效
-    // public:
-    //     virtual ~HDBrdgeIntf() = default;
-
-    //     int getFrequency(int idx) const override final {
-    //         (void)idx;
-    //         return m_frequency;
-    //     }
-    // };
 } // namespace Union::Bridge::MultiChannelHardwareBridge

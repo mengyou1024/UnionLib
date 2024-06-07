@@ -57,3 +57,24 @@ double Union::CalculateNearField(double l_or_d, double w_or_zero, double probe_f
     }
     return (1000.0 * temp * probe_freq) / (4 * speed);
 }
+
+namespace Union::Base {
+    QList<QPointF> CreateLineSeriesData(
+        const std::vector<double>& data,
+        std::pair<double, double>  axis_range,
+        uint8_t                    view_max,
+        double                     soft_gain,
+        int                        supression) {
+        // empty line
+        QList<QPointF> ret;
+        const auto     step = (axis_range.second - axis_range.first) / (data.size() - 1);
+        for (auto i = 0; std::cmp_less(i, data.size()); i++) {
+            auto ampValue = data[i] / (view_max / 100.0);
+            if (ampValue < supression) {
+                ampValue = 0.0;
+            }
+            ret.append(QPointF(axis_range.first + i * step, CalculateGainOutput(ampValue, soft_gain)));
+        }
+        return ret;
+    }
+} // namespace Union::Base

@@ -3,6 +3,10 @@
 #include <cstdint>
 #include <string>
 
+// COMMON
+#include "../include_private/common/common.hpp"
+
+// ASCAN
 #include "../include_private/ASCAN/330/das.hpp"
 #include "../include_private/ASCAN/330/dat.hpp"
 #include "../include_private/ASCAN/330/serial_330.hpp"
@@ -12,8 +16,12 @@
 #include "../include_private/ASCAN/390N_T8/ldat.hpp"
 #include "../include_private/ASCAN/390N_T8/vdata.hpp"
 #include "../include_private/ASCAN/AScanType.hpp"
-#include "../include_private/Bridge/HDBridge.hpp"
+
+// TOFD_PE
 #include "../include_private/TOFD_PE/TOF/tof.hpp"
 #include "../include_private/TOFD_PE/TPE/tpe.hpp"
 #include "../include_private/TOFD_PE/TofdPeType.hpp"
-#include "../include_private/common/common.hpp"
+
+// HDBRIDGE
+#include "../include_private/Bridge/HDBridge.hpp"
+#include "../include_private/Bridge/12CH_USB/_12CH_USB.hpp"

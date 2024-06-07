@@ -326,34 +326,13 @@ namespace Union::AScan {
     }
 
     std::optional<std::tuple<double, uint8_t>> AScanIntf::getGateResult(int idx, int gate_idx, bool find_center_if_overflow, bool enable_supression) const {
-        const auto &_data = getScanData(idx);
-        const auto  _gate = getGate(idx).at(gate_idx);
-        auto        start = _gate.pos;
-        double      end   = (double)(_gate.pos + _gate.width);
-        if (_data.size() < 100 || _gate.width <= 0.001 || std::abs(start - 1.0) < 0.00001 || _gate.pos < 0.0 || end > 1.0 || !_gate.enable) {
-            return std::nullopt;
+        const auto        &_data       = getScanData(idx);
+        const auto         _gate       = getGate(idx).at(gate_idx);
+        std::optional<int> _supression = std::nullopt;
+        if (enable_supression) {
+            _supression = getSupression(idx);
         }
-        auto left  = _data.begin() + static_cast<int64_t>((double)_data.size() * (double)_gate.pos);
-        auto right = _data.begin() + static_cast<int64_t>((double)_data.size() * (double)(_gate.pos + _gate.width));
-        auto max   = std::max_element(left, right);
-
-        if (find_center_if_overflow && *max == 255) {
-            std::vector<decltype(left)> minMaxVec = {};
-            for (auto &_left = left, &_right = right; _left != _right; _left++) {
-                if (*_left == 255) {
-                    minMaxVec.push_back(_left);
-                }
-            }
-            max = minMaxVec.at(0) + minMaxVec.size() / 2;
-        }
-        auto pos = ((double)std::distance(_data.begin(), max) / (double)_data.size());
-        if (enable_supression && ((*max) < (2.0 * (getSupression(idx))))) {
-            return std::nullopt;
-        }
-        if (pos < 0.0f) {
-            return std::nullopt;
-        }
-        return std::make_tuple(pos, *max);
+        return Union::Base::CalculateGateResult(_data, _gate, find_center_if_overflow, _supression);
     }
 
     std::array<double, 2> AScanIntf::getAxisRange(int idx) const {

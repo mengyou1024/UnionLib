@@ -3,6 +3,8 @@
 #include "./Gate.hpp"
 #include "./Performance.hpp"
 #include "./Probe.hpp"
+#include <QList>
+#include <QPointF>
 #include <cmath>
 #include <functional>
 #include <type_traits>
@@ -157,3 +159,22 @@ namespace Union {
      */
     double CalculateNearField(double l_or_d, double w_or_zero, double probe_freq, double speed);
 } // namespace Union
+
+namespace Union::Base {
+    /**
+     * @brief 创建QLineSeries可使用的数据
+     *
+     * @param data A扫波形
+     * @param axis_range 坐标轴范围
+     * @param view_max 视图最高波大小
+     * @param soft_gain 软件增益
+     * @param supression 抑制
+     * @return QLineSeries可使用的数据
+     */
+    QList<QPointF> CreateLineSeriesData(
+        const std::vector<double>& data,
+        std::pair<double, double>  axis_range,
+        uint8_t                    view_max   = 200,
+        double                     soft_gain  = 0,
+        int                        supression = 0);
+} // namespace Union::Base
