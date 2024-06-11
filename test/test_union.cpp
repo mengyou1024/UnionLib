@@ -64,3 +64,14 @@ TEST(__330, lzw_decompressed) {
         EXPECT_NE(ret.value(), rawData);
     }
 }
+
+TEST(HDBridge, serailze) {
+    using namespace Union::Bridge::MultiChannelHardwareBridge;
+    using namespace Union::Bridge;
+    // _12CH_USB a;
+    // a.setChannelFlag(0xffffffff);
+    // a.serializeConfigData(L"123.bin");
+    // _12CH_USB b;
+    // b.deserializeConfigData(L"123.bin");
+    // EXPECT_EQ(a, b);
+}

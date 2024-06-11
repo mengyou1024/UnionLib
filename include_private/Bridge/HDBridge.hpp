@@ -14,12 +14,14 @@
 namespace Union::Bridge::MultiChannelHardwareBridge {
 
     struct ScanData {
-        using _GateR  = std::vector<Union::Base::GateResult>;
+        using _GateR  = std::vector<std::optional<Union::Base::GateResult>>;
+        using _GateV  = std::vector<std::optional<Union::Base::Gate>>;
         using _AScanV = std::vector<uint8_t>;
 
         int     package_index = {}; ///< 包序号
         int     channel       = {}; ///< 通道号
         _AScanV ascan         = {}; ///< A扫数据
+        _GateV  gate          = {}; ///< 波门
         _GateR  gate_result   = {}; ///< 波门计算结果
     };
 
@@ -345,7 +347,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param file_name 文件名
          * @return bool
          */
-        virtual bool serializeScanData(const std::wstring &file_name) const = 0;
+        virtual bool serializeScanData(const std::wstring &file_name) const;
 
         /**
          * @brief 反序列化扫查数据
@@ -353,7 +355,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param file_name 文件名
          * @return bool
          */
-        virtual bool deserializeScanData(const std::wstring &file_name) = 0;
+        virtual bool deserializeScanData(const std::wstring &file_name);
 
         /**
          * @brief 序列化配置文件
@@ -361,7 +363,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param file_name 文件名
          * @return bool
          */
-        virtual bool serializeConfigData(const std::wstring &file_name) const = 0;
+        virtual bool serializeConfigData(const std::wstring &file_name) const;
 
         /**
          * @brief 反序列化配置文件
@@ -369,7 +371,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param file_name 文件名
          * @return bool
          */
-        virtual bool deserializeConfigData(const std::wstring &file_name) = 0;
+        virtual bool deserializeConfigData(const std::wstring &file_name);
 
         /**
          * @brief 添加回调函数
@@ -400,22 +402,25 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          */
         virtual bool restoreCallback(void) final;
 
+        bool operator==(const HDBridgeIntf &rhs) const;
+
     protected:
         std::list<InftCallbackFunc>             m_callback_list  = {};
         std::stack<std::list<InftCallbackFunc>> m_callback_stack = {};
-        std::mutex                              m_callback_mutex = {};
+        mutable std::mutex                      m_callback_mutex = {};
         std::atomic<bool>                       m_thread_running = false;
         std::thread                             m_read_thread    = {};
+        mutable std::mutex                      m_param_mutex    = {};
 
         using _T_GateV = std::vector<std::vector<std::optional<Union::Base::Gate>>>;
-        using _T_DataV = std::shared_ptr<ScanData>;
+        using _T_DataV = std::vector<std::shared_ptr<ScanData>>;
 
         // param
         int                 m_frequency     = {}; ///< 重复频率
         int                 m_voltage       = {}; ///< 电压
         uint32_t            m_channel_flag  = {}; ///< 通道标志
         int                 m_damper_flag   = {}; ///< 阻尼标志
-        std::vector<double> m_velocity      = {}; ///< 声速
+        std::vector<double> m_velocity      = {}; ///< 声速s
         std::vector<double> m_zero_bias     = {}; ///< 零点偏移
         std::vector<double> m_pulse_width   = {}; ///< 脉冲宽度
         std::vector<double> m_delay         = {}; ///< 延时
@@ -427,7 +432,9 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         std::vector<bool>   m_phase_reverse = {}; ///< 相位翻转
         _T_GateV            m_gate_info     = {}; ///< 检波信息
 
-        _T_DataV m_scan_data = {}; ///< 扫查数据
+        // scan data
+        _T_DataV           m_scan_data       = {}; ///< 扫查数据
+        mutable std::mutex m_scan_data_mutex = {}; ///< 扫查数据锁
 
         bool m_param_is_init = false;
 
@@ -461,6 +468,18 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          *
          */
         void initParam(void);
+
+        /**
+         * @brief 锁定参数
+         *
+         */
+        void lock_param(void);
+
+        /**
+         * @brief 解锁参数
+         *
+         */
+        void unlock_param(void);
     };
 
 } // namespace Union::Bridge::MultiChannelHardwareBridge

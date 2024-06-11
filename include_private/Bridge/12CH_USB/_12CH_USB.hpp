@@ -58,14 +58,6 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
         virtual bool sync2Board(void) const override;
 
-        virtual bool serializeScanData(const std::wstring &file_name) const override;
-
-        virtual bool deserializeScanData(const std::wstring &file_name) override;
-
-        virtual bool serializeConfigData(const std::wstring &file_name) const override;
-
-        virtual bool deserializeConfigData(const std::wstring &file_name) override;
-
     private:
         int m_type        = 0;
         int m_gate_number = 2;

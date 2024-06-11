@@ -37,4 +37,8 @@ namespace Union::Base {
         }
         return std::make_tuple(pos, *max);
     }
+
+    bool Gate::operator==(const Gate &rhs) const {
+        return pos == rhs.pos && width == rhs.width && height == rhs.height && enable == rhs.enable;
+    }
 } // namespace Union::Base

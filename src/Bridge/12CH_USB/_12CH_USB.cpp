@@ -180,22 +180,6 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         return TOFD_PORT_FlushSetting();
     }
 
-    bool _12CH_USB::serializeScanData(const std::wstring &file_name) const {
-        return false;
-    }
-
-    bool _12CH_USB::deserializeScanData(const std::wstring &file_name) {
-        return false;
-    }
-
-    bool _12CH_USB::serializeConfigData(const std::wstring &file_name) const {
-        return false;
-    }
-
-    bool _12CH_USB::deserializeConfigData(const std::wstring &file_name) {
-        return false;
-    }
-
     std::shared_ptr<ScanData> _12CH_USB::readOneFrame(void) {
         auto dat = TOFD_PORT_ReadDatasFormat();
         TOFD_PORT_Free_NM_DATA(dat);
@@ -203,6 +187,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         ret->channel       = dat->iChannel;
         ret->package_index = dat->iPackage;
         ret->ascan.resize(dat->iAScanSize);
+        ret->gate = m_gate_info[ret->channel];
         memcpy_s(ret->ascan.data(), ret->ascan.size(), dat->pAscan, dat->iAScanSize);
 
         ret->gate_result.resize(getGateNumber());
@@ -214,7 +199,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             return Union::Base::CalculateGateResult(ret->ascan, _gate.value(), true, std::nullopt, 255);
         });
 
-        return std::shared_ptr<ScanData>();
+        return ret;
     }
 
 } // namespace Union::Bridge::MultiChannelHardwareBridge

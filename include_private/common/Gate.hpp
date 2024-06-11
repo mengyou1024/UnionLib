@@ -12,6 +12,7 @@ namespace Union::Base {
         double width  = {}; ///< 宽度
         double height = {}; ///< 高度
         bool   enable = {}; ///< 是否启用
+        bool   operator==(const Gate &rhs) const;
     };
 
     using GateResult = std::optional<std::tuple<double, uint8_t>>;

@@ -43,19 +43,24 @@ target_include_directories(UnionLib PRIVATE
 add_library(_TOFDPort SHARED IMPORTED)
 
 set_target_properties(
-    _TOFDPort PROPERTIES 
+    _TOFDPort PROPERTIES
     IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/lib/Bridge/12CH_USB/TOFDPort.dll"
     IMPORTED_IMPLIB "${CMAKE_CURRENT_LIST_DIR}/lib/Bridge/12CH_USB/TOFDPort.lib"
 )
 
 target_link_libraries(UnionLib PRIVATE _TOFDPort)
 
-if (Morose_FOUND)
+if(Morose_FOUND)
     morose_copy(
-        TARGET 
-        UnionLib 
-        FILES 
+        TARGET
+        UnionLib
+        FILES
         "lib/Bridge/12CH_USB/TOFDPort.dll"
         "lib/Bridge/12CH_USB/ftd2xx.dll"
+    )
+else(Morose_FOUND)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/lib/Bridge/12CH_USB/TOFDPort.dll ${CMAKE_BINARY_DIR}/TOFDPort.dll
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/lib/Bridge/12CH_USB/ftd2xx.dll ${CMAKE_BINARY_DIR}/ftd2xx.dll
     )
 endif(Morose_FOUND)
