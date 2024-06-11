@@ -354,8 +354,8 @@ namespace Union::__390N_T8 {
                     auto equivlant          = obj[CHANNEL_FLAW_EQUIVALENT.data()].toDouble();
                     auto avg_diameter       = obj[CHANNEL_AVG_DIAMETER.data()].toDouble();
                     auto equivlant_b        = obj[CHANNEL_FLAW_EQUIVALENT_B.data()].toDouble();
-                    m_equi[0]               = QString::asprintf("Φ%.1f Φ%.1f %+.1fdB", avg_diameter, reflector_diameter, equivlant);
-                    m_equi[1]               = QString::asprintf("Φ%.1f Φ%.1f %+.1fdB", avg_diameter, reflector_diameter, equivlant_b);
+                    m_equi[0]               = QString::asprintf("Φ%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivlant);
+                    m_equi[1]               = QString::asprintf("Φ%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivlant_b);
                 }
 
                 m_c[0] = QString::asprintf("%.1f", obj[CHANNEL_FLAW_ACTUAL_DIST.data()].toDouble());
