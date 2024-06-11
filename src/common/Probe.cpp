@@ -47,6 +47,7 @@ namespace Union::Base::Probe {
         switch (idx) {
             case 0:
             case 2:
+            case 3:
                 return true;
             default:
                 return false;
