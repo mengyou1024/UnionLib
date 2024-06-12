@@ -125,7 +125,7 @@ namespace Union::__390 {
     }
 
     std::string DAAType::getInstrumentName(void) const {
-        return "390 Single";
+        return "PXUT-390";
     }
 
     QVariantMap DAAType::createReportValueMap(int idx, double soft_gain) const {
@@ -248,7 +248,7 @@ namespace Union::__390 {
     }
 
     QString DAAType::getFineType() const {
-        switch (m_390Extra.linetype) {
+        switch (m_390Extra.finetype) {
             case 1:
                 return "上行";
             case 2:
@@ -265,7 +265,7 @@ namespace Union::__390 {
     }
 
     QString DAAType::getWeldType() const {
-        switch (m_390Extra.finetype) {
+        switch (m_390Extra.weldtype) {
             case 1:
                 return "现场闪光焊";
             case 2:
@@ -329,7 +329,7 @@ namespace Union::__390 {
     }
 
     QString DAAType::getNum33() const {
-        // 无伤   重伤 轻伤
+        // 无伤 重伤 轻伤
         switch (m_390Extra.size) {
             case 1:
                 return "无伤";
@@ -440,7 +440,7 @@ namespace Union::__390 {
             case 2:
                 return "50";
             case 3:
-                return "65";
+                return "60";
             case 4:
                 return "75";
             default:

@@ -80,5 +80,5 @@ QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) c
 }
 
 std::string Union::__390::HFDATType::getInstrumentName(void) const {
-    return "390 Continues";
+    return "PXUT-390";
 }

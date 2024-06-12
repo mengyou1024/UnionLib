@@ -16,8 +16,8 @@ namespace Union::__390 {
         int                      stocktype;
         int                      railtype;
         int                      linetype;
-        int                      finetype;
-        int                      weldtype;
+        int                      finetype; ///< 行别
+        int                      weldtype; ///< 焊型
         int                      num22;
         int                      num23;
         std::array<uint16_t, 20> pnNumber24;

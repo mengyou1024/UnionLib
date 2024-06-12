@@ -216,7 +216,7 @@ namespace Union::__330 {
     }
 
     std::string DATType::getInstrumentName(void) const {
-        return "330 Continuous";
+        return "PXUT-330";
     }
 
     std::array<Base::Gate, 2> DATType::getGate(int idx) const {

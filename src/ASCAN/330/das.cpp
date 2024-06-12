@@ -147,7 +147,7 @@ namespace Union::__330 {
     }
 
     std::string DASType::getInstrumentName(void) const {
-        return "330 Single";
+        return "PXUT-330";
     }
 
     std::array<Base::Gate, 2> DASType::getGate(int idx) const {
