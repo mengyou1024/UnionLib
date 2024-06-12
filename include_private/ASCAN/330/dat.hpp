@@ -265,7 +265,6 @@ namespace Union::__330 {
         double                                                 getUnit(int idx) const noexcept;
         const __DATHead&                                       getHead(int idx) const;
         uint8_t                                                convertDB2GateAMP(int idx, int db) const;
-        mutable std::map<int, std::array<QVector<QPointF>, 3>> m_dac_map;
         void                                                   setFileName(const QString& fileName);
         const QString&                                         getFileName();
     };

@@ -415,31 +415,28 @@ namespace Union::__330 {
     }
 
     const std::array<QVector<QPointF>, 3> &DATType::unResolvedGetDacLines(int idx) const {
-        if (m_dac_map.contains(m_fileName_index)) {
-            return m_dac_map.at(m_fileName_index);
-        } else {
-            Union::Temp::Unresovled::DrawDacParam _temp;
-            _temp.m_unit         = getHead(idx).system_status.unit;
-            _temp.m_sys          = getHead(idx).system_status.sys;
-            _temp.m_ch_status    = getHead(idx).channel_status.status;
-            _temp.m_ch_option    = getHead(idx).channel_status.option;
-            _temp.m_ch_sys       = getHead(idx).channel_status.status;
-            _temp.m_ch_Range     = getHead(idx).channel_param.Range;
-            _temp.m_ch_Delay     = getHead(idx).channel_param.Delay;
-            _temp.m_ch_Speed     = getHead(idx).channel_param.Speed;
-            _temp.m_ch_Crystal_w = getHead(idx).channel_param.Crystal_w;
-            _temp.m_ch_Crystal_l = getHead(idx).channel_param.Crystal_l;
-            _temp.m_ch_Frequence = getHead(idx).channel_param.Frequence;
-            _temp.m_ch_lineGain  = getHead(idx).channel_param.lineGain;
-            _temp.m_ch_BaseGain  = getHead(idx).channel_param.BaseGain;
-            _temp.m_ch_gatedB    = getHead(idx).channel_param.gatedB;
-            _temp.m_dac_db       = getHead(idx).dac.db;
-            _temp.m_dac_dist     = getHead(idx).dac.dist;
-            _temp.m_dac_num      = getHead(idx).dac.num;
-            _temp.m_range_a      = getAxisLen(idx);
-            m_dac_map.insert(std::make_pair(m_fileName_index, Temp::Unresovled::DrawDac(_temp)));
-            return m_dac_map.at(m_fileName_index);
-        }
+        static std::array<QVector<QPointF>, 3> ret;
+        Union::Temp::Unresovled::DrawDacParam  _temp;
+        _temp.m_unit         = getHead(idx).system_status.unit;
+        _temp.m_sys          = getHead(idx).system_status.sys;
+        _temp.m_ch_status    = getHead(idx).channel_status.status;
+        _temp.m_ch_option    = getHead(idx).channel_status.option;
+        _temp.m_ch_sys       = getHead(idx).channel_status.status;
+        _temp.m_ch_Range     = getHead(idx).channel_param.Range;
+        _temp.m_ch_Delay     = getHead(idx).channel_param.Delay;
+        _temp.m_ch_Speed     = getHead(idx).channel_param.Speed;
+        _temp.m_ch_Crystal_w = getHead(idx).channel_param.Crystal_w;
+        _temp.m_ch_Crystal_l = getHead(idx).channel_param.Crystal_l;
+        _temp.m_ch_Frequence = getHead(idx).channel_param.Frequence;
+        _temp.m_ch_lineGain  = getHead(idx).channel_param.lineGain;
+        _temp.m_ch_BaseGain  = getHead(idx).channel_param.BaseGain;
+        _temp.m_ch_gatedB    = getHead(idx).channel_param.gatedB;
+        _temp.m_dac_db       = getHead(idx).dac.db;
+        _temp.m_dac_dist     = getHead(idx).dac.dist;
+        _temp.m_dac_num      = getHead(idx).dac.num;
+        _temp.m_range_a      = getAxisLen(idx);
+        ret                  = Temp::Unresovled::DrawDac(_temp);
+        return ret;
     }
 
     void DATType::setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3> &dat, int idx) {
@@ -472,6 +469,7 @@ namespace Union::__330 {
         }
         return 1.0;
     }
+
     const __DATHead &DATType::getHead(int idx) const {
         return *(m_data.at(m_fileName_index).at(idx).head);
     }
