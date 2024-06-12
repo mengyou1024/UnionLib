@@ -41,29 +41,38 @@ namespace Union::__390N_T8 {
     }
 
     size_t LDAT::__Read(std::ifstream& file, size_t file_size) {
-        using namespace Yo::File;
-        if (file_size <= HEAD_LEN) {
+        try {
+            using namespace Yo::File;
+            if (file_size <= HEAD_LEN) {
+                return 0;
+            }
+            size_t               read_size = 0;
+            std::array<char, 14> dateTime;
+            read_size += Yo::File::__Read(file, SkipSize(8), file_size);
+            read_size += Yo::File::__Read(file, dateTime, file_size);
+            time = convertTime(dateTime);
+            while (read_size < file_size) {
+                _ldat temp = {};
+                int   i = 0, j = 0;
+                read_size += Yo::File::__Read(file, i, file_size);
+                read_size += Yo::File::__Read(file, j, file_size);
+                temp.AScan.resize(i - GATE_PEAK_SIZE);
+                read_size += Yo::File::__Read(file, temp.AScan, file_size);
+                read_size += Yo::File::__Read(file, SkipSize(42), file_size);
+                read_size += Yo::File::__Read(file, temp.dac_data, file_size);
+                read_size += Yo::File::__Read(file, temp.avg_data, file_size);
+                read_size += Yo::File::__Read(file, temp.chanel_data, file_size);
+                ldat.emplace_back(std::move(temp));
+            }
+            return read_size;
+        } catch (std::exception& e) {
+#if defined(QT_DEBUG)
+            qFatal(e.what());
+#else
+            qCritical(QLoggingCategory("LDAT")) << e.what();
+#endif
             return 0;
         }
-        size_t               read_size = 0;
-        std::array<char, 14> dateTime;
-        read_size += Yo::File::__Read(file, SkipSize(8), file_size);
-        read_size += Yo::File::__Read(file, dateTime, file_size);
-        time = convertTime(dateTime);
-        while (read_size < file_size) {
-            _ldat temp = {};
-            int   i = 0, j = 0;
-            read_size += Yo::File::__Read(file, i, file_size);
-            read_size += Yo::File::__Read(file, j, file_size);
-            temp.AScan.resize(i - GATE_PEAK_SIZE);
-            read_size += Yo::File::__Read(file, temp.AScan, file_size);
-            read_size += Yo::File::__Read(file, SkipSize(42), file_size);
-            read_size += Yo::File::__Read(file, temp.dac_data, file_size);
-            read_size += Yo::File::__Read(file, temp.avg_data, file_size);
-            read_size += Yo::File::__Read(file, temp.chanel_data, file_size);
-            ldat.emplace_back(std::move(temp));
-        }
-        return read_size;
     }
 
     int LDAT::getDataSize(void) const {

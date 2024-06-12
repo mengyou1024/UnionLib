@@ -53,56 +53,65 @@ namespace Union::__330 {
     }
 
     size_t Serial_330::__Read(std::ifstream &file, size_t file_size) {
-        uint32_t file_total = 0;
-        uint32_t len_fat    = 0;
-        uint32_t len_file   = 0;
-        size_t   ret        = 0;
-        ret += Yo::File::__Read(file, Yo::File::SkipSize(64), file_size);
-        ret += Yo::File::__Read(file, file_total, file_size);
-        ret += Yo::File::__Read(file, len_fat, file_size);
-        ret += Yo::File::__Read(file, len_file, file_size);
-        uint8_t ins_name = 0;
-        ret += Yo::File::__Read(file, ins_name, file_size);
+        try {
+            uint32_t file_total = 0;
+            uint32_t len_fat    = 0;
+            uint32_t len_file   = 0;
+            size_t   ret        = 0;
+            ret += Yo::File::__Read(file, Yo::File::SkipSize(64), file_size);
+            ret += Yo::File::__Read(file, file_total, file_size);
+            ret += Yo::File::__Read(file, len_fat, file_size);
+            ret += Yo::File::__Read(file, len_file, file_size);
+            uint8_t ins_name = 0;
+            ret += Yo::File::__Read(file, ins_name, file_size);
 
-        switch (ins_name) {
-            case 0xF:
-                m_instrumentName = "PXUT-F4";
-                break;
-            default:
-                m_instrumentName = "UnKnow";
+            switch (ins_name) {
+                case 0xF:
+                    m_instrumentName = "PXUT-F4";
+                    break;
+                default:
+                    m_instrumentName = "UnKnow";
+            }
+
+            ret += Yo::File::__Read(file, Yo::File::SkipSize(3), file_size);
+
+            uint32_t horizontal  = 0;
+            uint32_t vertical    = 0;
+            uint32_t resolveing  = 0;
+            uint32_t sensitivity = 0;
+            uint32_t dynamic     = 0;
+
+            ret += Yo::File::__Read(file, horizontal, file_size);
+            ret += Yo::File::__Read(file, vertical, file_size);
+            ret += Yo::File::__Read(file, resolveing, file_size);
+            ret += Yo::File::__Read(file, sensitivity, file_size);
+            ret += Yo::File::__Read(file, dynamic, file_size);
+
+            m_data.resize(file_total);
+
+            for (auto &it : m_data) {
+                ret += Yo::File::__Read(file, it.fat, file_size);
+            }
+
+            for (auto &it : m_data) {
+                ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(it.systemStatus), &(it.ascanData), 0), file_size);
+                it.ascanData.resize(480);
+                it.dacData.resize(480);
+                ret += Yo::File::__Read(file, it.ascanData, file_size);
+                ret += Yo::File::__Read(file, it.dacData, file_size);
+                auto residual = len_file - Yo::File::MakeStructSub(&(it.systemStatus), &(it.ascanData), 0).size() - (480 * 2);
+                ret += Yo::File::__Read(file, Yo::File::SkipSize(residual), file_size);
+            }
+
+            return ret;
+        } catch (std::exception &e) {
+#if defined(QT_DEBUG)
+            qFatal(e.what());
+#else
+            qCritical(TAG) << e.what();
+#endif
+            return 0;
         }
-
-        ret += Yo::File::__Read(file, Yo::File::SkipSize(3), file_size);
-
-        uint32_t horizontal  = 0;
-        uint32_t vertical    = 0;
-        uint32_t resolveing  = 0;
-        uint32_t sensitivity = 0;
-        uint32_t dynamic     = 0;
-
-        ret += Yo::File::__Read(file, horizontal, file_size);
-        ret += Yo::File::__Read(file, vertical, file_size);
-        ret += Yo::File::__Read(file, resolveing, file_size);
-        ret += Yo::File::__Read(file, sensitivity, file_size);
-        ret += Yo::File::__Read(file, dynamic, file_size);
-
-        m_data.resize(file_total);
-
-        for (auto &it : m_data) {
-            ret += Yo::File::__Read(file, it.fat, file_size);
-        }
-
-        for (auto &it : m_data) {
-            ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(it.systemStatus), &(it.ascanData), 0), file_size);
-            it.ascanData.resize(480);
-            it.dacData.resize(480);
-            ret += Yo::File::__Read(file, it.ascanData, file_size);
-            ret += Yo::File::__Read(file, it.dacData, file_size);
-            auto residual = len_file - Yo::File::MakeStructSub(&(it.systemStatus), &(it.ascanData), 0).size() - (480 * 2);
-            ret += Yo::File::__Read(file, Yo::File::SkipSize(residual), file_size);
-        }
-
-        return ret;
     }
 
     int Serial_330::getDataSize(void) const {

@@ -49,16 +49,25 @@ namespace Union::__330 {
     }
 
     size_t DASType::__Read(std::ifstream &file, size_t file_size) {
-        if (file_size != 1026) {
+        try {
+            if (file_size != 1026) {
+                return 0;
+            }
+            size_t ret = 0;
+            ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(systemStatus), &(channelTemp), sizeof(uint32_t)), file_size);
+            data.resize(480);
+            ret += Yo::File::__Read(file, data, file_size);
+            name.resize(file_size - 454 - 480);
+            ret += Yo::File::__Read(file, name, file_size);
+            return ret;
+        } catch (std::exception &e) {
+#if defined(QT_DEBUG)
+            qFatal(e.what());
+#else
+            qWarning(QLoggingCategory("330.DAS")) << e.what();
+#endif
             return 0;
         }
-        size_t ret = 0;
-        ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(systemStatus), &(channelTemp), sizeof(uint32_t)), file_size);
-        data.resize(480);
-        ret += Yo::File::__Read(file, data, file_size);
-        name.resize(file_size - 454 - 480);
-        ret += Yo::File::__Read(file, name, file_size);
-        return ret;
     }
 
     int DASType::getDataSize(void) const {

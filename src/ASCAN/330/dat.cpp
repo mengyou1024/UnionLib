@@ -47,83 +47,92 @@ namespace Union::__330 {
     }
 
     size_t DATType::__Read(std::ifstream &file, size_t file_size) {
-        if (file_size == 0) {
+        try {
+            if (file_size == 0) {
+                return 0;
+            }
+            size_t   ret         = 0;
+            int32_t  bufferCount = 0;
+            uint32_t _330CFlag   = 0;
+            ret += Yo::File::__Read(file, bufferCount, file_size);
+            ret += Yo::File::__Read(file, _330CFlag, file_size); // TODO: 这个标志位用来判断330N、330C？
+            if (_330CFlag >= 10) {
+                constexpr auto msg = "_330CFlag >= 10";
+                qWarning(TAG) << msg << "fileName: " << m_fileName;
+            }
+            for (int32_t i = 0; i < bufferCount; i++) {
+                int32_t encoderLen = 0;
+                int32_t infoLen    = -1;
+                ret += Yo::File::__Read(file, encoderLen, file_size);
+                ret += Yo::File::__Read(file, infoLen, file_size);
+                if (std::cmp_greater_equal(encoderLen, file_size) || std::cmp_greater_equal(infoLen, file_size)) {
+                    qWarning(TAG) << "encoderLen >= file_size, fileName: " << m_fileName;
+                    return 0;
+                }
+                std::vector<uint8_t> rawData;
+                rawData.resize(encoderLen);
+                ret += Yo::File::__Read(file, rawData, file_size);
+                auto decoderBuf = Union::__330::lzw_decompress(rawData.data(), encoderLen);
+                if (infoLen < 0 || (infoLen != (decoderBuf->size() % ASCAN_FRAME_SIZE))) {
+                    qFatal("info lenght error!");
+                    constexpr auto msg = "info lenght error!";
+#if defined(QT_DEBUG)
+                    qFatal(msg);
+#else
+                    qCritical(TAG) << msg;
+                    return 0;
+#endif
+                }
+
+                auto head_ptr = std::make_shared<__DATHead>();
+                if (infoLen > 0) {
+                    auto temp_head = std::make_shared<__DATHead>();
+                    auto ptr       = &(*decoderBuf)[decoderBuf->size() - infoLen];
+                    memcpy(temp_head.get(), ptr, Union::__330::DAT_HEAD_SIZE);
+                    temp_head->info_buf.resize((infoLen - Union::__330::DAT_HEAD_SIZE) / 2);
+                    ptr = &(*decoderBuf)[decoderBuf->size() - infoLen + Union::__330::DAT_HEAD_SIZE];
+                    memcpy(temp_head->info_buf.data(), ptr, temp_head->info_buf.size() * 2);
+                    temp_head->header_timestamp.hour      = BCD2INT(temp_head->header_timestamp.hour);
+                    temp_head->header_timestamp.minute    = BCD2INT(temp_head->header_timestamp.minute);
+                    temp_head->header_timestamp.second    = BCD2INT(temp_head->header_timestamp.second);
+                    temp_head->header_timestamp.notes_len = BCD2INT(temp_head->header_timestamp.notes_len);
+                    if (temp_head->info_buf.size() == 1) {
+                        auto &end_head = m_data.back().back();
+                        // 当没有文件信息时拷贝上一次的文件信息
+                        temp_head->info_buf = end_head.head->info_buf;
+                    } else {
+                        m_data.push_back({});
+                    }
+                    head_ptr = temp_head;
+                } else {
+                    head_ptr = m_data.back().back().head;
+                }
+
+                for (auto f = 0; std::cmp_less(f, (decoderBuf->size() - infoLen) / ASCAN_FRAME_SIZE); f++) {
+                    Union::__330::__DATType temp;
+                    temp.head = head_ptr;
+                    temp.ascan_data.resize(ASCAN_DATA_SIZE);
+                    memcpy(temp.ascan_data.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE], ASCAN_DATA_SIZE);
+                    memcpy(temp.wave_para.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE + ASCAN_DATA_SIZE], sizeof(temp.wave_para));
+                    // FIXME:这边还有284个字节未使用?
+                    if (std::accumulate(temp.ascan_data.begin(), temp.ascan_data.end(), 0, [](auto a, auto b) { return a + b; }) != 0) {
+                        auto &list = m_data.back();
+                        list.emplace_back(std::move(temp));
+                    }
+                }
+            }
+            if (ret != file_size) {
+                qWarning(TAG) << "ret != file_size, fileName:" << m_fileName;
+            }
+            return file_size;
+        } catch (std::exception &e) {
+#if defined(QT_DEBUG)
+            qFatal(e.what());
+#else
+            qCritical(TAG) << e.what();
+#endif
             return 0;
         }
-        size_t   ret         = 0;
-        int32_t  bufferCount = 0;
-        uint32_t _330CFlag   = 0;
-        ret += Yo::File::__Read(file, bufferCount, file_size);
-        ret += Yo::File::__Read(file, _330CFlag, file_size); // TODO: 这个标志位用来判断330N、330C？
-        if (_330CFlag >= 10) {
-            constexpr auto msg = "_330CFlag >= 10";
-            qWarning(TAG) << msg << "fileName: " << m_fileName;
-        }
-        for (int32_t i = 0; i < bufferCount; i++) {
-            int32_t encoderLen = 0;
-            int32_t infoLen    = -1;
-            ret += Yo::File::__Read(file, encoderLen, file_size);
-            ret += Yo::File::__Read(file, infoLen, file_size);
-            if (std::cmp_greater_equal(encoderLen, file_size) || std::cmp_greater_equal(infoLen, file_size)) {
-                qWarning(TAG) << "encoderLen >= file_size" << "fileName: " << m_fileName;
-                return 0;
-            }
-            std::vector<uint8_t> rawData;
-            rawData.resize(encoderLen);
-            ret += Yo::File::__Read(file, rawData, file_size);
-            auto decoderBuf = Union::__330::lzw_decompress(rawData.data(), encoderLen);
-            if (infoLen < 0 || (infoLen != (decoderBuf->size() % ASCAN_FRAME_SIZE))) {
-                qFatal("info lenght error!");
-                constexpr auto msg = "info lenght error!";
-#if defined(QT_DEBUG)
-                qFatal(msg);
-#else
-                qCritical(TAG) << msg;
-                return 0;
-#endif
-            }
-
-            auto head_ptr = std::make_shared<__DATHead>();
-            if (infoLen > 0) {
-                auto temp_head = std::make_shared<__DATHead>();
-                auto ptr       = &(*decoderBuf)[decoderBuf->size() - infoLen];
-                memcpy(temp_head.get(), ptr, Union::__330::DAT_HEAD_SIZE);
-                temp_head->info_buf.resize((infoLen - Union::__330::DAT_HEAD_SIZE) / 2);
-                ptr = &(*decoderBuf)[decoderBuf->size() - infoLen + Union::__330::DAT_HEAD_SIZE];
-                memcpy(temp_head->info_buf.data(), ptr, temp_head->info_buf.size() * 2);
-                temp_head->header_timestamp.hour      = BCD2INT(temp_head->header_timestamp.hour);
-                temp_head->header_timestamp.minute    = BCD2INT(temp_head->header_timestamp.minute);
-                temp_head->header_timestamp.second    = BCD2INT(temp_head->header_timestamp.second);
-                temp_head->header_timestamp.notes_len = BCD2INT(temp_head->header_timestamp.notes_len);
-                if (temp_head->info_buf.size() == 1) {
-                    auto &end_head = m_data.back().back();
-                    // 当没有文件信息时拷贝上一次的文件信息
-                    temp_head->info_buf = end_head.head->info_buf;
-                } else {
-                    m_data.push_back({});
-                }
-                head_ptr = temp_head;
-            } else {
-                head_ptr = m_data.back().back().head;
-            }
-
-            for (auto f = 0; std::cmp_less(f, (decoderBuf->size() - infoLen) / ASCAN_FRAME_SIZE); f++) {
-                Union::__330::__DATType temp;
-                temp.head = head_ptr;
-                temp.ascan_data.resize(ASCAN_DATA_SIZE);
-                memcpy(temp.ascan_data.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE], ASCAN_DATA_SIZE);
-                memcpy(temp.wave_para.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE + ASCAN_DATA_SIZE], sizeof(temp.wave_para));
-                // FIXME:这边还有284个字节未使用?
-                if (std::accumulate(temp.ascan_data.begin(), temp.ascan_data.end(), 0, [](auto a, auto b) { return a + b; }) != 0) {
-                    auto &list = m_data.back();
-                    list.emplace_back(std::move(temp));
-                }
-            }
-        }
-        if (ret != file_size) {
-            qWarning(TAG) << "ret != file_size, fileName:" << m_fileName;
-        }
-        return file_size;
     }
 
     int DATType::getDataSize(void) const {

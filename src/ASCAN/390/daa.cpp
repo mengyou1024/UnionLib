@@ -48,17 +48,26 @@ namespace Union::__390 {
     }
 
     size_t DAAType::__Read(std::ifstream &file, size_t file_size) {
-        if (file_size != 1242) {
+        try {
+            if (file_size != 1242) {
+                return 0;
+            }
+            size_t ret = 0;
+            ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(systemStatus), &(channelTemp), sizeof(uint32_t)), file_size);
+            data.resize(480);
+            ret += Yo::File::__Read(file, data, file_size);
+            name.resize(file_size - ret - SIZE_390_EXTRA);
+            ret += Yo::File::__Read(file, name, file_size);
+            ret += Yo::File::__Read(file, m_390Extra, file_size);
+            return ret;
+        } catch (std::exception &e) {
+#if defined(QT_DEBUG)
+            qFatal(e.what());
+#else
+            qCritical(QLoggingCategory("390.DAA")) << e.what();
+#endif
             return 0;
         }
-        size_t ret = 0;
-        ret += Yo::File::__Read(file, Yo::File::MakeStructSub(&(systemStatus), &(channelTemp), sizeof(uint32_t)), file_size);
-        data.resize(480);
-        ret += Yo::File::__Read(file, data, file_size);
-        name.resize(file_size - ret - SIZE_390_EXTRA);
-        ret += Yo::File::__Read(file, name, file_size);
-        ret += Yo::File::__Read(file, m_390Extra, file_size);
-        return ret;
     }
 
     std::wstring DAAType::getProbe(int idx) const {
