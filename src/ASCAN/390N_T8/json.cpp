@@ -332,14 +332,13 @@ namespace Union::__390N_T8 {
                 ret.samplingDelay  = _ch_timeDelay;
                 ret.channel        = obj[SYS_CHANNEL_ID.data()].toInt(-1);
                 ret.instrumentName = "390N&T8 Single";
-
-                ascan.ascan.resize(JSON_390N_T8_ASCAN_LEN);
                 if (!obj[CHANNEL_SCAN_VALUE.data()].isArray()) {
                     throw std::exception("ch_scan_value is not array");
                 }
                 auto _array = obj[CHANNEL_SCAN_VALUE.data()].toArray();
+                ascan.ascan.resize(_array.size());
                 qDebug(TAG) << "ch_scan_value size:" << _array.size();
-                for (auto i = 0; std::cmp_less(i, ascan.ascan.size()); i++) {
+                for (auto i = 0; std::cmp_less(i, _array.size()); i++) {
                     ascan.ascan[i] = static_cast<uint8_t>(_array[i].toInt());
                 }
                 if (obj[CHANNEL_ALREADY_DAC.data()].toBool()) {
