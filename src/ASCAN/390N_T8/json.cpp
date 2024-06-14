@@ -54,7 +54,7 @@ namespace Union::__390N_T8 {
         ss << std::put_time(&t_m, "%Y-%m-%d %H:%M:%S");
         return ss.str();
 #else
-        return "未传入参数";
+        return m_ascan->time;
 #endif
     }
 
@@ -310,7 +310,8 @@ namespace Union::__390N_T8 {
                 ret.performance.dynamicRange        = obj[CHANNEL_YIQI_DONGTAI.data()].toDouble();
                 ret.performance.sensitivity         = obj[CHANNEL_YIQI_LMD.data()].toDouble();
                 // time
-                ret.time = obj["time"].toString(QDateTime::currentDateTime().toString("yyyy-M-d H:m:s")).toStdString();
+                auto _time = obj["current_time"].toString(QDateTime::currentDateTime().toString("yyyy-M-dTH:m:s"));
+                ret.time   = QDateTime::fromString(_time, "yyyy-M-dTH:m:s").toString("yyyy-M-d H:m:s").toStdString();
                 // probe
                 auto probeIndex = obj[CHANNEL_PROBE_TYPE.data()].toInt();
                 ret.probe       = Union::Base::Probe::Index2Name_QtExtra(probeIndex).toStdWString();
@@ -330,7 +331,7 @@ namespace Union::__390N_T8 {
                 ret.zeroPointBias = obj[CHANNEL_ZEROPOINT.data()].toDouble();
                 // scanpling delay
                 ret.samplingDelay  = _ch_timeDelay;
-                ret.channel        = obj[SYS_CHANNEL_ID.data()].toInt(-1);
+                ret.channel        = obj["sys_channel_num"].toInt(-1);
                 ret.instrumentName = "390N&T8 Single";
                 if (!obj[CHANNEL_SCAN_VALUE.data()].isArray()) {
                     throw std::exception("ch_scan_value is not array");
