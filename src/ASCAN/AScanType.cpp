@@ -167,7 +167,7 @@ namespace Union::AScan {
             }
 
             _gateValue[i] = {
-                {"amp", QString::number(_gate_amp, 'f', 1)},
+                {"amp", QString::number(_gate_amp, 'f', 1) + "%"},
                 {"dist_a", _a},
                 {"dist_b", _b},
                 {"dist_c", _c},
