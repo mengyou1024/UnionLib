@@ -144,6 +144,7 @@ namespace Union::AScan {
                         break;
                     }
                 }
+                a = a.value() - getFrontDistance(idx);
             }
 
             if (a) {
