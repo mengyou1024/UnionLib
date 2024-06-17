@@ -286,10 +286,10 @@ namespace Union::__390N_T8 {
             constexpr std::array lstrequi   = {" ", "RL", "SL", "EL"};
             m_equi[0]                       = QString::asprintf("%s %+.1fdB", lstrequi[index], equivalent);
         } else if (ldat.at(idx).avg_data.ch_already_avg) {
-            auto reflector_diameter = ldat.at(idx).avg_data.ch_avg_reflector_diameter;
+            auto reflector_diameter = ldat.at(idx).avg_data.ch_avg_reflector_diameter / 10.0;
             auto equivlant          = ldat.at(idx).chanel_data.ch_flaw_equivalent / 10.0;
-            auto avg_diameter       = ldat.at(idx).avg_data.ch_avg_diameter;
-            m_equi[0]               = QString::asprintf("Φ%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivlant);
+            auto avg_diameter       = ldat.at(idx).avg_data.ch_avg_diameter / 10.0;
+            m_equi[0]               = QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivlant);
         }
 
         m_c[0] = QString::asprintf("%.1f", static_cast<double>(ldat.at(idx).chanel_data.ch_flaw_actual_dist));
