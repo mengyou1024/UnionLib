@@ -249,7 +249,7 @@ namespace Union::__390N_T8 {
                 ascan.baseGain                = obj[CHANNEL_BASE_GAIN.data()].toDouble();
                 ascan.scanGain                = obj[CHANNEL_SCAN_GAIN.data()].toDouble();
                 ascan.surfaceCompentationGain = obj[CHANNEL_OFFSET_GAIN.data()].toDouble();
-                ascan.suppression             = obj[CHANNEL_SUPPRESSION.data()].toInt();
+                ascan.suppression             = Union::KeepDecimals<0>(obj[CHANNEL_SUPPRESSION.data()].toDouble());
                 ascan.distanceMode            = Union::AScan::DistanceMode(sdt);
                 if (obj[CHANNEL_ALREADY_DAC.data()].toBool()) {
                     ascan.dac            = Base::DAC();
