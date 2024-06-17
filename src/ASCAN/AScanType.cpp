@@ -127,20 +127,20 @@ namespace Union::AScan {
                 switch (getDistanceMode(idx)) {
                     case Union::AScan::DistanceMode::DistanceMode_Y: {
                         b = Union::ValueMap(loc, getAxisRange(idx));
-                        a = b.value() / k;
-                        c = b.value() / std::sin(rad);
+                        a = b.value() * k;
+                        c = b.value() / std::cos(rad);
                         break;
                     }
                     case Union::AScan::DistanceMode::DistanceMode_X: {
                         a = Union::ValueMap(loc, getAxisRange(idx));
-                        b = b.value() * k;
-                        c = b.value() / std::cos(rad);
+                        b = b.value() / k;
+                        c = a.value() / std::sin(rad);
                         break;
                     }
                     case Union::AScan::DistanceMode::DistanceMode_S: {
                         c = Union::ValueMap(loc, getAxisRange(idx));
-                        a = c.value() * std::cos(rad);
-                        b = c.value() * std::sin(rad);
+                        a = c.value() * std::sin(rad);
+                        b = c.value() * std::cos(rad);
                         break;
                     }
                 }
