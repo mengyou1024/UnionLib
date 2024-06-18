@@ -6,8 +6,6 @@
 #include <QJsonObject>
 #include <QLoggingCategory>
 
-#define USE_CALCULATE_GATE_DISTANCE 1
-
 static Q_LOGGING_CATEGORY(TAG, "390N&T8.JSON");
 
 namespace Union::__390N_T8 {
@@ -194,17 +192,7 @@ namespace Union::__390N_T8 {
         auto       obj1 = ret[0].toObject();
         auto       obj2 = ret[1].toObject();
         obj1["equi"]    = m_equi[0];
-#if !USE_CALCULATE_GATE_DISTANCE
-        obj1["dist_c"] = m_c[0];
-        obj1["dist_a"] = m_a[0];
-        obj1["dist_b"] = m_b[0];
-#endif
-        obj2["equi"] = m_equi[1];
-#if !USE_CALCULATE_GATE_DISTANCE
-        obj2["dist_c"] = m_c[1];
-        obj2["dist_a"] = m_a[1];
-        obj2["dist_b"] = m_b[1];
-#endif
+        obj2["equi"]    = m_equi[1];
         ret.replace(0, obj1);
         ret.replace(1, obj2);
         return ret;
@@ -224,7 +212,7 @@ namespace Union::__390N_T8 {
             try {
                 AScanType ret = {};
                 auto      obj = doc.object();
-                // TODO: 反序列化数据
+                // DONE: 反序列化数据
                 ret.data.resize(1);
                 auto &ascan = ret.data[0];
                 // scan data
@@ -300,39 +288,29 @@ namespace Union::__390N_T8 {
                     ascan.avg->decimationFactor = obj[CHANNEL_AVG_SAMPLING_FACTOR.data()].toDouble();
                     ascan.avg->scanGain         = obj[CHANNEL_AVG_SCAN_GAIN.data()].toDouble();
                 }
-                ascan.std.rlBias = obj[CHANNEL_XUAN_RL.data()].toDouble();
-                ascan.std.slBias = obj[CHANNEL_XUAN_SL.data()].toDouble();
-                ascan.std.elBias = obj[CHANNEL_XUAN_EL.data()].toDouble();
-                // performance
+                ascan.std.rlBias                    = obj[CHANNEL_XUAN_RL.data()].toDouble();
+                ascan.std.slBias                    = obj[CHANNEL_XUAN_SL.data()].toDouble();
+                ascan.std.elBias                    = obj[CHANNEL_XUAN_EL.data()].toDouble();
                 ret.performance.horizontalLinearity = obj[CHANNEL_YIQI_SHUIPIN.data()].toDouble();
                 ret.performance.verticalLinearity   = obj[CHANNEL_YIQI_CHUIZHI.data()].toDouble();
                 ret.performance.resolution          = obj[CHANNEL_YIQI_FBL.data()].toDouble();
                 ret.performance.dynamicRange        = obj[CHANNEL_YIQI_DONGTAI.data()].toDouble();
                 ret.performance.sensitivity         = obj[CHANNEL_YIQI_LMD.data()].toDouble();
-                // time
-                auto _time = obj["current_time"].toString(QDateTime::currentDateTime().toString("yyyy-M-dTH:m:s"));
-                ret.time   = QDateTime::fromString(_time, "yyyy-M-dTH:m:s").toString("yyyy-M-d H:m:s").toStdString();
-                // probe
-                auto probeIndex = obj[CHANNEL_PROBE_TYPE.data()].toInt();
-                ret.probe       = Union::Base::Probe::Index2Name_QtExtra(probeIndex).toStdWString();
-                // probe freq
-                ret.probeFrequence = obj[CHANNEL_PROBE_FREQ.data()].toDouble();
-                // probe chip size
-                auto _chipSize     = obj[CHANNEL_PROBE_SIZE.data()].toArray();
-                m_probeSize        = std::make_pair(_chipSize[0].toDouble(), _chipSize[1].toDouble());
-                ret.probeChipShape = Union::Base::Probe::CreateProbeChipShape(probeIndex, _chipSize[0].toInt(), _chipSize[1].toInt());
-                // angle
-                ret.angle = obj[CHANNEL_K_VALUE.data()].toArray()[1].toDouble();
-                // sound velocity
-                ret.soundVelocity = obj[CHANNEL_SOUND_SPEED.data()].toDouble();
-                // front distance
-                ret.frontDistance = obj[CHANNEL_PROBE_FRONTIER.data()].toDouble();
-                // zero point bias
-                ret.zeroPointBias = obj[CHANNEL_ZEROPOINT.data()].toDouble();
-                // scanpling delay
-                ret.samplingDelay  = _ch_timeDelay;
-                ret.channel        = obj["sys_channel_num"].toInt(-1);
-                ret.instrumentName = "390N&T8 Single";
+                auto _time                          = obj["current_time"].toString(QDateTime::currentDateTime().toString("yyyy-M-dTH:m:s"));
+                ret.time                            = QDateTime::fromString(_time, "yyyy-M-dTH:m:s").toString("yyyy-M-d H:m:s").toStdString();
+                auto probeIndex                     = obj[CHANNEL_PROBE_TYPE.data()].toInt();
+                ret.probe                           = Union::Base::Probe::Index2Name_QtExtra(probeIndex).toStdWString();
+                ret.probeFrequence                  = obj[CHANNEL_PROBE_FREQ.data()].toDouble();
+                auto _chipSize                      = obj[CHANNEL_PROBE_SIZE.data()].toArray();
+                m_probeSize                         = std::make_pair(_chipSize[0].toDouble(), _chipSize[1].toDouble());
+                ret.probeChipShape                  = Union::Base::Probe::CreateProbeChipShape(probeIndex, _chipSize[0].toInt(), _chipSize[1].toInt());
+                ret.angle                           = obj[CHANNEL_K_VALUE.data()].toArray()[1].toDouble();
+                ret.soundVelocity                   = obj[CHANNEL_SOUND_SPEED.data()].toDouble();
+                ret.frontDistance                   = obj[CHANNEL_PROBE_FRONTIER.data()].toDouble();
+                ret.zeroPointBias                   = obj[CHANNEL_ZEROPOINT.data()].toDouble();
+                ret.samplingDelay                   = _ch_timeDelay;
+                ret.channel                         = obj["sys_channel_num"].toInt(-1);
+                ret.instrumentName                  = "390N&T8 Single";
                 if (!obj[CHANNEL_SCAN_VALUE.data()].isArray()) {
                     throw std::exception("ch_scan_value is not array");
                 }

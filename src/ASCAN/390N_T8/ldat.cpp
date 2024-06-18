@@ -11,8 +11,6 @@ namespace Yo::File {
     }
 } // namespace Yo::File
 
-#define USE_CALCULATE_GATE_DISTANCE 1
-
 namespace Union::__390N_T8 {
     std::string LDAT::convertTime(std::array<char, 14> arr) const {
         std::ostringstream ss;
@@ -221,7 +219,7 @@ namespace Union::__390N_T8 {
         Base::AVG ret;
         ret.baseGain           = ldat.at(idx).avg_data.ch_avg_base_gain / 10.0;
         ret.biasGain           = ldat.at(idx).avg_data.ch_avg_offset_gain / 10.0;
-        ret.equivalent         = ldat.at(idx).avg_data.ch_avg_dangliang;
+        ret.equivalent         = ldat.at(idx).avg_data.ch_avg_dangliang / 10.0;
         ret.diameter           = ldat.at(idx).avg_data.ch_avg_diameter / 10.0;
         ret.isSubline          = ldat.at(idx).avg_data.ch_avg_is_subline;
         ret.reflectorDianmeter = ldat.at(idx).avg_data.ch_avg_reflector_diameter / 10.0;
@@ -292,24 +290,10 @@ namespace Union::__390N_T8 {
             m_equi[0]               = QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivlant);
         }
 
-        m_c[0] = QString::asprintf("%.1f", static_cast<double>(ldat.at(idx).chanel_data.ch_flaw_actual_dist));
-        m_a[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_horizontal_dist / 10.0);
-        m_b[0] = QString::asprintf("%.1f", ldat.at(idx).chanel_data.ch_flaw_depth / 10.0);
-
         auto obj1    = ret[0].toObject();
         auto obj2    = ret[1].toObject();
         obj1["equi"] = m_equi[0];
-#if !USE_CALCULATE_GATE_DISTANCE
-        obj1["dist_c"] = m_c[0];
-        obj1["dist_a"] = m_a[0];
-        obj1["dist_b"] = m_b[0];
-#endif
         obj2["equi"] = m_equi[1];
-#if !USE_CALCULATE_GATE_DISTANCE
-        obj2["dist_c"] = m_c[1];
-        obj2["dist_a"] = m_a[1];
-        obj2["dist_b"] = m_b[1];
-#endif
         ret.replace(0, obj1);
         ret.replace(1, obj2);
         return ret;
