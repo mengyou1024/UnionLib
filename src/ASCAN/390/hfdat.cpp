@@ -1,9 +1,31 @@
 #include "hfdat.hpp"
 #include "../330/_330_draw_dac.hpp"
+#include <Yo/File>
+#include <Yo/Types>
+#include <memory>
+#include <regex>
+
+namespace Yo::File {
+    template <>
+    size_t __Read(std::ifstream &file, Union::__390::HFDATType &data, [[maybe_unused]] size_t file_size) {
+        return data.__Read(file, file_size);
+    }
+
+} // namespace Yo::File
 
 std::unique_ptr<Union::AScan::AScanIntf> Union::__390::HFDATType::FromFile(const std::wstring &fileName) {
-    auto dat = Union::__330::DATType::FromFile(fileName);
-    return std::unique_ptr<Union::AScan::AScanIntf>(static_cast<Union::__390::HFDATType *>(dat.release()));
+    auto ret = std::make_unique<HFDATType>();
+    if (!Yo::File::ReadFile(fileName, *(ret.get()))) {
+        return nullptr;
+    }
+    ret->setFileName(QString::fromStdWString(fileName));
+    std::wregex  reg(LR"((\d+-\d+-\d+)\.\w+)", std::regex_constants::icase);
+    std::wsmatch match;
+    if (std::regex_search(fileName, match, reg)) {
+        std::wstring dateStr = match[1];
+        dynamic_cast<HFDATType *>(ret.get())->setDate(Yo::Types::StringFromWString(L"20" + dateStr));
+    }
+    return ret;
 }
 
 QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) const {
@@ -69,10 +91,7 @@ QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) c
     if (strMRange.isEmpty()) {
         strMRange = "-";
     }
-    obj1["equi"] = strMRange;
-    // obj1["dist_a"] = QString::number(wavepara[0] / 10.0, 'f', 1);
-    // obj1["dist_b"] = QString::number(wavepara[1] / 10.0, 'f', 1);
-    // obj1["dist_c"] = QString::number(wavepara[2] / 10.0, 'f', 1);
+    obj1["equi"] = strMRange.replace("SL", "Δ");
     obj2["equi"] = "-";
     ret.replace(0, obj1);
     ret.replace(1, obj2);
