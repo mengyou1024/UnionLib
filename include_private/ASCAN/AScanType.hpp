@@ -55,7 +55,8 @@ namespace Union::AScan {
         virtual size_t __Read(std::ifstream &file, size_t file_size) = 0;
 
         /**
-         * @brief 获取A扫图像的大小
+         * @brief 获取A扫图像的大小(连续图像中使用)
+         *        eg. 当连续图像有100帧时, 则返回100
          *
          * @return int
          */
