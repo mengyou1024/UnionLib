@@ -114,9 +114,9 @@ namespace Union::__390 {
         ret.insert("钢轨焊缝页2", page2);
         ret.insert("钢轨焊缝页3", page3);
         auto baseInfo = ret["基本信息"].toMap();
-        if (getChannel(idx) == 1) {
+        if (getChannel(idx) == 0) {
             baseInfo.insert("位置", getPosiFlag());
-        } else {
+        } else if (getChannel(idx) == 1) {
             baseInfo.insert("位置", getTailPosiFlag());
         }
         baseInfo.insert("通道", getChannelName());
@@ -133,17 +133,17 @@ namespace Union::__390 {
         auto    date = QString("%1年%2月%3日").arg(m_390Extra.yearTemp).arg(m_390Extra.monthTemp).arg(m_390Extra.dateTemp);
         QString _k_range;
         switch (getChannel(idx)) {
+            case 0:
             case 1:
-            case 2:
                 _k_range = "K2.5~K2.5";
                 break;
-            case 3:
+            case 2:
                 _k_range = "K1~K1";
                 break;
-            case 4:
+            case 3:
                 _k_range = "K0~K0";
                 break;
-            case 5:
+            case 4:
                 _k_range = "K0.8~K1";
                 break;
             default:
@@ -405,15 +405,15 @@ namespace Union::__390 {
 
     QString DAAType::getChannelName() const {
         switch (getChannel(0)) {
-            case 1:
+            case 0:
                 return "K2.5轨头 " + getPosiFlag();
-            case 2:
+            case 1:
                 return "K2.5轨底 " + getTailPosiFlag();
-            case 3:
+            case 2:
                 return "K1.0";
-            case 4:
+            case 3:
                 return "K0.0";
-            case 5:
+            case 4:
                 return "K1.5";
             default:
                 return "error";

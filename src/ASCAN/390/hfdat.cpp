@@ -101,3 +101,28 @@ QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) c
 std::string Union::__390::HFDATType::getInstrumentName(void) const {
     return "PXUT-390";
 }
+
+QVariantMap Union::__390::HFDATType::createTechnologicalParameter(int idx) const {
+    auto ret        = Union::__330::DATType::createTechnologicalParameter(idx);
+    auto basicParam = ret[QObject::tr("基本信息")].toMap();
+    basicParam.insert(QObject::tr("通道"), getChanneName(idx));
+    ret.insert(QObject::tr("基本信息"), basicParam);
+    return ret;
+}
+
+QString Union::__390::HFDATType::getChanneName(int idx) const {
+    switch (getChannel(idx)) {
+        case 0:
+            return "K2.5轨头";
+        case 1:
+            return "K2.5轨底";
+        case 2:
+            return "K1.0";
+        case 3:
+            return "K0.0";
+        case 4:
+            return "K1.5";
+        default:
+            return "error";
+    }
+}
