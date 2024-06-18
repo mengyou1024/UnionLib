@@ -105,6 +105,7 @@ namespace Union::__330 {
                     }
                     head_ptr = temp_head;
                 } else {
+                    // 如果没有头部信息，则使用上一次的头部信息
                     head_ptr = m_data.back().back().head;
                 }
 
@@ -212,7 +213,7 @@ namespace Union::__330 {
 
     int DATType::getChannel(int idx) const {
         (void)idx;
-        return ((getHead(idx).channel_status.sys >> 12) & 0x0F) + 1;
+        return ((getHead(idx).system_status.sys >> 12) & 0x0F);
     }
 
     std::string DATType::getInstrumentName(void) const {
