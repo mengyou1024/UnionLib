@@ -16,18 +16,18 @@ static constexpr uint8_t BCD2INT(uint8_t bcd) {
 
 namespace Yo::File {
     template <>
-    size_t __Read(std::ifstream &file, Union::__330::DATType &data, [[maybe_unused]] size_t file_size) {
+    size_t __Read(std::ifstream& file, Union::__330::DATType& data, [[maybe_unused]] size_t file_size) {
         return data.__Read(file, file_size);
     }
 
 } // namespace Yo::File
 
 namespace Union::__330 {
-    void DATType::setDate(const std::string &date) {
+    void DATType::setDate(const std::string& date) {
         m_date = date;
     }
 
-    std::unique_ptr<Union::AScan::AScanIntf> _FromFile(const std::wstring &filename) {
+    std::unique_ptr<Union::AScan::AScanIntf> _FromFile(const std::wstring& filename) {
         auto ret        = std::make_unique<DATType>();
         ret->m_fileName = QString::fromStdWString(filename);
         if (!Yo::File::ReadFile(filename, *(ret.get()))) {
@@ -37,16 +37,16 @@ namespace Union::__330 {
         std::wsmatch match;
         if (std::regex_search(filename, match, reg)) {
             std::wstring dateStr = match[1];
-            dynamic_cast<DATType *>(ret.get())->setDate(Yo::Types::StringFromWString(L"20" + dateStr));
+            dynamic_cast<DATType*>(ret.get())->setDate(Yo::Types::StringFromWString(L"20" + dateStr));
         }
         return ret;
     }
 
-    std::unique_ptr<Union::AScan::AScanIntf> DATType::FromFile(const std::wstring &fileName) {
+    std::unique_ptr<Union::AScan::AScanIntf> DATType::FromFile(const std::wstring& fileName) {
         return _FromFile(fileName);
     }
 
-    size_t DATType::__Read(std::ifstream &file, size_t file_size) {
+    size_t DATType::__Read(std::ifstream& file, size_t file_size) {
         try {
             if (file_size == 0) {
                 return 0;
@@ -97,7 +97,7 @@ namespace Union::__330 {
                     temp_head->header_timestamp.second    = BCD2INT(temp_head->header_timestamp.second);
                     temp_head->header_timestamp.notes_len = BCD2INT(temp_head->header_timestamp.notes_len);
                     if (temp_head->info_buf.size() == 1) {
-                        auto &end_head = m_data.back().back();
+                        auto& end_head = m_data.back().back();
                         // 当没有文件信息时拷贝上一次的文件信息
                         temp_head->info_buf = end_head.head->info_buf;
                     } else {
@@ -116,9 +116,11 @@ namespace Union::__330 {
                     memcpy(temp.ascan_data.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE], ASCAN_DATA_SIZE);
                     memcpy(temp.wave_para.data(), &(*decoderBuf)[f * ASCAN_FRAME_SIZE + ASCAN_DATA_SIZE], sizeof(temp.wave_para));
                     // FIXME:这边还有284个字节未使用?
-                    if (std::accumulate(temp.ascan_data.begin(), temp.ascan_data.end(), 0, [](auto a, auto b) { return a + b; }) != 0) {
-                        auto &list = m_data.back();
+                    if (std::accumulate(temp.ascan_data.begin(), temp.ascan_data.begin() + 100, 0, [](auto a, auto b) { return a + b; }) != 0) {
+                        auto& list = m_data.back();
                         list.emplace_back(std::move(temp));
+                    } else {
+                        qWarning(TAG) << QObject::tr("波形起始位置空白");
                     }
                 }
             }
@@ -126,7 +128,7 @@ namespace Union::__330 {
                 qWarning(TAG) << "ret != file_size, fileName:" << m_fileName;
             }
             return file_size;
-        } catch (std::exception &e) {
+        } catch (std::exception& e) {
 #if defined(QT_DEBUG)
             qFatal(e.what());
 #else
@@ -142,7 +144,7 @@ namespace Union::__330 {
 
     std::vector<std::wstring> DATType::getFileNameList(void) const {
         std::vector<std::wstring> ret;
-        for (const auto &it : m_data) {
+        for (const auto& it : m_data) {
             const auto info_buf = it.at(0).head->info_buf;
             auto       temp     = std::vector<uint16_t>(info_buf.begin() + 1, info_buf.end());
             ret.emplace_back(Union::LocationCodeToUTF8(temp).toStdWString());
@@ -234,7 +236,7 @@ namespace Union::__330 {
         return ret;
     }
 
-    const std::vector<uint8_t> &DATType::getScanData(int idx) const {
+    const std::vector<uint8_t>& DATType::getScanData(int idx) const {
         return m_data[m_fileName_index].at(idx).ascan_data;
     }
 
@@ -412,7 +414,7 @@ namespace Union::__330 {
         return ret;
     }
 
-    const std::array<QVector<QPointF>, 3> &DATType::unResolvedGetDacLines(int idx) const {
+    const std::array<QVector<QPointF>, 3>& DATType::unResolvedGetDacLines(int idx) const {
         static std::array<QVector<QPointF>, 3> ret;
         Union::Temp::Unresovled::DrawDacParam  _temp;
         _temp.m_unit         = getHead(idx).system_status.unit;
@@ -437,7 +439,7 @@ namespace Union::__330 {
         return ret;
     }
 
-    void DATType::setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3> &dat, int idx) {
+    void DATType::setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx) {
         (void)dat;
         (void)idx;
     }
@@ -468,7 +470,7 @@ namespace Union::__330 {
         return 1.0;
     }
 
-    const __DATHead &DATType::getHead(int idx) const {
+    const __DATHead& DATType::getHead(int idx) const {
         return *(m_data.at(m_fileName_index).at(idx).head);
     }
 
@@ -476,11 +478,11 @@ namespace Union::__330 {
         return static_cast<uint8_t>(std::pow(10.0, (200 * log10(255) - db + getBaseGain(idx) * 10.0 + getSurfaceCompentationGain(idx) * 10.0) / 200.0));
     }
 
-    void DATType::setFileName(const QString &fileName) {
+    void DATType::setFileName(const QString& fileName) {
         m_fileName = fileName;
     }
 
-    const QString &DATType::getFileName() {
+    const QString& DATType::getFileName() {
         return m_fileName;
     }
 } // namespace Union::__330
