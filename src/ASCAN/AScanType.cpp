@@ -209,6 +209,10 @@ namespace Union::AScan {
         };
     }
 
+    bool AScanIntf::getReportEnable() const {
+        return true;
+    }
+
     double AScanIntf::getNearField(int idx) const {
         auto [l, w] = getProbeSize(idx);
         return Union::CalculateNearField(l, w, getProbeFrequence(idx), getSoundVelocity(idx));

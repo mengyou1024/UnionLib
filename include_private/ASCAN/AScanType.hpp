@@ -339,6 +339,13 @@ namespace Union::AScan {
          */
         virtual QVariantMap createTechnologicalParameter(int idx) const;
 
+        /**
+         * @brief 是否使能报表导出按钮
+         *
+         * @return bool
+         */
+        virtual bool getReportEnable() const;
+
         ////////////////////////////////////////////////////// 不可重写的虚函数 //////////////////////////////////////////////////////
 
         /**

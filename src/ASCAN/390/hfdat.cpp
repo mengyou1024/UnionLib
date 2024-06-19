@@ -110,6 +110,10 @@ QVariantMap Union::__390::HFDATType::createTechnologicalParameter(int idx) const
     return ret;
 }
 
+bool Union::__390::HFDATType::getReportEnable() const {
+    return false;
+}
+
 QString Union::__390::HFDATType::getChanneName(int idx) const {
     switch (getChannel(idx)) {
         case 0:

@@ -13,6 +13,7 @@ namespace Union::__390 {
         virtual QJsonArray  createGateValue(int idx, double soft_gain) const override;
         virtual std::string getInstrumentName(void) const override;
         virtual QVariantMap createTechnologicalParameter(int idx) const override final;
+        virtual bool        getReportEnable() const override final;
 
     private:
         QString getChanneName(int idx) const;
