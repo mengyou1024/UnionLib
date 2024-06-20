@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package Union.AScan.Proto;
+
+// 说明:
+// 1. 距离单位未注特殊说明统一转换为mm
+// 2. 时间单位未注特殊说明统一转换为μs
+
+// 仪器五大性能
+message Performance {
+  float horizontalLinearity = 1;  // 水平线性
+  float verticalLinearity = 2;    // 垂直线性
+  float resolution = 3;           // 分辨力
+  float dynamicRange = 4;         // 动态范围
+  float surplusSensitivity = 5;   // 灵敏度余量
+}
+
+// 探头
+enum Probe {
+  NormalProbe = 0;                             // 直探头
+  ObliqueProbe = 1;                            // 斜探头
+  TwinCrystalLongitudinalWaveNormalprobe = 2;  // 双晶纵波直探头
+  PenetrationProbe = 3;                        // 穿透探头
+  TwinCrystaLongitudinalWaveObliqueProbe = 4;  // 双晶纵波斜探头
+}
+
+// 波门
+message Gate {
+  int32 idx = 1;     // 波门序号
+  float pos = 2;     // 波门位置(归一化)
+  float width = 3;   // 波门宽度(归一化)
+  float height = 4;  // 波门高度(归一化)
+}
+
+// DAC 判定标准 当前前面的值
+enum DACCriteria {
+  None = 0;  // ""
+  RL = 1;    // "RL"
+  SL = 2;    // "SL"
+  EL = 3;    // "EL"
+}
+
+// DAC 判定标准偏移
+message DACCriteriaBias {
+  sint32 rlBias = 1;  // RL 偏移 默认 -4.0
+  sint32 slBias = 2;  // SL 偏移 默认 -12.0
+  sint32 elBias = 3;  // EL 偏移 默认 -18.0
+}
+
+// DAC 参数
+// DAC显示为 "${criteria} +${equivalent}dB"
+message DAC {
+  float baseGain = 1;                         // 基础增益
+  float compensatingGain = 2;                 // 补偿增益
+  repeated float index = 3;                   // 采样的index
+  repeated float value = 4;                   // 采样的value
+  float equivalent = 5;                       // DAC 当量
+  DACCriteria criteria = 6;                   // DAC 判定标准
+  optional DACCriteriaBias criteriaBias = 7;  // DAC 判定标准偏移
+  bool isSubLine = 8;                         // 当为真时只显示基线
+  float samplingXAxisBias = 9;                // DAC采样时X轴的起始偏移
+  float samplingXAxisLen = 10;  // DAC采样时X轴的长度(即声程)
+}
+
+// AVG参数
+// DAC显示为 "Φ<diameter>  Φ${reflectorDiameter}+${equivalent}dB"
+message AVG {
+  float baseGain = 1;            // 基础增益
+  float compensatingGain = 2;    // 补偿增益
+  float scanGain = 3;            // 扫查增益
+  repeated float index = 4;      // 采样的index
+  repeated float value = 5;      // 采样的value
+  bool isSubLine = 6;            // 当为真时只显示基线
+  float samplingXAxisBias = 7;   // AVG采样时X轴的起始偏移
+  float samplingXAxisLen = 8;    // AVG采样时X轴的长度(即声程)
+  float diameter = 9;            // avg 孔径:
+  float reflectorDiameter = 10;  // 反射体直径
+  float reflectorMaxDepth = 11;  // 反射体最大深度
+  float equivalent = 12;         // 当量
+}
+
+// 距离模式
+enum DistanceMode { Y = 0; X = 1; S = 2; }
+
+// 仪器参数(系统参数)
+message InstrumentParameter {
+  Probe probe = 3;                        // 探头
+  float probeFrequence = 4;               // 探头频率 单位MHz
+  float probeChipShapeL = 5;              // 探头晶片尺寸低位
+  float probeChipShapeH = 6;              // 探头晶片尺寸高位
+  float angle = 7;                        // 探头角度
+  float soundVelocity = 8;                // 声速
+  float probeFrontDistance = 9;           // 探头前沿
+  float zeroPoint = 10;                   // 零点 单位(μs)
+  int32 channel = 11;                     // 通道号
+  optional Performance performance = 12;  // 五大性能
+}
+
+// 通道参数
+message ChannelParameter {
+  repeated Gate gate = 1;         //  波门
+  bytes ascan = 2;                // A扫数据
+  float axisBias = 3;             // X坐标轴的起始偏移(即延时)
+  float axisLen = 4;              // X坐标轴的长度(即声程)
+  float baseGain = 5;             // 基础增益
+  float scanGain = 6;             // 扫查增益(扫查增益)
+  float compensatingGain = 7;     // 表面补偿增益
+  int32 suppression = 8;          // 抑制
+  DistanceMode distanceMode = 9;  // 距离模式
+  optional DAC dac = 10;          // DAC参数
+  optional AVG avg = 11;          // AVG参数
+  optional Performance performance = 12;  // 五大性能
+}
+
+// A扫数据有效负载
+// 这块区域保存在整个存储过程中**可能发生变化**的值
+message AScanPayload {
+  InstrumentParameter instrumentParameter = 1;  // 仪器参数
+  ChannelParameter channelParameter = 2;        // 通道参数
+  optional bytes cameraData = 3;                // 摄像头数据
+}
+
+// A扫数据头部信息(不区分单幅和连续)
+message AScanHead {
+  string instrumentName = 1;  // 仪器名称
+  string time = 2;            // 保存文件的时间和日期(格式:`yyyy-M-d H:m:s`)
+}
