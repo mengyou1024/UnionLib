@@ -125,3 +125,9 @@ message AScanHead {
   string instrumentName = 1;  // 仪器名称
   string time = 2;            // 保存文件的时间和日期(格式:`yyyy-M-d H:m:s`)
 }
+
+// 
+message AScanProtoType {
+  AScanHead head = 1;
+  repeated AScanPayload payload = 2;
+}

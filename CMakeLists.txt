@@ -4,7 +4,7 @@ project(UnionLib)
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB_RECURSE UNIONLIB_SRC "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE UNIONLIB_SRC "src/*.cpp" "src/*.c" "src/*.cc")
 
 add_library(UnionLib ${UNIONLIB_SRC})
 
