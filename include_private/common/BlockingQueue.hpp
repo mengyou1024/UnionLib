@@ -14,6 +14,7 @@ public:
         m_queue.enqueue(value);
         m_condition.wakeOne(); // 唤醒等待队列中的一个线程(来自wait)
     }
+
     T take() {
         QMutexLocker locker(&m_mutex);
         while (m_queue.isEmpty()) {
@@ -21,13 +22,20 @@ public:
         }
         return m_queue.dequeue();
     }
+
     bool isEmpty() const {
         QMutexLocker locker(&m_mutex);
         return m_queue.isEmpty();
     }
+
     int size() const {
         QMutexLocker locker(&m_mutex);
         return m_queue.size();
+    }
+
+    void clear() {
+        QMutexLocker locker(&m_mutex);
+        m_queue.clear();
     }
 
 private:
