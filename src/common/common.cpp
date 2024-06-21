@@ -60,11 +60,11 @@ double Union::CalculateNearField(double l_or_d, double w_or_zero, double probe_f
 
 namespace Union::Base {
     QList<QPointF> CreateLineSeriesData(
-        const std::vector<double>& data,
-        std::pair<double, double>  axis_range,
-        uint8_t                    view_max,
-        double                     soft_gain,
-        int                        supression) {
+        const std::vector<uint8_t>& data,
+        std::pair<double, double>   axis_range,
+        uint8_t                     view_max,
+        double                      soft_gain,
+        int                         supression) {
         // empty line
         QList<QPointF> ret;
         const auto     step = (axis_range.second - axis_range.first) / (data.size() - 1);

@@ -20,6 +20,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
         int     package_index = {}; ///< 包序号
         int     channel       = {}; ///< 通道号
+        double  xAxis_start   = {}; ///< X轴开始位置
+        double  xAxis_range   = {}; ///< X轴长度
         _AScanV ascan         = {}; ///< A扫数据
         _GateV  gate          = {}; ///< 波门
         _GateR  gate_result   = {}; ///< 波门计算结果

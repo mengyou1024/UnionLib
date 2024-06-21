@@ -186,6 +186,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         auto ret           = std::make_shared<ScanData>();
         ret->channel       = dat->iChannel;
         ret->package_index = dat->iPackage;
+        ret->xAxis_start   = us2mm(getDelay(ret->channel), getSoundVelocity(ret->channel));
+        ret->xAxis_range   = us2mm(getSampleDepth(ret->channel), getSoundVelocity(ret->channel));
         ret->ascan.resize(dat->iAScanSize);
         ret->gate = m_gate_info[ret->channel];
         memcpy_s(ret->ascan.data(), ret->ascan.size(), dat->pAscan, dat->iAScanSize);

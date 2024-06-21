@@ -73,6 +73,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 for (auto it : copy) {
                     file << it->package_index;
                     file << it->channel;
+                    file << it->xAxis_start;
+                    file << it->xAxis_range;
                     file << it->ascan.size();
                     file.write(reinterpret_cast<const char *>(it->ascan.data()), it->ascan.size());
                     file << it->gate.size();
@@ -113,6 +115,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 ScanData scan_data;
                 file >> scan_data.package_index;
                 file >> scan_data.channel;
+                file >> scan_data.xAxis_start;
+                file >> scan_data.xAxis_range;
                 size_t ascan_size;
                 file >> ascan_size;
                 scan_data.ascan.resize(ascan_size);
