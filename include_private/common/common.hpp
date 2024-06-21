@@ -172,9 +172,9 @@ namespace Union::Base {
      * @return QLineSeries可使用的数据
      */
     QList<QPointF> CreateLineSeriesData(
-        const std::vector<double>& data,
-        std::pair<double, double>  axis_range,
-        uint8_t                    view_max   = 200,
-        double                     soft_gain  = 0,
-        int                        supression = 0);
+        const std::vector<uint8_t>& data,
+        std::pair<double, double>   axis_range,
+        uint8_t                     view_max   = 200,
+        double                      soft_gain  = 0,
+        int                         supression = 0);
 } // namespace Union::Base
