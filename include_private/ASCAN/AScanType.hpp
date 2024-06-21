@@ -7,7 +7,6 @@
 #include "../common/Performance.hpp"
 #include "../common/common.hpp"
 #include "./Specialization.hpp"
-#include "AScan.pb.h"
 #include <QFileInfo>
 #include <QImage>
 #include <QJsonArray>
@@ -393,21 +392,6 @@ namespace Union::AScan {
          * @return boolean
          */
         virtual bool isStraightBeamProbe(int idx) const final;
-
-        /**
-         * @brief 序列化至Protobuf类
-         *
-         * return Proto::AScanProtoType
-         */
-        virtual Proto::AScanProtoType serializationToProtobuf() final;
-
-        /**
-         * @brief 从Protobuf类返学劣化
-         *
-         * @param proto Protobuf类
-         * @return bool
-         */
-        virtual bool unserializationFromProtobuf(const Proto::AScanProtoType &proto) final;
     };
 
     /**

@@ -222,16 +222,6 @@ namespace Union::AScan {
         return Union::Base::Probe::IsStraightBeamProbe(getProbe(idx));
     }
 
-    Proto::AScanProtoType AScanIntf::serializationToProtobuf() {
-        throw std::runtime_error("Not Implemented");
-        return Proto::AScanProtoType();
-    }
-
-    bool AScanIntf::unserializationFromProtobuf(const Proto::AScanProtoType &proto) {
-        throw std::runtime_error("Not Implemented");
-        return false;
-    }
-
     std::function<std::optional<double>(double)> AScanIntf::getAVGLineExpr(int idx) const {
         try {
             auto            avg_param     = getAVG(idx);

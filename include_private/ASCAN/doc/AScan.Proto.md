@@ -6,7 +6,6 @@
 - [AScan.proto](#AScan-proto)
     - [AScanHead](#Union-AScan-Proto-AScanHead)
     - [AScanPayload](#Union-AScan-Proto-AScanPayload)
-    - [AScanProtoType](#Union-AScan-Proto-AScanProtoType)
     - [AVG](#Union-AScan-Proto-AVG)
     - [ChannelParameter](#Union-AScan-Proto-ChannelParameter)
     - [DAC](#Union-AScan-Proto-DAC)
@@ -58,22 +57,6 @@ A扫数据有效负载
 | instrumentParameter | [InstrumentParameter](#Union-AScan-Proto-InstrumentParameter) |  | 仪器参数 |
 | channelParameter | [ChannelParameter](#Union-AScan-Proto-ChannelParameter) |  | 通道参数 |
 | cameraData | [bytes](#bytes) | optional | 摄像头数据 |
-
-
-
-
-
-
-<a name="Union-AScan-Proto-AScanProtoType"></a>
-
-### AScanProtoType
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| head | [AScanHead](#Union-AScan-Proto-AScanHead) |  |  |
-| payload | [AScanPayload](#Union-AScan-Proto-AScanPayload) | repeated |  |
 
 
 
