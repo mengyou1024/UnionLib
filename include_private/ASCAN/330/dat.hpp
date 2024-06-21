@@ -204,10 +204,11 @@ namespace Union::__330 {
     private:
         using _My_T = std::vector<std::vector<__DATType>>;
 
-        _My_T       m_data           = {};
-        int         m_fileName_index = {};
-        std::string m_date           = {};
-        QString     m_fileName       = {};
+        _My_T                                   m_data           = {};
+        int                                     m_fileName_index = {};
+        std::string                             m_date           = {};
+        QString                                 m_fileName       = {};
+        mutable std::array<QVector<QPointF>, 3> m_dacLines       = {};
 
         friend Union::__390::HFDATType;
 
@@ -261,11 +262,11 @@ namespace Union::__330 {
         virtual int getReplayTimerInterval() const override final;
 
     private:
-        int                                                    getOption(int idx) const noexcept;
-        double                                                 getUnit(int idx) const noexcept;
-        const __DATHead&                                       getHead(int idx) const;
-        uint8_t                                                convertDB2GateAMP(int idx, int db) const;
-        void                                                   setFileName(const QString& fileName);
-        const QString&                                         getFileName();
+        int              getOption(int idx) const noexcept;
+        double           getUnit(int idx) const noexcept;
+        const __DATHead& getHead(int idx) const;
+        uint8_t          convertDB2GateAMP(int idx, int db) const;
+        void             setFileName(const QString& fileName);
+        const QString&   getFileName();
     };
 } // namespace Union::__330

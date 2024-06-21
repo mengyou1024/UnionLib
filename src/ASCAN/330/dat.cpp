@@ -415,8 +415,7 @@ namespace Union::__330 {
     }
 
     const std::array<QVector<QPointF>, 3>& DATType::unResolvedGetDacLines(int idx) const {
-        static std::array<QVector<QPointF>, 3> ret;
-        Union::Temp::Unresovled::DrawDacParam  _temp;
+        Union::Temp::Unresovled::DrawDacParam _temp;
         _temp.m_unit         = getHead(idx).system_status.unit;
         _temp.m_sys          = getHead(idx).system_status.sys;
         _temp.m_ch_status    = getHead(idx).channel_status.status;
@@ -435,8 +434,8 @@ namespace Union::__330 {
         _temp.m_dac_dist     = getHead(idx).dac.dist;
         _temp.m_dac_num      = getHead(idx).dac.num;
         _temp.m_range_a      = getAxisLen(idx);
-        ret                  = Temp::Unresovled::DrawDac(_temp);
-        return ret;
+        m_dacLines           = Temp::Unresovled::DrawDac(_temp);
+        return m_dacLines;
     }
 
     void DATType::setUnResolvedGetDacLines(const std::array<QVector<QPointF>, 3>& dat, int idx) {
