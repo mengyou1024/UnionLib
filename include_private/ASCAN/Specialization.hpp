@@ -24,5 +24,15 @@ namespace Union::AScan::Special {
          * @return QImage
          */
         virtual QImage getCameraImage(int idx) const = 0;
+
+        /**
+         * @brief 显示摄像头图像
+         * @param idx
+         * @return
+         */
+        virtual bool showCameraImage(int idx) const {
+            Q_UNUSED(idx)
+            return true;
+        }
     };
 } // namespace Union::AScan::Special
