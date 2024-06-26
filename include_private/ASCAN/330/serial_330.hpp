@@ -74,18 +74,18 @@ namespace Union::__330 {
         virtual int                       getChannel(int idx) const override final;
         virtual std::string               getInstrumentName(void) const override final;
         // AScanData
-        virtual std::array<Base::Gate, 2>     getGate(int idx) const override final;
-        virtual const std::vector<uint8_t>&   getScanData(int idx) const override final;
-        virtual double                        getAxisBias(int idx) const override final;
-        virtual double                        getAxisLen(int idx) const override final;
-        virtual double                        getBaseGain(int idx) const override final;
-        virtual double                        getScanGain(int idx) const override final;
-        virtual double                        getSurfaceCompentationGain(int idx = 0) const override final;
-        virtual int                           getSupression(int idx) const override final;
-        virtual Union::AScan::DistanceMode    getDistanceMode(int idx) const override final;
-        virtual std::optional<Base::AVG>      getAVG(int idx) const override final;
-        virtual std::optional<Base::DAC>      getDAC(int idx) const override final;
-        virtual Union::AScan::DAC_Standard    getDACStandard(int idx) const override final;
+        virtual std::array<Base::Gate, 2>   getGate(int idx) const override final;
+        virtual const std::vector<uint8_t>& getScanData(int idx) const override final;
+        virtual double                      getAxisBias(int idx) const override final;
+        virtual double                      getAxisLen(int idx) const override final;
+        virtual double                      getBaseGain(int idx) const override final;
+        virtual double                      getScanGain(int idx) const override final;
+        virtual double                      getSurfaceCompentationGain(int idx = 0) const override final;
+        virtual double                      getSupression(int idx) const override final;
+        virtual Union::AScan::DistanceMode  getDistanceMode(int idx) const override final;
+        virtual std::optional<Base::AVG>    getAVG(int idx) const override final;
+        virtual std::optional<Base::DAC>    getDAC(int idx) const override final;
+        virtual Union::AScan::DAC_Standard  getDACStandard(int idx) const override final;
 
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
 

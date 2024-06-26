@@ -28,10 +28,10 @@ namespace Union::Base {
      * @return GateResult
      */
     GateResult CalculateGateResult(
-        const std::vector<uint8_t> &data,
-        const Gate                 &gate,
-        bool                        find_center_if_overflow = true,
-        const std::optional<int>   &supression              = std::nullopt,
-        uint8_t                     view_max                = 200);
+        const std::vector<uint8_t>  &data,
+        const Gate                  &gate,
+        bool                         find_center_if_overflow = true,
+        const std::optional<double> &supression              = std::nullopt,
+        uint8_t                      view_max                = 200);
 
 } // namespace Union::Base

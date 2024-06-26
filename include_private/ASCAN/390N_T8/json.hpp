@@ -236,7 +236,7 @@ namespace Union::__390N_T8 {
         virtual double                      getBaseGain(int idx) const override final;
         virtual double                      getScanGain(int idx) const override final;
         virtual double                      getSurfaceCompentationGain(int idx) const override final;
-        virtual int                         getSupression(int idx) const override final;
+        virtual double                      getSupression(int idx) const override final;
         virtual Union::AScan::DistanceMode  getDistanceMode(int idx) const override final;
         virtual std::optional<Base::AVG>    getAVG(int idx) const override final;
         virtual std::optional<Base::DAC>    getDAC(int idx) const override final;

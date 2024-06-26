@@ -217,7 +217,7 @@ namespace Union::__330 {
         return channelParam.surGain / 10.0;
     }
 
-    int DASType::getSupression(int idx) const {
+    double DASType::getSupression(int idx) const {
         (void)idx;
         return channelParam.reject;
     }

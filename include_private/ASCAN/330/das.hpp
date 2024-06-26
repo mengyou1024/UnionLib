@@ -185,7 +185,7 @@ namespace Union::__330 {
         double                      getBaseGain(int idx = 0) const override;
         double                      getScanGain(int idx = 0) const override;
         double                      getSurfaceCompentationGain(int idx = 0) const override;
-        int                         getSupression(int idx = 0) const override;
+        double                      getSupression(int idx = 0) const override;
         Union::AScan::DistanceMode  getDistanceMode(int idx = 0) const override;
         std::optional<Base::AVG>    getAVG(int idx = 0) const override;
         std::optional<Base::DAC>    getDAC(int idx = 0) const override;

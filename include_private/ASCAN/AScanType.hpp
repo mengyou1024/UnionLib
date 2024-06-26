@@ -239,7 +239,7 @@ namespace Union::AScan {
          * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
          * @return int 0-100
          */
-        virtual int getSupression(int idx) const = 0;
+        virtual double getSupression(int idx) const = 0;
 
         /**
          * @brief 获取声程模式

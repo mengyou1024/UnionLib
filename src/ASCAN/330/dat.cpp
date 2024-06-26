@@ -289,7 +289,7 @@ namespace Union::__330 {
         return getHead(idx).channel_param.SurfGain / 10.0;
     }
 
-    int DATType::getSupression(int idx) const {
+    double DATType::getSupression(int idx) const {
         (void)idx;
         return getHead(idx).channel_param.Reject;
     }

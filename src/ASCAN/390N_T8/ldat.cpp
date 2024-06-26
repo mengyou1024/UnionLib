@@ -204,7 +204,7 @@ namespace Union::__390N_T8 {
         return ldat.at(idx).chanel_data.ch_offset_gain / 10.0;
     }
 
-    int LDAT::getSupression(int idx) const {
+    double LDAT::getSupression(int idx) const {
         return KeepDecimals<0>(ldat.at(idx).chanel_data.ch_suppression / 10.0);
     }
 

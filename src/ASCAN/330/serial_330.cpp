@@ -284,7 +284,7 @@ namespace Union::__330 {
         return surGain / 10.0;
     }
 
-    int Serial_330::getSupression(int idx) const {
+    double Serial_330::getSupression(int idx) const {
         (void)idx;
         auto reject = m_data[m_fileName_index].channelParam.Reject;
         return reject;

@@ -61,7 +61,7 @@ namespace Union::AScan {
             {QObject::tr("零点"), QString::number(KeepDecimals(getZeroPointBias(idx)), 'f', 2) + "μs"},
             {QObject::tr("仪器型号"), QString::fromStdString(getInstrumentName())},
             {QObject::tr("灵敏度"), sensitivity},
-            {QObject::tr("回波抑制"), QString::number(getSupression(idx)) + "%"},
+            {QObject::tr("回波抑制"), QString::number(getSupression(idx), 'f', 1) + "%"},
             {QObject::tr("回波延时"), QString::number(KeepDecimals<1>(getSamplingDelay(idx)), 'f', 1) + "mm"},
             {QObject::tr("声程范围"), soundDistance},
             {QObject::tr("声速"), QString::number(KeepDecimals<0>(getSoundVelocity(idx)), 'f', 0) + "m/s"},
@@ -199,7 +199,7 @@ namespace Union::AScan {
             {QObject::tr("声速"), QString::number(KeepDecimals<0>(getSoundVelocity(idx)), 'f', 0) + " m/s"},
             {QObject::tr("通道"), QString::number(getChannel(idx))},
             {QObject::tr("K值"), QString::number(Union::Base::Probe::Degree2K(getAngle(idx)), 'f', 2)},
-            {QObject::tr("抑制"), QString::number(getSupression(idx)) + "%"},
+            {QObject::tr("抑制"), QString::number(getSupression(idx), 'f', 1) + "%"},
             {QObject::tr("角度"), QString::number(KeepDecimals<1>(getAngle(idx)), 'f', 1) + "°"},
         };
         return {
@@ -331,9 +331,9 @@ namespace Union::AScan {
     }
 
     std::optional<std::tuple<double, uint8_t>> AScanIntf::getGateResult(int idx, int gate_idx, bool find_center_if_overflow, bool enable_supression) const {
-        const auto        &_data       = getScanData(idx);
-        const auto         _gate       = getGate(idx).at(gate_idx);
-        std::optional<int> _supression = std::nullopt;
+        const auto           &_data       = getScanData(idx);
+        const auto            _gate       = getGate(idx).at(gate_idx);
+        std::optional<double> _supression = std::nullopt;
         if (enable_supression) {
             _supression = getSupression(idx);
         }

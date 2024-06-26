@@ -2,11 +2,11 @@
 
 namespace Union::Base {
     GateResult CalculateGateResult(
-        const std::vector<uint8_t> &data,
-        const Gate                 &gate,
-        bool                        find_center_if_overflow,
-        const std::optional<int>   &supression,
-        uint8_t                     view_max) {
+        const std::vector<uint8_t>  &data,
+        const Gate                  &gate,
+        bool                         find_center_if_overflow,
+        const std::optional<double> &supression,
+        uint8_t                      view_max) {
         // empty line
         auto   start = gate.pos;
         double end   = (double)(gate.pos + gate.width);

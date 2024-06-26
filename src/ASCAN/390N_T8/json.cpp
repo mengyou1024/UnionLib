@@ -153,7 +153,7 @@ namespace Union::__390N_T8 {
         return m_ascan->data[0].surfaceCompentationGain;
     }
 
-    int T8_390N_JSON::getSupression(int idx) const {
+    double T8_390N_JSON::getSupression(int idx) const {
         (void)idx;
         return m_ascan->data[0].suppression;
     }
