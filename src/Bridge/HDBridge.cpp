@@ -1,5 +1,8 @@
 #include "HDBridge.hpp"
+#include <QCoreApplication>
+#include <QEventLoop>
 #include <QLoggingCategory>
+#include <QThread>
 #include <fstream>
 #include <future>
 #if !defined(QT_DEBUG)
@@ -9,9 +12,7 @@ Q_LOGGING_CATEGORY(TAG, "Union.HDBridge");
 namespace Union::Bridge::MultiChannelHardwareBridge {
     HDBridgeIntf::HDBridgeIntf() {}
 
-    HDBridgeIntf::~HDBridgeIntf() {
-        closeReadThreadAndWaitExit();
-    }
+    HDBridgeIntf::~HDBridgeIntf() {}
 
     void HDBridgeIntf::paramCopy(int src, std::vector<int> dist, int max_gate_number) {
         std::lock_guard lock(m_param_mutex);
@@ -70,7 +71,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             try {
                 std::ofstream file(file_name, std::ios::out | std::ios::binary);
                 file << copy.size();
-                for (auto it : copy) {
+                for (auto &it : copy) {
                     file << it->package_index;
                     file << it->channel;
                     file << it->xAxis_start;
@@ -341,32 +342,48 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     void HDBridgeIntf::runReadThread(void) {
         if (m_thread_running != true) {
             m_thread_running = true;
-            m_read_thread    = std::thread(&HDBridgeIntf::readThread, this);
+            m_read_thread    = std::unique_ptr<QThread>(QThread::create(&HDBridgeIntf::readThread, this));
+            m_read_thread->start();
         }
     }
 
     void HDBridgeIntf::closeReadThreadAndWaitExit(void) noexcept {
         if (m_thread_running == true) {
             m_thread_running = false;
-            m_read_thread.join();
+            m_read_thread->wait();
         }
     }
 
     void HDBridgeIntf::readThread(void) {
+#if defined(QT_DEBUG)
+        int  counter   = 0;
+        auto last_tick = std::chrono::high_resolution_clock::now();
+#endif
         while (m_thread_running) {
             auto data = readOneFrame();
             if (data != nullptr) {
+#if defined(QT_DEBUG)
+                if (data->channel == 1) {
+                    auto current_tick = std::chrono::high_resolution_clock::now();
+                    if (std::chrono::duration_cast<std::chrono::milliseconds>(current_tick - last_tick).count() >= 1000) {
+                        qDebug() << "read thread FPS:" << counter;
+                        counter   = 0;
+                        last_tick = current_tick;
+                    }
+                    counter++;
+                }
+#endif
+
                 if (data->channel > 0 && data->channel < getChannelNumber()) {
                     std::lock_guard lock(m_scan_data_mutex);
                     m_scan_data[data->channel] = data;
                 }
                 std::lock_guard lock(m_callback_mutex);
                 for (auto &func : m_callback_list) {
-                    func(*data, *this);
+                    func(data, *this);
                 }
+                QThread::yieldCurrentThread();
             }
-
-            std::this_thread::yield();
         }
     }
 
@@ -385,6 +402,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         m_gate_info.resize(getChannelNumber());
         for (int i = 0; i < getChannelNumber(); i++) {
             m_gate_info[i].resize(getGateNumber());
+            m_velocity[i] = 5920.0;
         }
         m_scan_data.resize(getChannelNumber());
         m_param_is_init = true;

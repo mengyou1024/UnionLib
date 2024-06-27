@@ -32,7 +32,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         explicit HDBridgeIntf();
         virtual ~HDBridgeIntf();
 
-        using InftCallbackFunc = std::function<void(const ScanData &, const HDBridgeIntf &)>;
+        using InftCallbackFunc = std::function<void(std::shared_ptr<const ScanData>, const HDBridgeIntf &)>;
 
         /**
          * @brief 打开设备
@@ -406,12 +406,18 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
         bool operator==(const HDBridgeIntf &rhs) const;
 
+        /**
+         * @brief 运行读取线程
+         *
+         */
+        void runReadThread(void);
+
     protected:
         std::list<InftCallbackFunc>             m_callback_list  = {};
         std::stack<std::list<InftCallbackFunc>> m_callback_stack = {};
         mutable std::mutex                      m_callback_mutex = {};
         std::atomic<bool>                       m_thread_running = false;
-        std::thread                             m_read_thread    = {};
+        std::unique_ptr<QThread>                m_read_thread    = {};
         mutable std::mutex                      m_param_mutex    = {};
 
         using _T_GateV = std::vector<std::vector<std::optional<Union::Base::Gate>>>;
@@ -422,7 +428,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         int                 m_voltage       = {}; ///< 电压
         uint32_t            m_channel_flag  = {}; ///< 通道标志
         int                 m_damper_flag   = {}; ///< 阻尼标志
-        std::vector<double> m_velocity      = {}; ///< 声速s
+        std::vector<double> m_velocity      = {}; ///< 声速m/s
         std::vector<double> m_zero_bias     = {}; ///< 零点偏移
         std::vector<double> m_pulse_width   = {}; ///< 脉冲宽度
         std::vector<double> m_delay         = {}; ///< 延时
@@ -446,12 +452,6 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return std::shared_ptr<ScanData>
          */
         virtual std::shared_ptr<ScanData> readOneFrame(void) = 0;
-
-        /**
-         * @brief 运行读取线程
-         *
-         */
-        void runReadThread(void);
 
         /**
          * @brief 关闭读取线程并等待线程退出

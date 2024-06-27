@@ -12,10 +12,13 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         initParam();
     }
 
-    _12CH_USB::~_12CH_USB() {}
+    _12CH_USB::~_12CH_USB() {
+        closeReadThreadAndWaitExit();
+        _12CH_USB::close();
+    }
 
     bool _12CH_USB::open() {
-        return TOFD_PORT_OpenDevice(0);
+        return TOFD_PORT_OpenDevice(1);
     }
 
     bool _12CH_USB::isOpen() {
@@ -181,8 +184,13 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     std::shared_ptr<ScanData> _12CH_USB::readOneFrame(void) {
-        auto dat = TOFD_PORT_ReadDatasFormat();
-        TOFD_PORT_Free_NM_DATA(dat);
+        auto DELETE_NM_DATA = [](NM_DATA *ptr) {
+            TOFD_PORT_Free_NM_DATA(ptr);
+        };
+        auto dat = std::unique_ptr<NM_DATA, decltype(DELETE_NM_DATA)>(TOFD_PORT_ReadDatasFormat(), DELETE_NM_DATA);
+        if (dat == nullptr) {
+            return nullptr;
+        }
         auto ret           = std::make_shared<ScanData>();
         ret->channel       = dat->iChannel;
         ret->package_index = dat->iPackage;
@@ -200,7 +208,6 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             }
             return Union::Base::CalculateGateResult(ret->ascan, _gate.value(), true, std::nullopt, 255);
         });
-
         return ret;
     }
 
