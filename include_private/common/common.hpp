@@ -177,4 +177,13 @@ namespace Union::Base {
         uint8_t                     view_max   = 200,
         double                      soft_gain  = 0,
         int                         supression = 0);
+
 } // namespace Union::Base
+
+namespace Union::AScan {
+    enum DistanceMode {
+        DistanceMode_Y,
+        DistanceMode_X,
+        DistanceMode_S,
+    };
+}

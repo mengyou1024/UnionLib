@@ -16,4 +16,14 @@ namespace Union::Base {
         int                 samplingDepth    = {}; ///< 采样深度
         double              decimationFactor = {}; ///< 采样因子
     };
+
+    struct DAC_Standard {
+        double rlBias = -4.0;
+        double slBias = -12.0;
+        double elBias = -18.0;
+    };
 } // namespace Union::Base
+
+namespace Union::AScan {
+    using DAC_Standard = Union::Base::DAC_Standard;
+}

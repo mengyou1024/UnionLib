@@ -39,7 +39,7 @@ namespace Union::__390N_T8::MDATType {
         virtual double                      getAxisLen(int idx) const override;
         virtual double                      getBaseGain(int idx) const override;
         virtual double                      getScanGain(int idx) const override;
-        virtual double                      getSurfaceCompentationGain(int idx = 0) const override;
+        virtual double                      getSurfaceCompentationGain(int idx) const override;
         virtual double                      getSupression(int idx) const override;
         virtual DistanceMode                getDistanceMode(int idx) const override;
         virtual std::optional<Base::AVG>    getAVG(int idx) const override;

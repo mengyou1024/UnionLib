@@ -27,18 +27,6 @@
 #include <vector>
 
 namespace Union::AScan {
-    enum DistanceMode {
-        DistanceMode_Y,
-        DistanceMode_X,
-        DistanceMode_S,
-    };
-
-    struct DAC_Standard {
-        double rlBias = -4.0;
-        double slBias = -12.0;
-        double elBias = -18.0;
-    };
-
     class AScanIntf : public Union::Utils::ReadIntf {
     public:
         virtual ~AScanIntf() = default;
@@ -231,7 +219,7 @@ namespace Union::AScan {
          * @param idx 图像序号, 仅在连续图像`getDataSize`返回值大于1时有效
          * @return double(dB)
          */
-        virtual double getSurfaceCompentationGain(int idx = 0) const = 0;
+        virtual double getSurfaceCompentationGain(int idx) const = 0;
 
         /**
          * @brief 获取抑制

@@ -34,16 +34,17 @@ class Realizable:
     def create_file_buffer(self):
         virtual_func_buf = ""
         for f in self.pure_virtual_func:
+            f = f.replace(' &', '& ')
             virtual_func_buf += f"        {f.replace('= 0;', 'override;')}" + "\n"
         header_buf = \
             f"""
 #pragma once
 
 
-#include "{os.path.basename(realizable_type[self.type])}"
+#include "../{os.path.basename(realizable_type[self.type])}"
 
 namespace Union::{self.dir} {{
-    class   {self.name} : public Union::Utils::ReadIntf {{
+    class   {self.name}: Union::Utils::{self.class_name} {{
     public:
 {virtual_func_buf}
     }};
@@ -52,6 +53,7 @@ namespace Union::{self.dir} {{
 """
         virtual_func_buf = ""
         for f in self.pure_virtual_func:
+            f = f.replace(' &', '& ')
             func_str = f.replace('virtual ', '').replace('= 0;', '{}')
             func_str = re.sub(r" ([^ ]+?\(.+?\))",
                               fr" {self.name}::\1", func_str)
@@ -81,6 +83,6 @@ namespace Union::{self.dir} {{
         cpp_path = f"{os.path.join(current_dir_path, '../src/', self.type, self.dir, self.name + '.cpp')}"
         for path, buf in [(header_path, header_file), (cpp_path, cpp_file)]:
             if not os.path.exists(os.path.abspath(path)):
-                os.makedirs(os.path.dirname(os.path.abspath(path)))
+                os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(buf)

@@ -178,18 +178,18 @@ namespace Union::__330 {
         int               getChannel(int idx) const override;
         std::string       getInstrumentName(void) const override;
 
-        std::array<Base::Gate, 2>   getGate(int idx = 0) const override;
-        const std::vector<uint8_t>& getScanData(int idx = 0) const override;
-        double                      getAxisBias(int idx = 0) const override;
-        double                      getAxisLen(int idx = 0) const override;
-        double                      getBaseGain(int idx = 0) const override;
-        double                      getScanGain(int idx = 0) const override;
-        double                      getSurfaceCompentationGain(int idx = 0) const override;
-        double                      getSupression(int idx = 0) const override;
-        Union::AScan::DistanceMode  getDistanceMode(int idx = 0) const override;
-        std::optional<Base::AVG>    getAVG(int idx = 0) const override;
-        std::optional<Base::DAC>    getDAC(int idx = 0) const override;
-        Union::AScan::DAC_Standard  getDACStandard(int idx = 0) const override;
+        std::array<Base::Gate, 2>   getGate(int idx) const override;
+        const std::vector<uint8_t>& getScanData(int idx) const override;
+        double                      getAxisBias(int idx) const override;
+        double                      getAxisLen(int idx) const override;
+        double                      getBaseGain(int idx) const override;
+        double                      getScanGain(int idx) const override;
+        double                      getSurfaceCompentationGain(int idx) const override;
+        double                      getSupression(int idx) const override;
+        Union::AScan::DistanceMode  getDistanceMode(int idx) const override;
+        std::optional<Base::AVG>    getAVG(int idx) const override;
+        std::optional<Base::DAC>    getDAC(int idx) const override;
+        Union::AScan::DAC_Standard  getDACStandard(int idx) const override;
 
         virtual const std::array<QVector<QPointF>, 3>& unResolvedGetDacLines(int idx) const override;
 

@@ -80,7 +80,7 @@ namespace Union::__330 {
         virtual double                      getAxisLen(int idx) const override final;
         virtual double                      getBaseGain(int idx) const override final;
         virtual double                      getScanGain(int idx) const override final;
-        virtual double                      getSurfaceCompentationGain(int idx = 0) const override final;
+        virtual double                      getSurfaceCompentationGain(int idx) const override final;
         virtual double                      getSupression(int idx) const override final;
         virtual Union::AScan::DistanceMode  getDistanceMode(int idx) const override final;
         virtual std::optional<Base::AVG>    getAVG(int idx) const override final;
