@@ -7,10 +7,14 @@
 #include <vector>
 namespace Union::__390N_T8::MDATType {
 
+    constexpr uint32_t FILE_MAGIC_CODE = 0x556EE655;
+    constexpr uint8_t  FRAME_HEAD      = 0x55;
+    constexpr uint8_t  FRAME_TAIL      = 0x6E;
+
     template <uint16_t _C_T = 0xFFFF>
     struct Serializer {
-        inline static constexpr uint8_t HEAD = 0x55;
-        inline static constexpr uint8_t TAIL = 0x6E;
+        inline static constexpr uint8_t HEAD = FRAME_HEAD;
+        inline static constexpr uint8_t TAIL = FRAME_TAIL;
 
         inline static constexpr uint16_t CLASS_TYPE                                    = _C_T;
         virtual void                     serialize_payload(QDataStream& payload) const = 0;
@@ -186,10 +190,12 @@ namespace Union::__390N_T8::MDATType {
         virtual void unserialize_payload(QDataStream& payload) override {
             uint8_t len;
             payload >> isReady >> baseGain >> compensatingGain >> len;
+            index.resize(10);
+            value.resize(10);
+            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(10 * sizeof(float)));
+            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(10 * sizeof(float)));
             index.resize(len);
             value.resize(len);
-            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(index.size() * sizeof(float)));
-            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(value.size() * sizeof(float)));
             payload >> equivalent >> criteria >> criteriaBiasRL >> criteriaBiasSL >> criteriaBiasEL >> onlyShowBaseLine >> samplingXAxisBias >> samplingXAxisLen;
         }
 
@@ -221,10 +227,12 @@ namespace Union::__390N_T8::MDATType {
         virtual void unserialize_payload(QDataStream& payload) override {
             uint8_t len;
             payload >> isReady >> baseGain >> compensatingGain >> scanGain >> len;
+            index.resize(10);
+            value.resize(10);
+            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(10 * sizeof(float)));
+            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(10 * sizeof(float)));
             index.resize(len);
             value.resize(len);
-            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(index.size() * sizeof(float)));
-            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(value.size() * sizeof(float)));
             payload >> onlyShowBaseLine >> samplingXAxisBias >> samplingXAxisLen >> diameter >> reflectorDiameter >> reflectorMaxDepth >> equivalent;
         }
 

@@ -7,7 +7,7 @@
 namespace Union::__390N_T8::MDATType {
     using namespace Union::AScan;
 
-    class UnType : public Union::AScan::AScanIntf, Union::AScan::Special::CameraImageSpecial {
+    class UnType : public Union::AScan::AScanIntf,public Union::AScan::Special::CameraImageSpecial {
     public:
         using _Body_T = std::tuple<AScanData, ChannelParam, std::shared_ptr<DACParam>, std::shared_ptr<AVGParam>, std::shared_ptr<Performance>, std::shared_ptr<CameraData>>;
         using _Data_T = std::pair<InstrumentBaseInfo, std::vector<_Body_T>>;
@@ -46,6 +46,10 @@ namespace Union::__390N_T8::MDATType {
         virtual std::optional<Base::DAC>    getDAC(int idx) const override;
         virtual DAC_Standard                getDACStandard(int idx) const override;
         virtual std::pair<double, double>   getProbeSize(int idx) const override;
+
+        virtual int getReplayTimerInterval() const override;
+
+        virtual QJsonArray createGateValue(int idx, double soft_gain) const override final;
 
         virtual bool   showCameraImage(int idx) const override;
         virtual QImage getCameraImage(int idx) const override;

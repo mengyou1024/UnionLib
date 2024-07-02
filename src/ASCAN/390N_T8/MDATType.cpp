@@ -24,17 +24,18 @@ namespace Union::__390N_T8::MDATType {
         fileStream.setFloatingPointPrecision(QDataStream::FloatingPointPrecision::SinglePrecision);
         uint32_t fileFlag;
         fileStream >> fileFlag;
-        if (fileFlag != 0x556ee655) {
+        if (fileFlag != FILE_MAGIC_CODE) {
             return nullptr;
         }
         auto      _ret_ptr = std::make_unique<UnType>();
         auto&     ret      = *_ret_ptr;
         QFileInfo fileInfo(QString::fromStdWString(fileName));
         ret.m_fileNameList = {fileInfo.completeBaseName().toStdWString()};
+        int _frames        = 0;
         while (1) {
             uint8_t frame_head;
             fileStream >> frame_head;
-            if (frame_head != 0x55) {
+            if (frame_head != FRAME_HEAD) {
                 break;
             }
             uint16_t class_type;
@@ -67,13 +68,14 @@ namespace Union::__390N_T8::MDATType {
                         camera_data = camera_data_last;
                     }
                     ascan_data.unserialize_payload(payload, payload_len);
+                    _frames++;
                     break;
                 }
                 case 2: {
                     auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = ret.m_data.second[std::ssize(ret.m_data.second) - 1];
 
                     auto _insert_dac = std::make_shared<DACParam>();
-                    _insert_dac->unserialize_payload(fileStream);
+                    _insert_dac->unserialize_payload(payload);
                     dac_param = _insert_dac;
                     break;
                 }
@@ -118,8 +120,9 @@ namespace Union::__390N_T8::MDATType {
             }
             uint8_t frame_tail;
             fileStream >> frame_tail;
-            if (frame_tail != 0x6e) {
-                qWarning(TAG) << "frame tail error:" << frame_tail;
+            if (frame_tail != FRAME_TAIL) {
+                qWarning(TAG) << "frame tail error:" << frame_tail << "type class:" << class_type << "frames:" << _frames;
+                return nullptr;
             }
             if (file.size() <= file.pos()) {
                 qDebug(TAG) << "read file end";
@@ -205,8 +208,7 @@ namespace Union::__390N_T8::MDATType {
     }
 
     double UnType::getSamplingDelay(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-        return channel_param.samplingDelay;
+        return getAxisBias(idx);
     }
 
     int UnType::getChannel(int idx) const {
@@ -324,6 +326,41 @@ namespace Union::__390N_T8::MDATType {
     std::pair<double, double> UnType::getProbeSize(int idx) const {
         const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
         return {channel_param.probeChipShapeWorD, channel_param.probeChipShapeLorZero};
+    }
+
+    int UnType::getReplayTimerInterval() const {
+        return 200;
+    }
+
+    QJsonArray UnType::createGateValue(int idx, double soft_gain) const {
+        QJsonArray ret = Union::AScan::AScanIntf::createGateValue(idx, soft_gain);
+
+        std::array<QString, 2> m_equi = {"-", "-"};
+        std::array<QString, 2> m_a    = {"-", "-"};
+        std::array<QString, 2> m_b    = {"-", "-"};
+        std::array<QString, 2> m_c    = {"-", "-"};
+
+        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+
+        if (dac_param != nullptr && dac_param->isReady) {
+            auto                 index      = dac_param->criteria;
+            double               equivalent = dac_param->equivalent;
+            constexpr std::array lstrequi   = {" ", "RL", "SL", "EL"};
+            m_equi[0]                       = QString::asprintf("%s %+.1fdB", lstrequi[index], equivalent);
+        } else if (avg_param != nullptr && avg_param->isReady) {
+            auto reflector_diameter = avg_param->reflectorDiameter;
+            auto equivlant          = avg_param->equivalent;
+            auto avg_diameter       = avg_param->diameter;
+            m_equi[0]               = QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivlant);
+        }
+
+        auto obj1    = ret[0].toObject();
+        auto obj2    = ret[1].toObject();
+        obj1["equi"] = m_equi[0];
+        obj2["equi"] = m_equi[1];
+        ret.replace(0, obj1);
+        ret.replace(1, obj2);
+        return ret;
     }
 
     bool UnType::showCameraImage(int idx) const {
