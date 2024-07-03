@@ -48,6 +48,7 @@ namespace Union::__330 {
 
     size_t DATType::__Read(std::ifstream& file, size_t file_size) {
         try {
+            bool has_empty_on_start = false;
             if (file_size == 0) {
                 return 0;
             }
@@ -120,7 +121,10 @@ namespace Union::__330 {
                         auto& list = m_data.back();
                         list.emplace_back(std::move(temp));
                     } else {
-                        qWarning(TAG) << QObject::tr("波形起始位置空白");
+                        if (!has_empty_on_start) {
+                            qWarning(TAG) << QObject::tr("波形起始位置空白");
+                            has_empty_on_start = true;
+                        }
                     }
                 }
             }
