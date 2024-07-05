@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common/common.hpp"
+#include "../common/union_common.hpp"
 #include <QObject>
 #include <array>
 #include <atomic>

@@ -5,7 +5,7 @@
 
 // COMMON
 #include "../include_private/common/BlockingQueue.hpp"
-#include "../include_private/common/common.hpp"
+#include "../include_private/common/union_common.hpp"
 
 // ASCAN
 #include "../include_private/ASCAN/330/das.hpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./common.hpp"
+#include "./union_common.hpp"
 #include <functional>
 #include <vector>
 

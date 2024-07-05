@@ -5,7 +5,7 @@
 #include "../common/FileReaderSelector.hpp"
 #include "../common/Gate.hpp"
 #include "../common/Performance.hpp"
-#include "../common/common.hpp"
+#include "../common/union_common.hpp"
 #include "./Specialization.hpp"
 #include <QFileInfo>
 #include <QImage>

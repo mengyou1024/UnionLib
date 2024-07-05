@@ -1,5 +1,5 @@
 
-#include "common.hpp"
+#include "union_common.hpp"
 #include <Yo/Types>
 #include <stdexcept>
 

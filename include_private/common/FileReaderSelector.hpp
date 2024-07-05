@@ -33,6 +33,12 @@ namespace Union::Utils {
 
     class InstanceBuilder {
     public:
+        InstanceBuilder()                                    = delete;
+        InstanceBuilder(const InstanceBuilder &)             = delete;
+        InstanceBuilder &operator=(const InstanceBuilder &)  = delete;
+        InstanceBuilder(InstanceBuilder &&)                  = delete;
+        InstanceBuilder &operator=(const InstanceBuilder &&) = delete;
+
         static std::shared_ptr<FileReaderSelectorIntf> FindInstance(const std::string &name);
         static void                                    RegistInstance(const std::string &name, const std::shared_ptr<FileReaderSelectorIntf> &instance);
 
@@ -46,9 +52,9 @@ namespace Union::Utils {
      * @tparam T_INTF 读取接口 需要满足 RD_INTF 概念
      * @tparam I_NAME 对应的UI名称, 该UI名称用于动态加载界面UI <br/>
      *     对应的界面文件<br/>
-     *         主界面: <br/> 
+     *         主界面: <br/>
      *              qrc:/qml/src/<I_NAME>/MainUI.qml <br/>
-     *         控制界面: <br/> 
+     *         控制界面: <br/>
      *              qrc:/qml/src/<I_NAME>/Control.qml <br/>
      */
     template <RD_INTF T_INTF, const std::string_view &I_NAME>
@@ -80,7 +86,7 @@ namespace Union::Utils {
          * @return bool
          */
         bool RegistReader(std::string_view file_suffix, std::string_view describe, const FRS_RFUNC &func) {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
+            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             auto temp = std::make_tuple(func, std::string(describe));
             return data.try_emplace(std::string(file_suffix), temp).second;
         }
@@ -92,7 +98,7 @@ namespace Union::Utils {
          * @return std::optional<FRS_DTYPE>
          */
         const std::optional<FRS_DTYPE> Get(const std::string &file_suffix) {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
+            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             const auto ret = data.find(file_suffix);
             if (ret == data.end()) {
                 return std::nullopt;
@@ -107,7 +113,7 @@ namespace Union::Utils {
          * @return QJsonArray
          */
         QJsonArray GetFileNameFilter() {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
+            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QJsonArray ret;
             for (auto &[key, val] : data) {
                 auto &[func, describe] = val;
@@ -122,7 +128,7 @@ namespace Union::Utils {
          * @return QJsonArray
          */
         QJsonArray GetFileListModelNameFilter() {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
+            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QJsonArray obj;
             for (auto &[key, val] : data) {
                 static QRegularExpression reg(R"((\*\.\w+))");
@@ -141,7 +147,7 @@ namespace Union::Utils {
          * @return QJsonObject
          */
         QJsonObject GetUINameMap() {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
+            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QJsonObject obj;
             for (auto &[key, val] : data) {
                 static QRegularExpression reg(R"((\.\w+))");
@@ -161,7 +167,7 @@ namespace Union::Utils {
          * @return std::optional<FRS_RFUNC>
          */
         const std::optional<FRS_RFUNC> GetReadFunction(const std::wstring &fileName) {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data;
+            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QFileInfo file(QString::fromStdWString(fileName));
             for (auto &[key, val] : data) {
                 if (QString::fromStdString(key).toLower().contains(file.suffix().toLower())) {

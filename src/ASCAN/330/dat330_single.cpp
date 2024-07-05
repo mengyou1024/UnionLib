@@ -1,5 +1,5 @@
 #include "dat330_single.h"
-#include "../include_private/common/common.hpp"
+#include "../include_private/common/union_common.hpp"
 #include <QList>
 #include <QPointF>
 #include <array>

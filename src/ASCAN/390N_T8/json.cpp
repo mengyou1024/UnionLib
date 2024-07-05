@@ -1,5 +1,5 @@
 #include "json.hpp"
-#include "../common/common.hpp"
+#include "../common/union_common.hpp"
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
