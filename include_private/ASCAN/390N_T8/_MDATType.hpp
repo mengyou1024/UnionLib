@@ -190,12 +190,10 @@ namespace Union::__390N_T8::MDATType {
         virtual void unserialize_payload(QDataStream& payload) override {
             uint8_t len;
             payload >> isReady >> baseGain >> compensatingGain >> len;
-            index.resize(10);
-            value.resize(10);
-            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(10 * sizeof(float)));
-            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(10 * sizeof(float)));
             index.resize(len);
             value.resize(len);
+            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(len * sizeof(float)));
+            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(len * sizeof(float)));
             payload >> equivalent >> criteria >> criteriaBiasRL >> criteriaBiasSL >> criteriaBiasEL >> onlyShowBaseLine >> samplingXAxisBias >> samplingXAxisLen;
         }
 
@@ -227,12 +225,10 @@ namespace Union::__390N_T8::MDATType {
         virtual void unserialize_payload(QDataStream& payload) override {
             uint8_t len;
             payload >> isReady >> baseGain >> compensatingGain >> scanGain >> len;
-            index.resize(10);
-            value.resize(10);
-            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(10 * sizeof(float)));
-            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(10 * sizeof(float)));
             index.resize(len);
             value.resize(len);
+            payload.readRawData(reinterpret_cast<char*>(index.data()), static_cast<int>(len * sizeof(float)));
+            payload.readRawData(reinterpret_cast<char*>(value.data()), static_cast<int>(len * sizeof(float)));
             payload >> onlyShowBaseLine >> samplingXAxisBias >> samplingXAxisLen >> diameter >> reflectorDiameter >> reflectorMaxDepth >> equivalent;
         }
 
