@@ -355,14 +355,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     void HDBridgeIntf::readThread(void) {
-#if defined(QT_DEBUG)
+#if defined(QT_DEBUG) && defined(HDBRIDGE_SHOW_FPS)
         int  counter   = 0;
         auto last_tick = std::chrono::high_resolution_clock::now();
 #endif
         while (m_thread_running) {
             auto data = readOneFrame();
             if (data != nullptr) {
-#if defined(QT_DEBUG)
+#if defined(QT_DEBUG) && defined(HDBRIDGE_SHOW_FPS)
                 if (data->channel == 1) {
                     auto current_tick = std::chrono::high_resolution_clock::now();
                     if (std::chrono::duration_cast<std::chrono::milliseconds>(current_tick - last_tick).count() >= 1000) {
@@ -378,9 +378,17 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                     std::lock_guard lock(m_scan_data_mutex);
                     m_scan_data[data->channel] = data;
                 }
-                std::lock_guard lock(m_callback_mutex);
-                for (auto &func : m_callback_list) {
-                    func(data, *this);
+                std::list<InftCallbackFunc> mirror = {};
+                {
+                    std::lock_guard lock(m_callback_mutex);
+                    mirror = m_callback_list;
+                }
+                std::vector<std::future<void>> futures = {};
+                for (auto &func : mirror) {
+                    futures.emplace_back(std::async(func, data, std::ref(*this)));
+                }
+                for (auto &f : futures) {
+                    f.get();
                 }
                 QThread::yieldCurrentThread();
             }
