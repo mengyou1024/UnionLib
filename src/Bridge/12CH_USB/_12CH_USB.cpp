@@ -1,5 +1,3 @@
-#pragma once
-
 #include "_12CH_USB.hpp"
 #include "TOFDPort.h"
 

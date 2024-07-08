@@ -38,6 +38,7 @@ target_include_directories(UnionLib PRIVATE
     # HDBridge
     include_private/Bridge
     include_private/Bridge/12CH_USB
+    include_private/Bridge/Emulator
 )
 
 add_library(_TOFDPort SHARED IMPORTED)

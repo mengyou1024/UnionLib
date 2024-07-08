@@ -1,10 +1,12 @@
 #include "HDBridge.hpp"
 #include <QCoreApplication>
 #include <QEventLoop>
+#include <QFile>
 #include <QLoggingCategory>
 #include <QThread>
-#include <fstream>
+#include <chrono>
 #include <future>
+#include <numeric>
 #if !defined(QT_DEBUG)
 Q_LOGGING_CATEGORY(TAG, "Union.HDBridge");
 #endif
@@ -60,44 +62,51 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         sync2Board();
     }
 
-    bool HDBridgeIntf::serializeScanData(const std::wstring &file_name) const {
+    bool HDBridgeIntf::serializeScanDataAppendToFile(const QString &file_name) const {
         _T_DataV copy = {};
         {
+            for (const auto &it : m_scan_data) {
+                if (it == nullptr) {
+                    return false;
+                }
+            }
             std::lock_guard lock(m_scan_data_mutex);
             copy = m_scan_data;
         }
 
         auto ret = std::async(std::launch::deferred, [=]() -> bool {
             try {
-                std::ofstream file(file_name, std::ios::out | std::ios::binary);
-                file << copy.size();
+                QFile file(file_name);
+                file.open(QIODevice::WriteOnly | QIODevice::Append);
+                QDataStream file_stream(&file);
+                file_stream << copy.size();
                 for (auto &it : copy) {
-                    file << it->package_index;
-                    file << it->channel;
-                    file << it->xAxis_start;
-                    file << it->xAxis_range;
-                    file << it->ascan.size();
-                    file.write(reinterpret_cast<const char *>(it->ascan.data()), it->ascan.size());
-                    file << it->gate.size();
+                    file_stream << it->package_index;
+                    file_stream << it->channel;
+                    file_stream << it->xAxis_start;
+                    file_stream << it->xAxis_range;
+                    file_stream << it->ascan.size();
+                    file_stream.writeRawData(reinterpret_cast<const char *>(it->ascan.data()), it->ascan.size());
+                    file_stream << it->gate.size();
                     for (auto g : it->gate) {
                         if (g.has_value()) {
-                            file << 1;
-                            file << g->pos;
-                            file << g->width;
-                            file << g->height;
-                            file << g->enable;
+                            file_stream << 1;
+                            file_stream << g->pos;
+                            file_stream << g->width;
+                            file_stream << g->height;
+                            file_stream << g->enable;
                         } else {
-                            file << 0;
+                            file_stream << 0;
                         }
                     }
                 }
+                file.flush();
                 return true;
             } catch (std::exception &e) {
 #if defined(QT_DEBUG)
                 qFatal(e.what());
 #else
-            qCritical(TAG) << e.what();
-
+                    qCritical(TAG) << e.what();
 #endif
                 return false;
             }
@@ -105,41 +114,17 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         return ret.get();
     }
 
-    bool HDBridgeIntf::deserializeScanData(const std::wstring &file_name) {
+    std::vector<std::vector<std::shared_ptr<ScanData>>> HDBridgeIntf::deserializeScanData(const QString &file_name) const {
+        std::vector<_T_DataV> _ret;
         try {
-            std::ifstream   file(file_name, std::ios::in | std::ios::binary);
-            std::lock_guard lock(m_scan_data_mutex);
-            size_t          scan_data_size;
-            file >> scan_data_size;
-            m_scan_data.resize(scan_data_size);
-            for (auto it = m_scan_data.begin(); it != m_scan_data.end(); it++) {
-                ScanData scan_data;
-                file >> scan_data.package_index;
-                file >> scan_data.channel;
-                file >> scan_data.xAxis_start;
-                file >> scan_data.xAxis_range;
-                size_t ascan_size;
-                file >> ascan_size;
-                scan_data.ascan.resize(ascan_size);
-                file.read(reinterpret_cast<char *>(scan_data.ascan.data()), ascan_size);
-                size_t gate_size;
-                file >> gate_size;
-                for (int i = 0; std::cmp_less(i, gate_size); i++) {
-                    int gate_has_value;
-                    file >> gate_has_value;
-                    if (gate_has_value == 1) {
-                        Union::Base::Gate gate;
-                        file >> gate.pos;
-                        file >> gate.width;
-                        file >> gate.height;
-                        file >> gate.enable;
-                        scan_data.gate[i] = gate;
-                    } else {
-                        scan_data.gate[i] = std::nullopt;
-                    }
-                }
+            QFile file(file_name);
+            file.open(QIODevice::ReadOnly);
+            QDataStream file_stream(&file);
+            while (file.pos() < file.size()) {
+                auto _temp = unserializeOneFreame(file_stream);
+                _ret.emplace_back(std::move(_temp));
             }
-            return true;
+
         } catch (std::exception &e) {
 #if defined(QT_DEBUG)
             qFatal(e.what());
@@ -147,45 +132,43 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             qCritical(TAG) << e.what();
 
 #endif
-            return false;
         }
+        return _ret;
     }
 
-    bool HDBridgeIntf::serializeConfigData(const std::wstring &file_name) const {
+    bool HDBridgeIntf::serializeConfigData(const QString &file_name) const {
         try {
             std::lock_guard lock(m_param_mutex);
-            std::ofstream   file(file_name, std::ios::out | std::ios::binary);
-            file << m_frequency;
-            file << m_voltage;
-            file << m_channel_flag;
-            file << m_damper_flag;
-            file << getChannelNumber();
+            QFile           file(file_name);
+            file.open(QIODevice::WriteOnly);
+            QDataStream file_stream(&file);
+            file_stream << m_frequency;
+            file_stream << m_voltage;
+            file_stream << m_channel_flag;
+            file_stream << m_damper_flag;
+            file_stream << getChannelNumber();
             for (auto i = 0; std::cmp_less(i, getChannelNumber()); i++) {
-                file << m_velocity[i];
-                file << m_zero_bias[i];
-                file << m_pulse_width[i];
-                file << m_delay[i];
-                file << m_sample_depth[i];
-                file << m_sample_factor[i];
-                file << m_gain[i];
-                file << m_filter[i];
-                file << m_demodu[i];
-                if (m_phase_reverse[i]) {
-                    file << 1;
-                } else {
-                    file << 0;
-                }
+                file_stream << m_velocity[i];
+                file_stream << m_zero_bias[i];
+                file_stream << m_pulse_width[i];
+                file_stream << m_delay[i];
+                file_stream << m_sample_depth[i];
+                file_stream << m_sample_factor[i];
+                file_stream << m_gain[i];
+                file_stream << m_filter[i];
+                file_stream << m_demodu[i];
+                file_stream << m_phase_reverse[i];
 
-                file << m_gate_info.size();
+                file_stream << m_gate_info.size();
                 for (auto j = 0; std::cmp_less(j, m_gate_info.size()); i++) {
                     if (m_gate_info[i][j].has_value()) {
-                        file << 1;
-                        file << m_gate_info[i][j]->pos;
-                        file << m_gate_info[i][j]->width;
-                        file << m_gate_info[i][j]->height;
-                        file << m_gate_info[i][j]->enable;
+                        file_stream << 1;
+                        file_stream << m_gate_info[i][j]->pos;
+                        file_stream << m_gate_info[i][j]->width;
+                        file_stream << m_gate_info[i][j]->height;
+                        file_stream << m_gate_info[i][j]->enable;
                     } else {
-                        file << 0;
+                        file_stream << 0;
                     }
                 }
             }
@@ -201,45 +184,43 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         }
     }
 
-    bool HDBridgeIntf::deserializeConfigData(const std::wstring &file_name) {
+    bool HDBridgeIntf::deserializeConfigData(const QString &file_name) {
         try {
             std::lock_guard lock(m_param_mutex);
-            std::ifstream   file(file_name, std::ios::in | std::ios::binary);
-            file >> m_frequency;
-            file >> m_voltage;
-            file >> m_channel_flag;
-            file >> m_damper_flag;
+            QFile           file(file_name);
+            file.open(QIODevice::ReadOnly);
+            QDataStream file_stream(&file);
+            file_stream >> m_frequency;
+            file_stream >> m_voltage;
+            file_stream >> m_channel_flag;
+            file_stream >> m_damper_flag;
             int channel_number;
-            file >> channel_number;
+            file_stream >> channel_number;
             for (auto i = 0; std::cmp_less(i, channel_number); i++) {
-                file >> m_velocity[i];
-                file >> m_zero_bias[i];
-                file >> m_pulse_width[i];
-                file >> m_delay[i];
-                file >> m_sample_depth[i];
-                file >> m_sample_factor[i];
-                file >> m_gain[i];
-                file >> m_filter[i];
-                file >> m_demodu[i];
-                int phase_reverse;
-                file >> phase_reverse;
-                if (phase_reverse == 1) {
-                    m_phase_reverse[i] = true;
-                } else {
-                    m_phase_reverse[i] = false;
-                }
+                file_stream >> m_velocity[i];
+                file_stream >> m_zero_bias[i];
+                file_stream >> m_pulse_width[i];
+                file_stream >> m_delay[i];
+                file_stream >> m_sample_depth[i];
+                file_stream >> m_sample_factor[i];
+                file_stream >> m_gain[i];
+                file_stream >> m_filter[i];
+                file_stream >> m_demodu[i];
+                bool phase_reverse;
+                file_stream >> phase_reverse;
+                m_phase_reverse[i] = phase_reverse;
 
                 size_t gate_info_number;
-                file >> gate_info_number;
+                file_stream >> gate_info_number;
                 for (auto j = 0; std::cmp_less(j, gate_info_number); i++) {
                     int gate_has_value;
-                    file >> gate_has_value;
+                    file_stream >> gate_has_value;
                     if (gate_has_value) {
                         Union::Base::Gate gate;
-                        file >> gate.pos;
-                        file >> gate.width;
-                        file >> gate.height;
-                        file >> gate.enable;
+                        file_stream >> gate.pos;
+                        file_stream >> gate.width;
+                        file_stream >> gate.height;
+                        file_stream >> gate.enable;
                         m_gate_info[i][j] = gate;
                     } else {
                         m_gate_info[i][j] = std::nullopt;
@@ -339,60 +320,115 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         return true;
     }
 
-    void HDBridgeIntf::runReadThread(void) {
+    void HDBridgeIntf::runHardwareReadThread(void) {
+        if (m_thread_type != SUB_THREAD_TYPE::IDLE && m_thread_type != SUB_THREAD_TYPE::HARDWARE) {
+            throw std::runtime_error("thread already running, and the thread type is not hardware");
+        }
         if (m_thread_running != true) {
+            m_thread_type    = SUB_THREAD_TYPE::HARDWARE;
             m_thread_running = true;
-            m_read_thread    = std::unique_ptr<QThread>(QThread::create(&HDBridgeIntf::readThread, this));
+            m_read_thread    = std::unique_ptr<QThread>(QThread::create(&HDBridgeIntf::hardwareReadThread, this));
+            m_read_thread->start();
+        }
+    }
+
+    void HDBridgeIntf::runFileReadThread(const QString &file_name, double fps) {
+        if (m_thread_type != SUB_THREAD_TYPE::IDLE && m_thread_type != SUB_THREAD_TYPE::FILE_STREAM) {
+            throw std::runtime_error("thread already running, and the thread type is not file stream");
+        }
+        if (m_thread_running != true) {
+            m_thread_type    = SUB_THREAD_TYPE::FILE_STREAM;
+            m_thread_running = true;
+            m_read_thread    = std::unique_ptr<QThread>(QThread::create(&HDBridgeIntf::fileReadThread, this, file_name, fps));
             m_read_thread->start();
         }
     }
 
     void HDBridgeIntf::closeReadThreadAndWaitExit(void) noexcept {
         if (m_thread_running == true) {
+            m_thread_type    = SUB_THREAD_TYPE::IDLE;
             m_thread_running = false;
             m_read_thread->wait();
+            m_read_thread = nullptr;
         }
     }
 
-    void HDBridgeIntf::readThread(void) {
-#if defined(QT_DEBUG) && defined(HDBRIDGE_SHOW_FPS)
-        int  counter   = 0;
-        auto last_tick = std::chrono::high_resolution_clock::now();
-#endif
+    void HDBridgeIntf::hardwareReadThread(void) {
+        auto              _last_invoke_time = std::chrono::system_clock::now();
+        std::vector<bool> _ch_update_flag; // 用于标记通道是否更新
+        _ch_update_flag.resize(getChannelNumber());
+        std::generate(_ch_update_flag.begin(), _ch_update_flag.end(), []() -> bool {
+            return false;
+        });
+        _T_DataV _mirror_scan_data = {}; // 扫查数据镜像
+        _mirror_scan_data.resize(getChannelNumber());
+        std::generate(_mirror_scan_data.begin(), _mirror_scan_data.end(), []() -> std::shared_ptr<ScanData> {
+            return nullptr;
+        });
+
         while (m_thread_running) {
             auto data = readOneFrame();
-            if (data != nullptr) {
-#if defined(QT_DEBUG) && defined(HDBRIDGE_SHOW_FPS)
-                if (data->channel == 1) {
-                    auto current_tick = std::chrono::high_resolution_clock::now();
-                    if (std::chrono::duration_cast<std::chrono::milliseconds>(current_tick - last_tick).count() >= 1000) {
-                        qDebug() << "read thread FPS:" << counter;
-                        counter   = 0;
-                        last_tick = current_tick;
-                    }
-                    counter++;
+            if (data != nullptr && data->channel >= 0 && data->channel < getChannelNumber()) {
+                _mirror_scan_data.at(data->channel) = data;
+                _ch_update_flag.at(data->channel)   = true;
+                if (std::accumulate(_ch_update_flag.begin(), _ch_update_flag.end(), 0) != getChannelNumber()) {
+                    // 如果有通道没有更新完成，则继续读取
+                    continue;
                 }
-#endif
-
-                if (data->channel > 0 && data->channel < getChannelNumber()) {
-                    std::lock_guard lock(m_scan_data_mutex);
-                    m_scan_data[data->channel] = data;
-                }
-                std::list<InftCallbackFunc> mirror = {};
+                invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
                 {
-                    std::lock_guard lock(m_callback_mutex);
-                    mirror = m_callback_list;
+                    std::lock_guard lock(m_scan_data_mutex);
+                    m_scan_data = _mirror_scan_data; // 更新镜像数据(作用域是为了减少lock的持有时间)
                 }
-                std::vector<std::future<void>> futures = {};
-                for (auto &func : mirror) {
-                    futures.emplace_back(std::async(func, data, std::ref(*this)));
+                std::generate(_ch_update_flag.begin(), _ch_update_flag.end(), []() -> bool {
+                    return false;
+                }); // 重新清空标志位
+                auto _current_invoke_time = std::chrono::system_clock::now();
+                using namespace std::chrono_literals;
+                // 限制最大帧率为100帧
+                if (_current_invoke_time - _last_invoke_time > 10ms) {
+                    std::this_thread::sleep_until(_last_invoke_time + 10ms);
                 }
-                for (auto &f : futures) {
-                    f.get();
-                }
-                QThread::yieldCurrentThread();
+                _last_invoke_time = _current_invoke_time;
             }
         }
+    }
+
+    void HDBridgeIntf::fileReadThread(const QString &file_name, std::optional<double> fps) {
+        _T_DataV _mirror_scan_data = {}; // 扫查数据镜像
+        auto     _last_invoke_time = std::chrono::system_clock::now();
+        QFile    file(file_name);
+        file.open(QIODevice::ReadOnly);
+        QDataStream file_stream(&file);
+        while (file.pos() < file.size() && m_thread_running) {
+            try {
+                _mirror_scan_data = unserializeOneFreame(file_stream);
+            } catch (std::exception &e) {
+#if defined(QT_DEBUG)
+                qFatal(e.what());
+#else
+                qCritical(TAG) << e.what();
+#endif
+            }
+
+            invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
+            using namespace std::chrono_literals;
+            auto sleep_time = 10000us / 1.0;
+            if (fps.has_value()) {
+                sleep_time = 1000000us / fps.value();
+            }
+            std::this_thread::sleep_until(_last_invoke_time + sleep_time);
+            _last_invoke_time = std::chrono::system_clock::now();
+        }
+        if (file.pos() > file.size()) {
+#if defined(QT_DEBUG)
+            qFatal("File read overflow");
+#else
+            qCritical(TAG) << "File read overflow";
+#endif
+        }
+        m_thread_running = false;
+        m_thread_type    = SUB_THREAD_TYPE::IDLE;
     }
 
     void HDBridgeIntf::initParam() {
@@ -422,6 +458,66 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
     void HDBridgeIntf::unlock_param(void) {
         m_param_mutex.unlock();
+    }
+
+    void HDBridgeIntf::invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type) {
+        try {
+            std::list<InftCallbackFunc> mirror = {};
+            {
+                std::lock_guard lock(m_callback_mutex);
+                mirror = m_callback_list;
+            }
+            std::vector<std::future<void>> futures = {};
+            for (auto &func : mirror) {
+                futures.emplace_back(std::async(launtch_type, func, data, std::ref(*this)));
+            }
+            for (auto &f : futures) {
+                f.get();
+            }
+        } catch (std::exception &e) {
+#if defined(QT_DEBUG)
+            qFatal(e.what());
+#else
+            qCritical(TAG) << e.what();
+#endif
+        }
+    }
+
+    HDBridgeIntf::_T_DataV HDBridgeIntf::unserializeOneFreame(QDataStream &file) const {
+        _T_DataV _temp;
+        size_t   scan_data_size;
+        file >> scan_data_size;
+        _temp.resize(scan_data_size);
+        for (auto it = _temp.begin(); it != _temp.end(); it++) {
+            auto scan_data = std::make_shared<ScanData>();
+            file >> scan_data->package_index;
+            file >> scan_data->channel;
+            file >> scan_data->xAxis_start;
+            file >> scan_data->xAxis_range;
+            size_t ascan_size;
+            file >> ascan_size;
+            scan_data->ascan.resize(ascan_size);
+            file.readRawData(reinterpret_cast<char *>(scan_data->ascan.data()), ascan_size);
+            size_t gate_size;
+            file >> gate_size;
+            scan_data->gate.resize(gate_size);
+            for (int i = 0; std::cmp_less(i, gate_size); i++) {
+                int gate_has_value;
+                file >> gate_has_value;
+                if (gate_has_value == 1) {
+                    Union::Base::Gate gate;
+                    file >> gate.pos;
+                    file >> gate.width;
+                    file >> gate.height;
+                    file >> gate.enable;
+                    scan_data->gate[i] = gate;
+                } else {
+                    scan_data->gate[i] = std::nullopt;
+                }
+            }
+            *it = std::move(scan_data);
+        }
+        return _temp;
     }
 
     int HDBridgeIntf::getFrequency() const {

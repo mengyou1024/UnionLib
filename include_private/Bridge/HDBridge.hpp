@@ -10,6 +10,7 @@
 #include <stack>
 #include <string_view>
 #include <vector>
+#include <future>
 
 namespace Union::Bridge::MultiChannelHardwareBridge {
 
@@ -31,8 +32,9 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     public:
         explicit HDBridgeIntf();
         virtual ~HDBridgeIntf();
-
-        using InftCallbackFunc = std::function<void(std::shared_ptr<const ScanData>, const HDBridgeIntf &)>;
+        using IntfInvokeParam_1 = const std::vector<std::shared_ptr<ScanData>>&;
+        using IntfInvokeParam_2 = const HDBridgeIntf &;
+        using InftCallbackFunc = std::function<void(IntfInvokeParam_1, IntfInvokeParam_2)>;
 
         /**
          * @brief 打开设备
@@ -344,20 +346,20 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         virtual void paramCopy(int src, std::vector<int> dist, int max_gate_number) final;
 
         /**
-         * @brief 序列化扫查数据
+         * @brief 序列化扫查数据追加到文件
          *
-         * @param file_name 文件名
+         * @param file_name 文件名称
          * @return bool
          */
-        virtual bool serializeScanData(const std::wstring &file_name) const;
+        bool serializeScanDataAppendToFile(const QString &file_name) const;
 
         /**
          * @brief 反序列化扫查数据
          *
          * @param file_name 文件名
-         * @return bool
+         * @return data
          */
-        virtual bool deserializeScanData(const std::wstring &file_name);
+        virtual std::vector<std::vector<std::shared_ptr<ScanData>>> deserializeScanData(const QString &file_name) const final;
 
         /**
          * @brief 序列化配置文件
@@ -365,7 +367,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param file_name 文件名
          * @return bool
          */
-        virtual bool serializeConfigData(const std::wstring &file_name) const;
+        virtual bool serializeConfigData(const QString &file_name) const;
 
         /**
          * @brief 反序列化配置文件
@@ -373,7 +375,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @param file_name 文件名
          * @return bool
          */
-        virtual bool deserializeConfigData(const std::wstring &file_name);
+        virtual bool deserializeConfigData(const QString &file_name);
 
         /**
          * @brief 添加回调函数
@@ -410,14 +412,29 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @brief 运行读取线程
          *
          */
-        void runReadThread(void);
+        void runHardwareReadThread(void);
+
+        /**
+         * @brief 运行读取线程(扫查文件版本)
+         *
+         * @param file_name 文件名称
+         * @param fps 帧率
+         */
+        void runFileReadThread(const QString &file_name, double fps = 30);
 
     protected:
+        enum class SUB_THREAD_TYPE {
+            IDLE,        ///< 空闲
+            HARDWARE,    ///< 硬件
+            FILE_STREAM, ///< 文件流
+        };
+
         std::list<InftCallbackFunc>             m_callback_list  = {};
         std::stack<std::list<InftCallbackFunc>> m_callback_stack = {};
         mutable std::mutex                      m_callback_mutex = {};
         std::atomic<bool>                       m_thread_running = false;
         std::unique_ptr<QThread>                m_read_thread    = {};
+        SUB_THREAD_TYPE                         m_thread_type    = SUB_THREAD_TYPE::IDLE;
         mutable std::mutex                      m_param_mutex    = {};
 
         using _T_GateV = std::vector<std::vector<std::optional<Union::Base::Gate>>>;
@@ -460,10 +477,18 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         void closeReadThreadAndWaitExit(void) noexcept;
 
         /**
-         * @brief 读取线程
+         * @brief 硬件读取线程
          *
          */
-        void readThread(void);
+        void hardwareReadThread(void);
+
+        /**
+         * @brief 文件读取线程
+         *
+         * @param file_name
+         * @param fps
+         */
+        void fileReadThread(const QString &file_name, std::optional<double> fps);
 
         /**
          * @brief 初始化参数
@@ -482,6 +507,10 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          *
          */
         void unlock_param(void);
+
+    private:
+        void invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type = std::launch::async);
+        _T_DataV unserializeOneFreame(QDataStream& file) const;
     };
 
 } // namespace Union::Bridge::MultiChannelHardwareBridge
