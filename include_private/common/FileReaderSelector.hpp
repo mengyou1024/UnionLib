@@ -86,7 +86,6 @@ namespace Union::Utils {
          * @return bool
          */
         bool RegistReader(std::string_view file_suffix, std::string_view describe, const FRS_RFUNC &func) {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             auto temp = std::make_tuple(func, std::string(describe));
             return data.try_emplace(std::string(file_suffix), temp).second;
         }
@@ -98,7 +97,6 @@ namespace Union::Utils {
          * @return std::optional<FRS_DTYPE>
          */
         const std::optional<FRS_DTYPE> Get(const std::string &file_suffix) {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             const auto ret = data.find(file_suffix);
             if (ret == data.end()) {
                 return std::nullopt;
@@ -113,7 +111,6 @@ namespace Union::Utils {
          * @return QJsonArray
          */
         QJsonArray GetFileNameFilter() {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QJsonArray ret;
             for (auto &[key, val] : data) {
                 auto &[func, describe] = val;
@@ -128,7 +125,6 @@ namespace Union::Utils {
          * @return QJsonArray
          */
         QJsonArray GetFileListModelNameFilter() {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QJsonArray obj;
             for (auto &[key, val] : data) {
                 static QRegularExpression reg(R"((\*\.\w+))");
@@ -147,7 +143,6 @@ namespace Union::Utils {
          * @return QJsonObject
          */
         QJsonObject GetUINameMap() {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QJsonObject obj;
             for (auto &[key, val] : data) {
                 static QRegularExpression reg(R"((\.\w+))");
@@ -167,7 +162,6 @@ namespace Union::Utils {
          * @return std::optional<FRS_RFUNC>
          */
         const std::optional<FRS_RFUNC> GetReadFunction(const std::wstring &fileName) {
-            qDebug(QLoggingCategory("FileReaserSelector")) << "instance id:" << &data << "this id: " << this ;
             QFileInfo file(QString::fromStdWString(fileName));
             for (auto &[key, val] : data) {
                 if (QString::fromStdString(key).toLower().contains(file.suffix().toLower())) {
