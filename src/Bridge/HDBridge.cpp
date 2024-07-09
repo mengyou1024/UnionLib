@@ -1,5 +1,6 @@
 #include "HDBridge.hpp"
 #include <QCoreApplication>
+#include <QDataStream>
 #include <QEventLoop>
 #include <QFile>
 #include <QLoggingCategory>
@@ -7,6 +8,7 @@
 #include <chrono>
 #include <future>
 #include <numeric>
+
 #if !defined(QT_DEBUG)
 Q_LOGGING_CATEGORY(TAG, "Union.HDBridge");
 #endif
@@ -86,7 +88,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                     file_stream << it->xAxis_start;
                     file_stream << it->xAxis_range;
                     file_stream << it->ascan.size();
-                    file_stream.writeRawData(reinterpret_cast<const char *>(it->ascan.data()), it->ascan.size());
+                    file_stream.writeRawData(reinterpret_cast<const char *>(it->ascan.data()), std::ssize(it->ascan));
                     file_stream << it->gate.size();
                     for (auto g : it->gate) {
                         if (g.has_value()) {
@@ -497,7 +499,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             size_t ascan_size;
             file >> ascan_size;
             scan_data->ascan.resize(ascan_size);
-            file.readRawData(reinterpret_cast<char *>(scan_data->ascan.data()), ascan_size);
+            file.readRawData(reinterpret_cast<char *>(scan_data->ascan.data()), static_cast<int>(ascan_size));
             size_t gate_size;
             file >> gate_size;
             scan_data->gate.resize(gate_size);
