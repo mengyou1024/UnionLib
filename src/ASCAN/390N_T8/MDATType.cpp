@@ -204,7 +204,7 @@ namespace Union::__390N_T8::MDATType {
 
     double UnType::getZeroPointBias(int idx) const {
         const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-        return channel_param.axisBias;
+        return channel_param.zeroPoint;
     }
 
     double UnType::getSamplingDelay(int idx) const {
@@ -242,7 +242,21 @@ namespace Union::__390N_T8::MDATType {
 
     double UnType::getAxisBias(int idx) const {
         const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-        return channel_param.axisBias;
+        auto       delay_s                                                                      = channel_param.axisBias;
+        auto       ret                                                                          = delay_s;
+        const auto angle                                                                        = getAngle(idx);
+
+        switch (getDistanceMode(idx)) {
+            case Union::AScan::DistanceMode::DistanceMode_X:
+                ret = delay_s * std::sin(angle * M_PI / 180.0);
+                break;
+            case Union::AScan::DistanceMode::DistanceMode_Y:
+                ret = delay_s * std::cos(angle * M_PI / 180.0);
+                break;
+            default:
+                break;
+        }
+        return ret;
     }
 
     double UnType::getAxisLen(int idx) const {
@@ -267,7 +281,7 @@ namespace Union::__390N_T8::MDATType {
 
     double UnType::getSupression(int idx) const {
         const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-        return static_cast<int>(KeepDecimals<0>(channel_param.suppression));
+        return channel_param.suppression;
     }
 
     DistanceMode UnType::getDistanceMode(int idx) const {
