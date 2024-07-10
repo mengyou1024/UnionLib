@@ -16,20 +16,20 @@
 
 ``` c++
 // 注册文件读写接口
-Union::AScan::AScanFileSelector::Instance().RegistReader("*.ldat", "390N、T8连续图像", Union::__390N_T8::LDAT::FromFile);
-Union::AScan::AScanFileSelector::Instance().RegistReader("*.json", "390N、T8单幅图像", Union::__390N_T8::T8_390N_JSON::FromFile);
-Union::AScan::AScanFileSelector::Instance().RegistReader("*.das", "330单幅图像", Union::__330::DASType::FromFile);
-Union::AScan::AScanFileSelector::Instance().RegistReader("*.DAT", "330连续图像", Union::__330::DATType::FromFile);
-Union::AScan::AScanFileSelector::Instance().RegistReader("*.cod", "330串口数据", Union::__330::Serial_330::FromFile);
+Union::AScan::AScanFileSelector::Instance()->RegistReader("*.ldat", "390N、T8连续图像", Union::__390N_T8::LDAT::FromFile);
+Union::AScan::AScanFileSelector::Instance()->RegistReader("*.json", "390N、T8单幅图像", Union::__390N_T8::T8_390N_JSON::FromFile);
+Union::AScan::AScanFileSelector::Instance()->RegistReader("*.das", "330单幅图像", Union::__330::DASType::FromFile);
+Union::AScan::AScanFileSelector::Instance()->RegistReader("*.DAT", "330连续图像", Union::__330::DATType::FromFile);
+Union::AScan::AScanFileSelector::Instance()->RegistReader("*.cod", "330串口数据", Union::__330::Serial_330::FromFile);
 
 QVariantList folderListModel_nameFilter;
 QVariantList filedialog_nameFilter;
 QVariantMap  mainUi_map;
 // 获取QML中需要使用的变量
 filedialog_nameFilter.push_back("所有文件 (*.*)");
-mainUi_map.insert(Union::AScan::AScanFileSelector::Instance().GetUINameMap().toVariantMap());
-folderListModel_nameFilter += Union::AScan::AScanFileSelector::Instance().GetFileListModelNameFilter().toVariantList();
-filedialog_nameFilter += Union::AScan::AScanFileSelector::Instance().GetFileNameFilter().toVariantList();
+mainUi_map.insert(Union::AScan::AScanFileSelector::Instance()->GetUINameMap().toVariantMap());
+folderListModel_nameFilter += Union::AScan::AScanFileSelector::Instance()->GetFileListModelNameFilter().toVariantList();
+filedialog_nameFilter += Union::AScan::AScanFileSelector::Instance()->GetFileNameFilter().toVariantList();
 // 注册变量到QML的全局环境
 context->setContextProperty("FOLDERLISTMODEL_NAMEFILTER", folderListModel_nameFilter);
 context->setContextProperty("FILEDIALOG_NAMEFILTER", filedialog_nameFilter);

@@ -177,13 +177,18 @@ namespace Union::Utils {
          *
          * @return FileReaderSelector&
          */
-        static FileReaderSelector &Instance() {
+        static FileReaderSelector *Instance() noexcept {
             auto ret = InstanceBuilder::FindInstance(I_NAME.data());
             if (ret == nullptr) {
                 ret = std::shared_ptr<FileReaderSelector>(new FileReaderSelector);
                 InstanceBuilder::RegistInstance(I_NAME.data(), ret);
             }
-            return *(dynamic_cast<FileReaderSelector *>(ret.get()));
+            auto ret_inst = (dynamic_cast<FileReaderSelector *>(ret.get()));
+            if (ret_inst == nullptr) {
+                constexpr auto msg = "dynamic_cast FileReaderSelector nullptr error";
+                qFatal(msg);
+            }
+            return ret_inst;
         }
 
     private:
