@@ -198,9 +198,9 @@ namespace Union::AScan {
             {QObject::tr("延时"), QString::number(KeepDecimals<1>(getSamplingDelay(idx)), 'f', 1) + " mm"},
             {QObject::tr("声速"), QString::number(KeepDecimals<0>(getSoundVelocity(idx)), 'f', 0) + " m/s"},
             {QObject::tr("通道"), QString::number(getChannel(idx))},
-            {QObject::tr("K值"), QString::number(Union::Base::Probe::Degree2K(getAngle(idx)), 'f', 2)},
+            {QObject::tr("K值/角度"), QString::number(Union::Base::Probe::Degree2K(getAngle(idx)), 'f', 2) +
+                                          "/" + QString::number(KeepDecimals<1>(getAngle(idx)), 'f', 1) + "°"},
             {QObject::tr("抑制"), QString::number(getSupression(idx), 'f', 1) + "%"},
-            {QObject::tr("角度"), QString::number(KeepDecimals<1>(getAngle(idx)), 'f', 1) + "°"},
         };
         return {
             {QObject::tr("增益参数"), gainPrarameter},
