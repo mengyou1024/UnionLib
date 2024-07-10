@@ -232,6 +232,11 @@ namespace Union::__390N_T8::MDATType {
         ret[1].width  = channel_param.gateBWidth;
         ret[1].height = channel_param.gateBHeight;
         ret[1].enable = channel_param.gateBEnable;
+        if (ret[1].enable == false) {
+            if (ret[1].width > 0.01 && ret[1].height > 0.01) {
+                ret[1].enable = true;
+            }
+        }
         return ret;
     }
 
