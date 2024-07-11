@@ -82,6 +82,10 @@ namespace Union::__330 {
         (void)index;
     }
 
+    int DASType::getFileNameIndex() const {
+        return 0;
+    }
+
     Base::Performance DASType::getPerformance(int idx) const {
         (void)idx;
 

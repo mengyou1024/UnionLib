@@ -85,6 +85,10 @@ namespace Union::__390N_T8 {
         (void)index;
     }
 
+    int LDAT::getFileNameIndex() const {
+        return 0;
+    }
+
     Base::Performance LDAT::getPerformance(int idx) const {
         Base::Performance ret;
         if (ldat.empty()) {

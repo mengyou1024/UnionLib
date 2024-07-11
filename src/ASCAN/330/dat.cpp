@@ -163,6 +163,10 @@ namespace Union::__330 {
         m_fileName_index = index;
     }
 
+    int DATType::getFileNameIndex() const {
+        return m_fileName_index;
+    }
+
     Base::Performance DATType::getPerformance(int idx) const {
         // 330 该参数未使用
         (void)idx;

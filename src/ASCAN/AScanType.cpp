@@ -1,5 +1,6 @@
 #include "AScanType.hpp"
 #include <QLoggingCategory>
+#include <QMessageBox>
 #include <QString>
 #include <tuple>
 
@@ -115,48 +116,59 @@ namespace Union::AScan {
 
             if (isStraightBeamProbe(idx)) {
                 if (getDistanceMode(idx) == Union::AScan::DistanceMode::DistanceMode_X) {
-                    qWarning(TAG) << QObject::tr("当探头为直探头时, 使用声程模式X").toStdString().c_str();
+                    auto msg = QObject::tr("当探头为直探头时, 使用声程模式X");
+                    qWarning(TAG) << msg.toStdString().c_str();
+                    std::call_once(m_once_flag, [&msg]() {
+                        QMessageBox::warning(nullptr, QObject::tr("警告"), msg);
+                    });
                 }
             } else {
                 if (!(std::abs(getAngle(idx)) > 0.0001)) {
-                    qCritical(TAG) << QObject::tr("当探头为斜探头时, 探头角度近乎为0").toStdString().c_str();
-                    break;
+                    auto msg = QObject::tr("当探头为斜探头时, 探头角度近乎为0");
+                    qCritical(TAG) << msg.toStdString().c_str();
+                    std::call_once(m_once_flag, [&msg]() {
+                        QMessageBox::warning(nullptr, QObject::tr("警告"), msg);
+                    });
                 }
                 const auto rad = Union::Base::Probe::Degree2Rd(getAngle(idx));
                 const auto k   = Union::Base::Probe::Degree2K(getAngle(idx));
-                switch (getDistanceMode(idx)) {
-                    case Union::AScan::DistanceMode::DistanceMode_Y: {
-                        b = Union::ValueMap(loc, getAxisRange(idx));
-                        a = b.value() * k;
-                        c = b.value() / std::cos(rad);
-                        break;
+                try {
+                    switch (getDistanceMode(idx)) {
+                        case Union::AScan::DistanceMode::DistanceMode_Y: {
+                            b = Union::ValueMap(loc, getAxisRange(idx));
+                            a = b.value() * k;
+                            c = b.value() / std::cos(rad);
+                            break;
+                        }
+                        case Union::AScan::DistanceMode::DistanceMode_X: {
+                            a = Union::ValueMap(loc, getAxisRange(idx));
+                            b = b.value() / k;
+                            c = a.value() / std::sin(rad);
+                            break;
+                        }
+                        case Union::AScan::DistanceMode::DistanceMode_S: {
+                            c = Union::ValueMap(loc, getAxisRange(idx));
+                            a = c.value() * std::sin(rad);
+                            b = c.value() * std::cos(rad);
+                            break;
+                        }
                     }
-                    case Union::AScan::DistanceMode::DistanceMode_X: {
-                        a = Union::ValueMap(loc, getAxisRange(idx));
-                        b = b.value() / k;
-                        c = a.value() / std::sin(rad);
-                        break;
-                    }
-                    case Union::AScan::DistanceMode::DistanceMode_S: {
-                        c = Union::ValueMap(loc, getAxisRange(idx));
-                        a = c.value() * std::sin(rad);
-                        b = c.value() * std::cos(rad);
-                        break;
-                    }
+                } catch (std::exception &e) {
+                    qCritical(TAG) << e.what();
                 }
-                a = a.value() - getFrontDistance(idx);
+                a = a.value_or(0) - getFrontDistance(idx);
             }
 
             if (a) {
-                _a = QString::number(KeepDecimals<1>(a.value()), 'f', 1);
+                _a = QString::number(KeepDecimals<1>(a.value_or(0)), 'f', 1);
             }
 
             if (b) {
-                _b = QString::number(KeepDecimals<1>(b.value()), 'f', 1);
+                _b = QString::number(KeepDecimals<1>(b.value_or(0)), 'f', 1);
             }
 
             if (c) {
-                _c = QString::number(KeepDecimals<1>(c.value()), 'f', 1);
+                _c = QString::number(KeepDecimals<1>(c.value_or(0)), 'f', 1);
             }
 
             QString _equi = "-";

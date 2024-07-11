@@ -7,7 +7,7 @@
 namespace Union::__390N_T8::MDATType {
     using namespace Union::AScan;
 
-    class UnType : public Union::AScan::AScanIntf,public Union::AScan::Special::CameraImageSpecial {
+    class UnType : public Union::AScan::AScanIntf, public Union::AScan::Special::CameraImageSpecial {
     public:
         using _Body_T = std::tuple<AScanData, ChannelParam, std::shared_ptr<DACParam>, std::shared_ptr<AVGParam>, std::shared_ptr<Performance>, std::shared_ptr<CameraData>>;
         using _Data_T = std::pair<InstrumentBaseInfo, std::vector<_Body_T>>;
@@ -21,6 +21,7 @@ namespace Union::__390N_T8::MDATType {
         virtual int                         getDataSize(void) const override;
         virtual std::vector<std::wstring>   getFileNameList(void) const override;
         virtual void                        setFileNameIndex(int index) override;
+        virtual int                         getFileNameIndex() const override;
         virtual Base::Performance           getPerformance(int idx) const override;
         virtual std::string                 getDate(int idx) const override;
         virtual std::wstring                getProbe(int idx) const override;

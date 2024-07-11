@@ -68,6 +68,12 @@ namespace Union::AScan {
          */
         virtual void setFileNameIndex(int index) = 0;
 
+        /**
+         * @brief 获取文件名索引
+         * @return 文件索引序号
+         */
+        virtual int getFileNameIndex() const = 0;
+
         // AScanType
         /**
          * @brief 获取仪器的五大性能
@@ -380,6 +386,9 @@ namespace Union::AScan {
          * @return boolean
          */
         virtual bool isStraightBeamProbe(int idx) const final;
+
+    private:
+        mutable std::once_flag m_once_flag;
     };
 
     /**
@@ -393,5 +402,4 @@ namespace Union::AScan {
      *
      */
     using AScanFileSelector = Union::Utils::FileReaderSelector<AScanIntf, ASCAN_I_NAME>;
-
 } // namespace Union::AScan

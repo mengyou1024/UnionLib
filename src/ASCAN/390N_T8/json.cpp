@@ -36,6 +36,10 @@ namespace Union::__390N_T8 {
         (void)index;
     }
 
+    int T8_390N_JSON::getFileNameIndex() const {
+        return 0;
+    }
+
     Base::Performance T8_390N_JSON::getPerformance(int idx) const {
         (void)idx;
         return m_ascan->performance;

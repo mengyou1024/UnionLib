@@ -192,6 +192,7 @@ namespace Union::__390N_T8 {
 
         virtual std::vector<std::wstring> getFileNameList(void) const override;
         virtual void                      setFileNameIndex(int index) override;
+        virtual int                       getFileNameIndex() const override;
 
         // IMPL
         virtual Base::Performance getPerformance(int idx) const override;

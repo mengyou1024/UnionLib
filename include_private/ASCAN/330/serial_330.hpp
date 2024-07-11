@@ -61,6 +61,7 @@ namespace Union::__330 {
         virtual int                       getDataSize(void) const override final;
         virtual std::vector<std::wstring> getFileNameList(void) const override final;
         virtual void                      setFileNameIndex(int index) override final;
+        virtual int                       getFileNameIndex() const override final;
         virtual Base::Performance         getPerformance(int idx) const override final;
         virtual std::string               getDate(int idx) const override final;
         virtual std::wstring              getProbe(int idx) const override final;

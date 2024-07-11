@@ -137,6 +137,10 @@ namespace Union::__330 {
         m_fileName_index = index;
     }
 
+    int Serial_330::getFileNameIndex() const {
+        return m_fileName_index;
+    }
+
     Base::Performance Serial_330::getPerformance(int idx) const {
         (void)idx;
         return m_performance;

@@ -163,6 +163,7 @@ namespace Union::__330 {
 
         virtual std::vector<std::wstring> getFileNameList(void) const override;
         virtual void                      setFileNameIndex(int index) override;
+        virtual int                       getFileNameIndex() const override;
 
         // IMPL
         Base::Performance getPerformance(int idx) const override;

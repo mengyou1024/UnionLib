@@ -151,6 +151,10 @@ namespace Union::__390N_T8::MDATType {
         (void)index;
     }
 
+    int UnType::getFileNameIndex() const {
+        return 0;
+    }
+
     Base::Performance UnType::getPerformance(int idx) const {
         const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
         if (performance != nullptr) {
@@ -366,13 +370,13 @@ namespace Union::__390N_T8::MDATType {
             double               equivalent = dac_param->equivalent;
             constexpr std::array lstrequi   = {" ", "RL", "SL", "EL"};
             m_equi[0]                       = QString::asprintf("%s %+.1fdB", lstrequi[index], equivalent);
-            m_equi[1] = getDacEquivalent(idx, 1);
+            m_equi[1]                       = getDacEquivalent(idx, 1);
         } else if (avg_param != nullptr && avg_param->isReady) {
             auto reflector_diameter = avg_param->reflectorDiameter;
             auto equivalent         = avg_param->equivalent;
             auto avg_diameter       = avg_param->diameter;
             m_equi[0]               = QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivalent);
-            m_equi[1] = getAvgEquivalent(idx, 1);
+            m_equi[1]               = getAvgEquivalent(idx, 1);
         }
 
         auto obj1    = ret[0].toObject();
