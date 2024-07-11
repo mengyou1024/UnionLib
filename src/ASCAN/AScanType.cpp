@@ -224,8 +224,8 @@ namespace Union::AScan {
 
     std::function<std::optional<double>(double)> AScanIntf::getAVGLineExpr(int idx) const {
         try {
-            auto            avg_param     = getAVG(idx);
-            constexpr float AVG_ECHO_SIZE = 495.0;
+            auto   avg_param     = getAVG(idx);
+            double AVG_ECHO_SIZE = getScanData(idx).size();
             if (!avg_param.has_value()) {
                 return [](double) -> double { return 0.0; };
             }
@@ -277,8 +277,8 @@ namespace Union::AScan {
 
     std::function<std::optional<double>(double)> AScanIntf::getDACLineExpr(int idx) const {
         try {
-            auto             dac_param     = getDAC(idx);
-            constexpr double DAC_ECHO_SIZE = 495.0;
+            auto   dac_param     = getDAC(idx);
+            double DAC_ECHO_SIZE = getScanData(idx).size();
             if (!dac_param.has_value()) {
                 return [](double) -> double { return 0.0; };
             }

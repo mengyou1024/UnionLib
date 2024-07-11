@@ -366,11 +366,13 @@ namespace Union::__390N_T8::MDATType {
             double               equivalent = dac_param->equivalent;
             constexpr std::array lstrequi   = {" ", "RL", "SL", "EL"};
             m_equi[0]                       = QString::asprintf("%s %+.1fdB", lstrequi[index], equivalent);
+            m_equi[1] = getDacEquivalent(idx, 1);
         } else if (avg_param != nullptr && avg_param->isReady) {
             auto reflector_diameter = avg_param->reflectorDiameter;
-            auto equivlant          = avg_param->equivalent;
+            auto equivalent         = avg_param->equivalent;
             auto avg_diameter       = avg_param->diameter;
-            m_equi[0]               = QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivlant);
+            m_equi[0]               = QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivalent);
+            m_equi[1] = getAvgEquivalent(idx, 1);
         }
 
         auto obj1    = ret[0].toObject();
@@ -393,6 +395,55 @@ namespace Union::__390N_T8::MDATType {
             return QImage(camera_data->m_data.data(), camera_data->m_width, camera_data->m_height, QImage::Format_RGB888).mirrored(true, true);
         }
         return QImage();
+    }
+
+    QString UnType::getDacEquivalent(int idx, int gate_idx) const {
+        if (!getDAC(idx).has_value() || !(getGate(idx).at(gate_idx % 2).enable)) {
+            return "-";
+        }
+
+        auto gate_res = Union::Base::CalculateGateResult(getScanData(idx), getGate(idx).at(gate_idx % 2), false, getSupression(idx));
+        if (!gate_res.has_value()) {
+            return "-";
+        }
+        const auto& [pos, amp]                                                                  = gate_res.value();
+        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        auto dac_standard                                                                       = getDACStandard(idx);
+
+        auto             index     = dac_param->criteria;
+        const std::array modify    = {0.0, dac_standard.rlBias, dac_standard.slBias, dac_standard.elBias};
+        auto             dac_value = getDACLineExpr(idx)(getScanData(idx).size() * pos);
+        if (!dac_value.has_value()) {
+            return "-";
+        }
+        dac_value = Union::CalculateGainOutput(dac_value.value(), modify[index]);
+        qDebug(QLoggingCategory("TEST")) << QString::asprintf("(dac_value, amp):(%1, %2)").arg(dac_value.value()).arg(amp);
+        qDebug(QLoggingCategory("TEST")) << "AScan Data Size:" << getScanData(idx).size();
+
+        auto equivalent = Union::CalculatedGain(dac_value.value(), amp);
+
+        constexpr std::array lstrequi = {" ", "RL", "SL", "EL"};
+        return QString::asprintf("%s %+.1fdB", lstrequi[index], KeepDecimals<1>(equivalent));
+    }
+
+    QString UnType::getAvgEquivalent(int idx, int gate_idx) const {
+        if (!getAVG(idx).has_value() || !(getGate(idx).at(gate_idx % 2).enable)) {
+            return "-";
+        }
+        auto gate_res = Union::Base::CalculateGateResult(getScanData(idx), getGate(idx).at(gate_idx % 2), false, getSupression(idx));
+        if (!gate_res.has_value()) {
+            return "-";
+        }
+        const auto& [pos, amp]                                                                  = gate_res.value();
+        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        auto reflector_diameter                                                                 = avg_param->reflectorDiameter;
+        auto avg_diameter                                                                       = avg_param->diameter;
+        auto avg_value                                                                          = getAVGLineExpr(idx)(getScanData(idx).size() * pos);
+        if (!avg_value.has_value()) {
+            return "-";
+        }
+        auto equivalent = Union::CalculatedGain(avg_value.value(), amp);
+        return QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, KeepDecimals<1>(equivalent));
     }
 
 } // namespace Union::__390N_T8::MDATType

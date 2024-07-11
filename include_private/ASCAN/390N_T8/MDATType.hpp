@@ -53,5 +53,9 @@ namespace Union::__390N_T8::MDATType {
 
         virtual bool   showCameraImage(int idx) const override;
         virtual QImage getCameraImage(int idx) const override;
+
+    private:
+        QString getDacEquivalent(int idx, int gate_idx) const;
+        QString getAvgEquivalent(int idx, int gate_idx) const;
     };
 } // namespace Union::__390N_T8::MDATType
