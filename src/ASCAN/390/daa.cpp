@@ -245,9 +245,12 @@ namespace Union::__390 {
     }
 
     bool DAAType::zeroPointInFoot() const {
+// 需求变更: 统一使用轨头的坐标, 2024-07-11
+#ifdef DISABLE_REQUIREMENT_CHANGE_2024_07_11
         if (m_390Extra.position == 3 || m_390Extra.position == 4) {
             return true;
         }
+#endif
         return false;
     }
 
