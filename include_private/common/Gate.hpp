@@ -30,7 +30,7 @@ namespace Union::Base {
     GateResult CalculateGateResult(
         const std::vector<uint8_t>  &data,
         const Gate                  &gate,
-        bool                         find_center_if_overflow = true,
+        bool                         find_center_if_overflow = false,
         const std::optional<double> &supression              = std::nullopt,
         uint8_t                      view_max                = 200);
 

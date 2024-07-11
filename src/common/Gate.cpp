@@ -17,7 +17,7 @@ namespace Union::Base {
         auto right = data.begin() + static_cast<int64_t>((double)data.size() * (double)(gate.pos + gate.width));
         auto max   = std::max_element(left, right);
 
-        if (find_center_if_overflow && *max == 255) {
+        if (find_center_if_overflow && (*max == 255)) {
             std::vector<decltype(left)> minMaxVec = {};
             for (auto &_left = left, &_right = right; _left != _right; _left++) {
                 if (*_left == 255) {

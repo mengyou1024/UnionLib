@@ -355,7 +355,7 @@ namespace Union::AScan {
          *         [pos, max_amp]
          *         其中pos的范围为:0-1
          */
-        virtual std::optional<std::tuple<double, uint8_t>> getGateResult(int idx, int gate_idx = 0, bool find_center_if_overflow = true, bool enable_supression = true) const final;
+        virtual std::optional<std::tuple<double, uint8_t>> getGateResult(int idx, int gate_idx = 0, bool find_center_if_overflow = false, bool enable_supression = true) const final;
 
         /**
          * @brief 获取QLineSeries.replace可使用的A扫数据
