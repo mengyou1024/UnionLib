@@ -7,10 +7,16 @@ namespace Union::AScan::Special {
     // 钢轨焊缝示意图特化
     class RailWeldDigramSpecial {
     public:
-        virtual ~RailWeldDigramSpecial() = default;
+        virtual ~RailWeldDigramSpecial()   = default;
         virtual double getDotX(void) const = 0;
         virtual double getDotY(void) const = 0;
         virtual double getDotZ(void) const = 0;
+
+        /**
+         * @brief 示意图的零点在轨底
+         * @return bool
+         */
+        virtual bool zeroPointInFoot() const = 0;
     };
 
     // 摄像头图像特化

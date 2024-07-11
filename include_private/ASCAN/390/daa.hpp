@@ -60,6 +60,8 @@ namespace Union::__390 {
         virtual double     getDotZ(void) const override;
         virtual QJsonArray createGateValue(int idx, double soft_gain) const override;
 
+        virtual bool zeroPointInFoot() const override;
+
     private:
         QString getStationName() const;
         QString getStockType() const;

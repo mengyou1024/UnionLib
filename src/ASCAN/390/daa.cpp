@@ -244,6 +244,13 @@ namespace Union::__390 {
         return ret;
     }
 
+    bool DAAType::zeroPointInFoot() const {
+        if (m_390Extra.position == 3 || m_390Extra.position == 4) {
+            return true;
+        }
+        return false;
+    }
+
     QString DAAType::getFineType() const {
         switch (m_390Extra.finetype) {
             case 1:
@@ -315,7 +322,8 @@ namespace Union::__390 {
                 return "轨腰";
             case 3:
                 return "轨底";
-
+            case 4:
+                return "轨底脚";
             default:
                 return "error";
         }
