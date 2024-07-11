@@ -203,7 +203,7 @@ namespace Union::__330 {
     int Serial_330::getChannel(int idx) const {
         (void)idx;
         auto sys = m_data[m_fileName_index].channelStatus.sys;
-        return ((sys >> 12) & 0x0F) + 1;
+        return ((sys >> 12) & 0x0F);
     }
 
     std::string Serial_330::getInstrumentName(void) const {

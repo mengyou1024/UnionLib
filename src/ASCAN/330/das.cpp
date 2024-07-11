@@ -143,7 +143,7 @@ namespace Union::__330 {
 
     int DASType::getChannel(int idx) const {
         (void)idx;
-        return ((systemStatus.sys >> 12) & 0x0F) + 1;
+        return ((systemStatus.sys >> 12) & 0x0F);
     }
 
     std::string DASType::getInstrumentName(void) const {
