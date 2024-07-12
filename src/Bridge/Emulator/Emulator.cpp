@@ -174,7 +174,26 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         ret->xAxis_start    = 50;
         ret->xAxis_range    = 100;
         ret->ascan.resize(1000);
-        std::generate(ret->ascan.begin(), ret->ascan.end(), [&]() -> uint8_t { return rand() % 256; });
+        ret->gate = m_gate_info[ret->channel];
+        int idx   = 0;
+        std::generate(ret->ascan.begin(), ret->ascan.end(), [&]() -> uint8_t {
+            idx++;
+            auto _ret = 0;
+            if (idx > (200 + 5 * ret->channel) && idx < (202 + 5 * ret->channel)) {
+                _ret = std::rand() % 5 + 50;
+            } else {
+                _ret = std::rand() % 10;
+            }
+            _ret = Union::CalculateGainOutput(_ret, getGain(ret->channel));
+            if (_ret > 255) {
+                return 255;
+            }
+            if (_ret < 0) {
+                return 0;
+            }
+            return static_cast<uint8_t>(_ret);
+        });
+        ret->gate_result.resize(ret->gate.size());
         std::transform(ret->gate.begin(), ret->gate.end(), ret->gate_result.begin(), [=](const std::optional<Union::Base::Gate> &_gate) -> Union::Base::GateResult {
             if (!_gate.has_value()) {
                 return std::nullopt;

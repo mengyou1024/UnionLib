@@ -5,17 +5,17 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <future>
 #include <map>
 #include <mutex>
 #include <stack>
 #include <string_view>
 #include <vector>
-#include <future>
 
 namespace Union::Bridge::MultiChannelHardwareBridge {
 
     struct ScanData {
-        using _GateR  = std::vector<std::optional<Union::Base::GateResult>>;
+        using _GateR  = std::vector<Union::Base::GateResult>;
         using _GateV  = std::vector<std::optional<Union::Base::Gate>>;
         using _AScanV = std::vector<uint8_t>;
 
@@ -32,9 +32,9 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     public:
         explicit HDBridgeIntf();
         virtual ~HDBridgeIntf();
-        using IntfInvokeParam_1 = const std::vector<std::shared_ptr<ScanData>>&;
+        using IntfInvokeParam_1 = const std::vector<std::shared_ptr<ScanData>> &;
         using IntfInvokeParam_2 = const HDBridgeIntf &;
-        using InftCallbackFunc = std::function<void(IntfInvokeParam_1, IntfInvokeParam_2)>;
+        using InftCallbackFunc  = std::function<void(IntfInvokeParam_1, IntfInvokeParam_2)>;
 
         /**
          * @brief 打开设备
@@ -422,6 +422,17 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          */
         void runFileReadThread(const QString &file_name, double fps = 30);
 
+        /**
+         * @brief 自动增益
+         * @param ch 通道号
+         * @param gate_idx 波门序号
+         * @param target 目标值
+         * @param timeout_ms 超时时间
+         * @param max_value 波高最大值(100%)
+         * @return bool
+         */
+        bool autoGain(int ch, int gate_idx, double target, int timeout_ms = 3000, uint8_t max_value = 255);
+
     protected:
         enum class SUB_THREAD_TYPE {
             IDLE,        ///< 空闲
@@ -509,8 +520,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         void unlock_param(void);
 
     private:
-        void invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type = std::launch::async);
-        _T_DataV unserializeOneFreame(QDataStream& file) const;
+        void     invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type = std::launch::async);
+        _T_DataV unserializeOneFreame(QDataStream &file) const;
     };
 
 } // namespace Union::Bridge::MultiChannelHardwareBridge

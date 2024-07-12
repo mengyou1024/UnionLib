@@ -15,7 +15,9 @@ namespace Union::Base {
         bool   operator==(const Gate &rhs) const;
     };
 
-    using GateResult = std::optional<std::tuple<double, uint8_t>>;
+    constexpr auto GATE_MAX_POS = 0;
+    constexpr auto GATE_MAX_AMP = 1;
+    using GateResult            = std::optional<std::tuple<double, uint8_t>>;
 
     /**
      * @brief 计算波门的结果

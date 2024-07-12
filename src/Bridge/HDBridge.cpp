@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QLoggingCategory>
 #include <QThread>
+#include <array>
 #include <chrono>
 #include <future>
 #include <numeric>
@@ -344,6 +345,58 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             m_read_thread    = std::unique_ptr<QThread>(QThread::create(&HDBridgeIntf::fileReadThread, this, file_name, fps));
             m_read_thread->start();
         }
+    }
+
+    bool HDBridgeIntf::autoGain(int ch, int gate_idx, double target, int timeout_ms, uint8_t max_value) {
+        if (target <= 0.0) {
+            return false;
+        }
+        const auto           _ch           = ch % getChannelNumber();
+        const auto           _gate_idx     = gate_idx % getGateNumber();
+        constexpr std::array MAP_GAIN_STEP = {
+            std::make_pair(2.0, 6.0),
+            std::make_pair(1.25, 2.0),
+            std::make_pair(1.12, 1.0),
+            std::make_pair(1.05, 0.5),
+            std::make_pair(1.02, 0.2),
+            std::make_pair(1.01, 0.1),
+        };
+        {
+            std::lock_guard lock(m_scan_data_mutex);
+            if (!m_scan_data[_ch]->gate[_gate_idx].has_value()) {
+                return false;
+            }
+        }
+        auto _current_time = std::chrono::system_clock::now();
+        while (std::chrono::system_clock::now() - _current_time <= std::chrono::milliseconds(timeout_ms)) {
+            Union::Base::GateResult gate_res = std::nullopt;
+            {
+                std::lock_guard lock(m_scan_data_mutex);
+                gate_res = m_scan_data[_ch]->gate_result[_gate_idx];
+            }
+            if (!gate_res.has_value()) {
+                break;
+            }
+            double rate = (std::get<Base::GATE_MAX_AMP>(gate_res.value()) / static_cast<double>(max_value)) / (target / 100.0);
+            double sign = rate > 1.0 ? -1.0 : 1.0;
+            rate        = rate > 1.0 ? rate : 1.0 / rate;
+            double step = 0.0;
+            for (auto i = 0; i < std::ssize(MAP_GAIN_STEP); i++) {
+                if (rate >= MAP_GAIN_STEP[i].first) {
+                    step = MAP_GAIN_STEP[i].second;
+                    break;
+                }
+            }
+            if (step == 0.0) {
+                return true;
+            }
+            auto gain = getGain(ch);
+            gain += sign * step;
+            setGain(ch, gain);
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(200ms);
+        }
+        return false;
     }
 
     void HDBridgeIntf::closeReadThreadAndWaitExit(void) noexcept {
