@@ -60,6 +60,9 @@ namespace Union::__330 {
             size_t   ret        = 0;
             ret += Yo::File::__Read(file, Yo::File::SkipSize(64), file_size);
             ret += Yo::File::__Read(file, file_total, file_size);
+            if (file_total == 0) {
+                return 0;
+            }
             ret += Yo::File::__Read(file, len_fat, file_size);
             ret += Yo::File::__Read(file, len_file, file_size);
             uint8_t ins_name = 0;
