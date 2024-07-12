@@ -122,7 +122,7 @@ namespace Union::__390N_T8::MDATType {
             fileStream >> frame_tail;
             if (frame_tail != FRAME_TAIL) {
                 qWarning(TAG) << "frame tail error:" << frame_tail << "type class:" << class_type << "frames:" << _frames;
-                return nullptr;
+                break;
             }
             if (file.size() <= file.pos()) {
                 qDebug(TAG) << "read file end";
