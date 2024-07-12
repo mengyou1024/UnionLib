@@ -421,9 +421,6 @@ namespace Union::__390N_T8::MDATType {
             return "-";
         }
         dac_value = Union::CalculateGainOutput(dac_value.value(), modify[index]);
-        qDebug(QLoggingCategory("TEST")) << QString::asprintf("(dac_value, amp):(%1, %2)").arg(dac_value.value()).arg(amp);
-        qDebug(QLoggingCategory("TEST")) << "AScan Data Size:" << getScanData(idx).size();
-
         auto equivalent = Union::CalculatedGain(dac_value.value(), amp);
 
         constexpr std::array lstrequi = {" ", "RL", "SL", "EL"};
