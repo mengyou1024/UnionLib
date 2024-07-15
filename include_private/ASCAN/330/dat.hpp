@@ -228,7 +228,7 @@ namespace Union::__330 {
         // IMPL
         Base::Performance getPerformance(int idx) const override final;
         std::string       getDate(int idx) const override final;
-        std::wstring      getProbe(int idx) const override final;
+        std::wstring      getProbe(int idx) const override;
         double            getProbeFrequence(int idx) const override final;
         std::string       getProbeChipShape(int idx) const override final;
         double            getAngle(int idx) const override final;

@@ -14,6 +14,7 @@ namespace Union::__390 {
         virtual std::string getInstrumentName(void) const override;
         virtual QVariantMap createTechnologicalParameter(int idx) const override final;
         virtual bool        getReportEnable() const override final;
+        virtual std::wstring getProbe(int idx) const override;
 
     private:
         QString getChanneName(int idx) const;

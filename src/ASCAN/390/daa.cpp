@@ -72,7 +72,7 @@ namespace Union::__390 {
 
     std::wstring DAAType::getProbe(int idx) const {
         (void)idx;
-        static const std::array _probe = {
+        constexpr std::array _probe = {
             L"直探头",
             L"斜探头",
             L"双晶探头",
@@ -422,7 +422,7 @@ namespace Union::__390 {
             case 3:
                 return "K0.0";
             case 4:
-                return "K1.5";
+                return "双K1.0";
             default:
                 return "error";
         }

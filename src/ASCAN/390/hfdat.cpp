@@ -114,6 +114,16 @@ bool Union::__390::HFDATType::getReportEnable() const {
     return false;
 }
 
+std::wstring Union::__390::HFDATType::getProbe(int idx) const {
+    constexpr std::array _probe = {
+        L"直探头",
+        L"斜探头",
+        L"双晶探头",
+        L"双探头",
+    };
+    return _probe.at(getHead(idx).channel_status.sys >> 12 & 0x07);
+}
+
 QString Union::__390::HFDATType::getChanneName(int idx) const {
     switch (getChannel(idx)) {
         case 0:
@@ -125,7 +135,7 @@ QString Union::__390::HFDATType::getChanneName(int idx) const {
         case 3:
             return "K0.0";
         case 4:
-            return "K1.5";
+            return "双K1.0";
         default:
             return "error";
     }
