@@ -36,6 +36,12 @@
 | [摄像头数据](# 摄像头数据)         | 5          |
 | [A扫数据](# A扫数据) | 6 |
 
+#### 兼容性新增
+
+| 类型名             | class type |
+| ------------------ | ---------- |
+| [CMP000](# CMP000) | 0x8000 |
+
 > 注: 
 >
 > 1. 所有的多字节类型均保持**小端序**
@@ -67,7 +73,7 @@
 | soundVelocity         | float     | 声速 单位: mm                                                |
 | angle                 | float     | 探头角度 单位: °                                             |
 | probeChipShapeWorD    | float     | 探头晶片尺寸的宽度或者直径 单位: mm                          |
-| probeChipShapeLorZero | float     | 探头晶片尺寸的长度 单位: mm （仅有直径参数的探头填0)         |
+| probeChipShapeLorZero | float     | 探头晶片尺寸的长度 单位: mm (仅有直径参数的探头填0)         |
 | probe                 | uint8_t   | 0: 直探头<br />1: 斜探头<br />2: 双晶纵波直探头<br />3: 穿透探头<br />4: 双晶纵波斜探头 |
 | gateAPos              | float     | A波门位置(归一化)                                            |
 | gateAWidth            | float     | A波门宽度(归一化)                                            |
@@ -144,3 +150,17 @@
 | 字段名 | 类型      | 注释    |
 | ------ | --------- | ------- |
 | data   | uint8_t[] | A扫数据 |
+
+
+
+### 兼容性新增类型
+
+#### CMP000
+
+| 字段名            | 类型    | 注释                         |
+| ----------------- | ------- | ---------------------------- |
+| gateBType         | uint8_t | B门类型(0: 失波门 1: 进波门) |
+| criteriaBiasLine4 | float   | Line4 偏移                   |
+| criteriaBiasLine5 | float   | Line5 偏移                   |
+| criteriaBiasLine6 | float   | Line6 偏移                   |
+| LineNumber        | uint8_t | DAC曲线根数                  |
