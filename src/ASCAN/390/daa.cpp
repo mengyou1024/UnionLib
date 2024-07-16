@@ -82,6 +82,7 @@ namespace Union::__390 {
     }
 
     std::string DAAType::getProbeChipShape(int idx) const {
+        (void)idx;
         auto index = channelStatus.sys >> 12 & 0x07;
         auto a     = channelParam.crystal_l / 1000;
         auto b     = channelParam.crystal_w / 1000;

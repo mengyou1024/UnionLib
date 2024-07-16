@@ -7,9 +7,26 @@
 namespace Union::__390N_T8::MDATType {
     using namespace Union::AScan;
 
-    class UnType : public Union::AScan::AScanIntf, public Union::AScan::Special::CameraImageSpecial {
+    class UnType : public Union::AScan::AScanIntf,
+                   public Union::AScan::Special::CameraImageSpecial,
+                   public Union::AScan::Special::CMP000Special {
     public:
-        using _Body_T = std::tuple<AScanData, ChannelParam, std::shared_ptr<DACParam>, std::shared_ptr<AVGParam>, std::shared_ptr<Performance>, std::shared_ptr<CameraData>>;
+        using _Body_T = std::tuple<
+            AScanData, ChannelParam,
+            std::shared_ptr<DACParam>,
+            std::shared_ptr<AVGParam>,
+            std::shared_ptr<Performance>,
+            std::shared_ptr<CameraData>,
+            std::shared_ptr<CMP000>>;
+
+        inline static constexpr auto ID_ASCAN_DATA    = 0;
+        inline static constexpr auto ID_CHANNEL_PARAM = 1;
+        inline static constexpr auto ID_DAC_PARAM     = 2;
+        inline static constexpr auto ID_AVG_PARAM     = 3;
+        inline static constexpr auto ID_PERFORMANCE   = 4;
+        inline static constexpr auto ID_CAMERA_DATA   = 5;
+        inline static constexpr auto ID_CMP000        = 6;
+
         using _Data_T = std::pair<InstrumentBaseInfo, std::vector<_Body_T>>;
 
         _Data_T                   m_data         = {};
@@ -54,6 +71,11 @@ namespace Union::__390N_T8::MDATType {
 
         virtual bool   showCameraImage(int idx) const override;
         virtual QImage getCameraImage(int idx) const override;
+
+        virtual bool   isSpecialEnabled(int idx) const override;
+        virtual int    getDacLineNumber(int idx) const override;
+        virtual double getDACLineBias(int idx, int lineIdx) const override;
+        virtual bool   gateBIsLostType(int idx) const override;
 
     private:
         QString getDacEquivalent(int idx, int gate_idx) const;

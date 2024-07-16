@@ -41,4 +41,40 @@ namespace Union::AScan::Special {
             return true;
         }
     };
+
+    class CMP000Special {
+    public:
+        virtual ~CMP000Special() = default;
+        /**
+         * @brief 特性启用
+         * 
+         * @return bool 
+         */
+        virtual bool isSpecialEnabled(int idx) const = 0;
+
+        /**
+         * @brief DAC曲线的根数
+         * 
+         * @param idx 图像序号
+         * @return int 
+         */
+        virtual int getDacLineNumber(int idx) const = 0;
+
+        /**
+         * @brief DAC曲线的偏移
+         * 
+         * @param idx 图像序号
+         * @param lineIdx 线条序号
+         * @return double 
+         */
+        virtual double getDACLineBias(int idx, int lineIdx) const = 0;
+
+        /**
+         * @brief B波门是失波门类型
+         * 
+         * @param idx 图像序号
+         * @return bool 
+         */
+        virtual bool gateBIsLostType(int idx) const = 0;
+    };
 } // namespace Union::AScan::Special

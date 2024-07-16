@@ -54,62 +54,81 @@ namespace Union::__390N_T8::MDATType {
                     ret.m_data.first.unserialize_payload(payload);
                     break;
                 }
-                case 6: {
-                    auto& body = ret.m_data.second;
-                    body.push_back({});
-                    auto current_cur                                                                  = std::ssize(body) - 1;
-                    auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = body[current_cur];
-                    if (current_cur > 0) {
-                        auto& [ascan_data_last, channel_param_last, dac_param_last, avg_param_last, performance_last, camera_data_last] = body[current_cur - 1];
 
-                        dac_param   = dac_param_last;
-                        avg_param   = avg_param_last;
-                        performance = performance_last;
-                        camera_data = camera_data_last;
-                    }
-                    ascan_data.unserialize_payload(payload, payload_len);
-                    _frames++;
+                case 1: {
+                    auto& channel_param = std::get<ID_CHANNEL_PARAM>(ret.m_data.second[std::ssize(ret.m_data.second) - 1]);
+                    channel_param.unserialize_payload(payload);
                     break;
                 }
-                case 2: {
-                    auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = ret.m_data.second[std::ssize(ret.m_data.second) - 1];
 
-                    auto _insert_dac = std::make_shared<DACParam>();
+                case 2: {
+                    auto& dac_param   = std::get<ID_DAC_PARAM>(ret.m_data.second[std::ssize(ret.m_data.second) - 1]);
+                    auto  _insert_dac = std::make_shared<DACParam>();
                     _insert_dac->unserialize_payload(payload);
                     dac_param = _insert_dac;
                     break;
                 }
 
                 case 3: {
-                    auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = ret.m_data.second[std::ssize(ret.m_data.second) - 1];
-
-                    auto _insert_avg = std::make_shared<AVGParam>();
+                    auto& avg_param   = std::get<ID_AVG_PARAM>(ret.m_data.second[std::ssize(ret.m_data.second) - 1]);
+                    auto  _insert_avg = std::make_shared<AVGParam>();
                     _insert_avg->unserialize_payload(payload);
                     avg_param = _insert_avg;
                     break;
                 }
 
                 case 4: {
-                    auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = ret.m_data.second[std::ssize(ret.m_data.second) - 1];
-
-                    auto _insert_performance = std::make_shared<Performance>();
+                    auto& performance         = std::get<ID_PERFORMANCE>(ret.m_data.second[std::ssize(ret.m_data.second) - 1]);
+                    auto  _insert_performance = std::make_shared<Performance>();
                     _insert_performance->unserialize_payload(payload);
                     performance = _insert_performance;
                     break;
                 }
 
                 case 5: {
-                    auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = ret.m_data.second[std::ssize(ret.m_data.second) - 1];
-
-                    auto _insert_camera = std::make_shared<CameraData>();
+                    auto& camera_data    = std::get<ID_CAMERA_DATA>(ret.m_data.second[std::ssize(ret.m_data.second) - 1]);
+                    auto  _insert_camera = std::make_shared<CameraData>();
                     _insert_camera->unserialize_payload(payload);
                     camera_data = _insert_camera;
                     break;
                 }
 
-                case 1: {
-                    auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = ret.m_data.second[std::ssize(ret.m_data.second) - 1];
-                    channel_param.unserialize_payload(payload);
+                case 6: {
+                    auto& body = ret.m_data.second;
+                    body.push_back({});
+                    auto current_cur = std::ssize(body) - 1;
+                    if (current_cur > 0) {
+                        auto& dac_param      = std::get<ID_DAC_PARAM>(body[current_cur]);
+                        auto& dac_param_last = std::get<ID_DAC_PARAM>(body[current_cur - 1]);
+                        dac_param            = dac_param_last;
+
+                        auto& avg_param      = std::get<ID_AVG_PARAM>(body[current_cur]);
+                        auto& avg_param_last = std::get<ID_AVG_PARAM>(body[current_cur - 1]);
+                        avg_param            = avg_param_last;
+
+                        auto& performance      = std::get<ID_PERFORMANCE>(body[current_cur]);
+                        auto& performance_last = std::get<ID_PERFORMANCE>(body[current_cur - 1]);
+                        performance            = performance_last;
+
+                        auto& camera_data      = std::get<ID_CAMERA_DATA>(body[current_cur]);
+                        auto& camera_data_last = std::get<ID_CAMERA_DATA>(body[current_cur - 1]);
+                        camera_data            = camera_data_last;
+
+                        auto& cmp000      = std::get<ID_CMP000>(body[current_cur]);
+                        auto& cmp000_last = std::get<ID_CMP000>(body[current_cur - 1]);
+                        cmp000            = cmp000_last;
+                    }
+                    auto& ascan_data = std::get<ID_ASCAN_DATA>(body[current_cur]);
+                    ascan_data.unserialize_payload(payload, payload_len);
+                    _frames++;
+                    break;
+                }
+
+                case 0x8000: {
+                    auto& cmp000         = std::get<ID_CMP000>(ret.m_data.second[std::ssize(ret.m_data.second) - 1]);
+                    auto  _insert_cmp000 = std::make_shared<CMP000>();
+                    _insert_cmp000->unserialize_payload(payload);
+                    cmp000 = _insert_cmp000;
                     break;
                 }
 
@@ -156,7 +175,7 @@ namespace Union::__390N_T8::MDATType {
     }
 
     Base::Performance UnType::getPerformance(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& performance = std::get<ID_PERFORMANCE>(m_data.second.at(idx));
         if (performance != nullptr) {
             Base::Performance ret;
             ret.horizontalLinearity = performance->horizontalLinearity;
@@ -177,37 +196,37 @@ namespace Union::__390N_T8::MDATType {
     }
 
     std::wstring UnType::getProbe(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return Union::Base::Probe::Index2Name_QtExtra(channel_param.probe).toStdWString();
     }
 
     double UnType::getProbeFrequence(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.probeFrequency;
     }
 
     std::string UnType::getProbeChipShape(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return Union::Base::Probe::CreateProbeChipShape(channel_param.probe, channel_param.probeChipShapeWorD, channel_param.probeChipShapeLorZero);
     }
 
     double UnType::getAngle(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.angle;
     }
 
     double UnType::getSoundVelocity(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.soundVelocity;
     }
 
     double UnType::getFrontDistance(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.probeFrontDistance;
     }
 
     double UnType::getZeroPointBias(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.zeroPoint;
     }
 
@@ -216,7 +235,7 @@ namespace Union::__390N_T8::MDATType {
     }
 
     int UnType::getChannel(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.channel;
     }
 
@@ -226,7 +245,7 @@ namespace Union::__390N_T8::MDATType {
     }
 
     std::array<Base::Gate, 2> UnType::getGate(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto&               channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         std::array<Base::Gate, 2> ret;
         ret[0].pos    = channel_param.gateAPos;
         ret[0].width  = channel_param.gateAWidth;
@@ -245,15 +264,15 @@ namespace Union::__390N_T8::MDATType {
     }
 
     const std::vector<uint8_t>& UnType::getScanData(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& ascan_data = std::get<ID_ASCAN_DATA>(m_data.second.at(idx));
         return ascan_data.m_data;
     }
 
     double UnType::getAxisBias(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-        auto       delay_s                                                                      = channel_param.axisBias;
-        auto       ret                                                                          = delay_s;
-        const auto angle                                                                        = getAngle(idx);
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
+        auto        delay_s       = channel_param.axisBias;
+        auto        ret           = delay_s;
+        const auto  angle         = getAngle(idx);
 
         switch (getDistanceMode(idx)) {
             case Union::AScan::DistanceMode::DistanceMode_X:
@@ -269,37 +288,37 @@ namespace Union::__390N_T8::MDATType {
     }
 
     double UnType::getAxisLen(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.axisLen;
     }
 
     double UnType::getBaseGain(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.baseGain;
     }
 
     double UnType::getScanGain(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.scanGain;
     }
 
     double UnType::getSurfaceCompentationGain(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.compensatingGain;
     }
 
     double UnType::getSupression(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return channel_param.suppression;
     }
 
     DistanceMode UnType::getDistanceMode(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return DistanceMode(channel_param.distanceMode);
     }
 
     std::optional<Base::AVG> UnType::getAVG(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& avg_param = std::get<ID_AVG_PARAM>(m_data.second.at(idx));
         if (avg_param != nullptr && avg_param->isReady) {
             Base::AVG ret;
             ret.equivalent         = avg_param->equivalent;
@@ -319,7 +338,7 @@ namespace Union::__390N_T8::MDATType {
     }
 
     std::optional<Base::DAC> UnType::getDAC(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& dac_param = std::get<ID_DAC_PARAM>(m_data.second.at(idx));
         if (dac_param != nullptr && dac_param->isReady) {
             Base::DAC ret;
             ret.baseGain  = dac_param->baseGain;
@@ -334,9 +353,8 @@ namespace Union::__390N_T8::MDATType {
     }
 
     DAC_Standard UnType::getDACStandard(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-
-        if (avg_param != nullptr) {
+        const auto& dac_param = std::get<ID_DAC_PARAM>(m_data.second.at(idx));
+        if (dac_param != nullptr) {
             DAC_Standard ret;
             ret.elBias = dac_param->criteriaBiasEL;
             ret.rlBias = dac_param->criteriaBiasRL;
@@ -347,7 +365,7 @@ namespace Union::__390N_T8::MDATType {
     }
 
     std::pair<double, double> UnType::getProbeSize(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& channel_param = std::get<ID_CHANNEL_PARAM>(m_data.second.at(idx));
         return {channel_param.probeChipShapeWorD, channel_param.probeChipShapeLorZero};
     }
 
@@ -363,7 +381,8 @@ namespace Union::__390N_T8::MDATType {
         std::array<QString, 2> m_b    = {"-", "-"};
         std::array<QString, 2> m_c    = {"-", "-"};
 
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& dac_param = std::get<ID_DAC_PARAM>(m_data.second.at(idx));
+        const auto& avg_param = std::get<ID_AVG_PARAM>(m_data.second.at(idx));
 
         if (dac_param != nullptr && dac_param->isReady) {
             auto                 index      = dac_param->criteria;
@@ -389,16 +408,66 @@ namespace Union::__390N_T8::MDATType {
     }
 
     bool UnType::showCameraImage(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& camera_data = std::get<ID_CAMERA_DATA>(m_data.second.at(idx));
         return camera_data != nullptr;
     }
 
     QImage UnType::getCameraImage(int idx) const {
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
+        const auto& camera_data = std::get<ID_CAMERA_DATA>(m_data.second.at(idx));
         if (camera_data != nullptr) {
             return QImage(camera_data->m_data.data(), camera_data->m_width, camera_data->m_height, QImage::Format_RGB888).mirrored(true, true);
         }
         return QImage();
+    }
+
+    bool UnType::isSpecialEnabled(int idx) const {
+        const auto& cmp000 = std::get<ID_CMP000>(m_data.second.at(idx));
+        if (cmp000 != nullptr) {
+            return true;
+        }
+        return false;
+    }
+
+    int UnType::getDacLineNumber(int idx) const {
+        const auto& cmp000 = std::get<ID_CMP000>(m_data.second.at(idx));
+        if (cmp000 != nullptr) {
+            return cmp000->LineNumber;
+        }
+        return 0;
+    }
+
+    double UnType::getDACLineBias(int idx, int lineIdx) const {
+        const auto& cmp000  = std::get<ID_CMP000>(m_data.second.at(idx));
+        const auto& dac_std = getDACStandard(idx);
+        if (cmp000 != nullptr) {
+            switch (lineIdx) {
+                case 0:
+                    return dac_std.rlBias;
+                case 1:
+                    return dac_std.slBias;
+                case 2:
+                    return dac_std.elBias;
+                case 3:
+                    return cmp000->criteriaBiasLine4;
+                case 4:
+                    return cmp000->criteriaBiasLine5;
+                case 5:
+                    return cmp000->criteriaBiasLine6;
+            }
+        }
+        return 0.0;
+    }
+
+    bool UnType::gateBIsLostType(int idx) const {
+        const auto& cmp000 = std::get<ID_CMP000>(m_data.second.at(idx));
+        if (cmp000 != nullptr) {
+            if (cmp000->gateBType == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
     }
 
     QString UnType::getDacEquivalent(int idx, int gate_idx) const {
@@ -410,9 +479,9 @@ namespace Union::__390N_T8::MDATType {
         if (!gate_res.has_value()) {
             return "-";
         }
-        const auto& [pos, amp]                                                                  = gate_res.value();
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-        auto dac_standard                                                                       = getDACStandard(idx);
+        const auto& [pos, amp]   = gate_res.value();
+        const auto& dac_param    = std::get<ID_DAC_PARAM>(m_data.second.at(idx));
+        auto        dac_standard = getDACStandard(idx);
 
         auto             index     = dac_param->criteria;
         const std::array modify    = {0.0, dac_standard.rlBias, dac_standard.slBias, dac_standard.elBias};
@@ -420,7 +489,7 @@ namespace Union::__390N_T8::MDATType {
         if (!dac_value.has_value()) {
             return "-";
         }
-        dac_value = Union::CalculateGainOutput(dac_value.value(), modify[index]);
+        dac_value       = Union::CalculateGainOutput(dac_value.value(), modify[index]);
         auto equivalent = Union::CalculatedGain(dac_value.value(), amp);
 
         constexpr std::array lstrequi = {" ", "RL", "SL", "EL"};
@@ -435,11 +504,11 @@ namespace Union::__390N_T8::MDATType {
         if (!gate_res.has_value()) {
             return "-";
         }
-        const auto& [pos, amp]                                                                  = gate_res.value();
-        const auto& [ascan_data, channel_param, dac_param, avg_param, performance, camera_data] = m_data.second[idx];
-        auto reflector_diameter                                                                 = avg_param->reflectorDiameter;
-        auto avg_diameter                                                                       = avg_param->diameter;
-        auto avg_value                                                                          = getAVGLineExpr(idx)(getScanData(idx).size() * pos);
+        const auto& [pos, amp]         = gate_res.value();
+        const auto& avg_param          = std::get<ID_AVG_PARAM>(m_data.second.at(idx));
+        auto        reflector_diameter = avg_param->reflectorDiameter;
+        auto        avg_diameter       = avg_param->diameter;
+        auto        avg_value          = getAVGLineExpr(idx)(getScanData(idx).size() * pos);
         if (!avg_value.has_value()) {
             return "-";
         }

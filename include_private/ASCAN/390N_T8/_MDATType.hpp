@@ -300,13 +300,13 @@ namespace Union::__390N_T8::MDATType {
             return m_data == other.m_data;
         }
     };
-    
-    struct CMP0000 : public Serializer<0x8000> {
-        uint8_t gateBType = {};
-        float criteriaBiasLine4 = {};
-        float criteriaBiasLine5 = {};
-        float criteriaBiasLine6 = {};
-        uint8_t LineNumber = {};
+
+    struct CMP000 : public Serializer<0x8000> {
+        uint8_t gateBType         = {};
+        float   criteriaBiasLine4 = {};
+        float   criteriaBiasLine5 = {};
+        float   criteriaBiasLine6 = {};
+        uint8_t LineNumber        = {};
 
         virtual void serialize_payload(QDataStream& payload) const override {
             payload << gateBType << criteriaBiasLine4 << criteriaBiasLine5 << criteriaBiasLine6 << LineNumber;
@@ -316,7 +316,7 @@ namespace Union::__390N_T8::MDATType {
             payload >> gateBType >> criteriaBiasLine4 >> criteriaBiasLine5 >> criteriaBiasLine6 >> LineNumber;
         }
 
-        bool operator==(CMP0000 other) {
+        bool operator==(CMP000 other) {
             return gateBType == other.gateBType && criteriaBiasLine4 == other.criteriaBiasLine4 && criteriaBiasLine5 == other.criteriaBiasLine5 && criteriaBiasLine6 == other.criteriaBiasLine6 && LineNumber == other.LineNumber;
         }
     };
