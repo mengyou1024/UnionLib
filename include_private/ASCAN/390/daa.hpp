@@ -48,6 +48,7 @@ namespace Union::__390 {
         size_t __Read(std::ifstream &file, size_t file_size) override;
 
         virtual std::wstring getProbe(int idx) const override final;
+        virtual std::string getProbeChipShape(int idx) const override final;
 
         virtual QVariantMap createTechnologicalParameter(int idx) const override final;
 

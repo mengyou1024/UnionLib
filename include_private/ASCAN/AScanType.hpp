@@ -339,6 +339,13 @@ namespace Union::AScan {
          * @return bool
          */
         virtual bool getReportEnable() const;
+        
+        /**
+         * @brief 是否使能日期显示
+         * 
+         * @return bool 
+         */
+        virtual bool getDateEnable() const;
 
         ////////////////////////////////////////////////////// 不可重写的虚函数 //////////////////////////////////////////////////////
 

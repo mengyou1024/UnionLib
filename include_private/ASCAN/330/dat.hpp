@@ -230,7 +230,7 @@ namespace Union::__330 {
         std::string       getDate(int idx) const override final;
         std::wstring      getProbe(int idx) const override;
         double            getProbeFrequence(int idx) const override final;
-        std::string       getProbeChipShape(int idx) const override final;
+        std::string       getProbeChipShape(int idx) const override;
         double            getAngle(int idx) const override final;
         double            getSoundVelocity(int idx) const override final;
         double            getFrontDistance(int idx) const override final;

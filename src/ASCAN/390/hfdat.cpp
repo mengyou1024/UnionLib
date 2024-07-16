@@ -114,6 +114,10 @@ bool Union::__390::HFDATType::getReportEnable() const {
     return false;
 }
 
+bool Union::__390::HFDATType::getDateEnable() const {
+    return false;
+}
+
 std::wstring Union::__390::HFDATType::getProbe(int idx) const {
     constexpr std::array _probe = {
         L"直探头",
@@ -122,6 +126,23 @@ std::wstring Union::__390::HFDATType::getProbe(int idx) const {
         L"双探头",
     };
     return _probe.at(getHead(idx).channel_status.sys >> 12 & 0x07);
+}
+
+std::string Union::__390::HFDATType::getProbeChipShape(int idx) const {
+    auto channelStatus = getHead(idx).channel_status;
+    auto channelParam  = getHead(idx).channel_param;
+    auto systemStatus  = getHead(idx).system_status;
+    auto index         = channelStatus.sys >> 12 & 0x07;
+    auto a             = channelParam.Crystal_l / 1000;
+    auto b             = channelParam.Crystal_w / 1000;
+
+    std::stringstream ss;
+    switch (index) {
+        case 2:
+        case 0:
+            return (ss << "Φ" << a << "mm", ss.str());
+        default: return (ss << a << "mm × " << b << "mm", ss.str());
+    }
 }
 
 QString Union::__390::HFDATType::getChanneName(int idx) const {
