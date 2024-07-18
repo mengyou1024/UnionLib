@@ -16,7 +16,7 @@ namespace Union::__390 {
         virtual bool         getReportEnable() const override final;
         virtual bool         getDateEnable() const override;
         virtual std::wstring getProbe(int idx) const override;
-        virtual std::string getProbeChipShape(int idx) const override;
+        virtual std::string  getProbeChipShape(int idx) const override;
 
     private:
         QString getChanneName(int idx) const;

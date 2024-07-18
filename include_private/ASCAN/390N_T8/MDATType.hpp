@@ -77,6 +77,8 @@ namespace Union::__390N_T8::MDATType {
         virtual double getDACLineBias(int idx, int lineIdx) const override;
         virtual bool   gateBIsLostType(int idx) const override;
 
+        virtual std::optional<double> getWorkPieceThickness(int idx) const override;
+
     private:
         QString getDacEquivalent(int idx, int gate_idx) const;
         QString getAvgEquivalent(int idx, int gate_idx) const;

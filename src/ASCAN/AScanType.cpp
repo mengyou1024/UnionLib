@@ -2,6 +2,7 @@
 #include <QLoggingCategory>
 #include <QMessageBox>
 #include <QString>
+#include <cmath>
 #include <tuple>
 
 static Q_LOGGING_CATEGORY(TAG, "ASCAN.INTF");
@@ -159,6 +160,25 @@ namespace Union::AScan {
                 a = a.value_or(0) - getFrontDistance(idx);
             }
 
+            auto workPieceThickness = getWorkPieceThickness(idx);
+
+            if (workPieceThickness.has_value() && (workPieceThickness.value() > 0.0) && b.has_value()) {
+                auto numberOfRefraction = static_cast<int>(std::floor(b.value() / workPieceThickness.value()));
+                auto isOdd              = numberOfRefraction % 2 == 1;
+
+                if (isOdd) {
+                    // 奇数次反射, 深度 = 工件厚度 - (计算值 % 工件厚度)
+                    auto b_value = b.value();
+                    auto t_value = workPieceThickness.value();
+                    b            = workPieceThickness.value() - (std::fmod(b_value, t_value));
+                } else {
+                    // 偶数次反射, 深度 =  (计算值 % 工件厚度)
+                    auto b_value = b.value();
+                    auto t_value = workPieceThickness.value();
+                    b            = std::fmod(b_value, t_value);
+                }
+            }
+
             if (a) {
                 _a = QString::number(KeepDecimals<1>(a.value_or(0)), 'f', 1);
             }
@@ -214,6 +234,12 @@ namespace Union::AScan {
                                           "/" + QString::number(KeepDecimals<1>(getAngle(idx)), 'f', 1) + "°"},
             {QObject::tr("抑制"), QString::number(getSupression(idx), 'f', 1) + "%"},
         };
+
+        auto workPieceThickness = getWorkPieceThickness(idx);
+        if (workPieceThickness.has_value()) {
+            basicParameter.insert("工件厚度", QString::number(KeepDecimals<1>(workPieceThickness.value()), 'f', 1) + " mm");
+        }
+
         return {
             {QObject::tr("增益参数"), gainPrarameter},
             {QObject::tr("探头信息"), probeParameter},
@@ -227,6 +253,10 @@ namespace Union::AScan {
 
     bool AScanIntf::getDateEnable() const {
         return true;
+    }
+
+    std::optional<double> AScanIntf::getWorkPieceThickness(int idx) const {
+        return std::nullopt;
     }
 
     double AScanIntf::getNearField(int idx) const {

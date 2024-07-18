@@ -394,7 +394,7 @@ namespace Union::__390N_T8::MDATType {
             auto reflector_diameter = avg_param->reflectorDiameter;
             auto equivalent         = avg_param->equivalent;
             auto avg_diameter       = avg_param->diameter;
-            m_equi[0]               = QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivalent);
+            m_equi[0]               = QString::asprintf("Φ%.1f  Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, equivalent);
             m_equi[1]               = getAvgEquivalent(idx, 1);
         }
 
@@ -470,6 +470,14 @@ namespace Union::__390N_T8::MDATType {
         return false;
     }
 
+    std::optional<double> UnType::getWorkPieceThickness(int idx) const {
+        auto cmp000 = std::get<ID_CMP000>(m_data.second.at(idx));
+        if (cmp000 == nullptr) {
+            return std::nullopt;
+        }
+        return cmp000->workPieceThickness;
+    }
+
     QString UnType::getDacEquivalent(int idx, int gate_idx) const {
         if (!getDAC(idx).has_value() || !(getGate(idx).at(gate_idx % 2).enable)) {
             return "-";
@@ -513,7 +521,7 @@ namespace Union::__390N_T8::MDATType {
             return "-";
         }
         auto equivalent = Union::CalculatedGain(avg_value.value(), amp);
-        return QString::asprintf("Φ+%.1f   Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, KeepDecimals<1>(equivalent));
+        return QString::asprintf("Φ%.1f  Φ%.1f%+.1fdB", avg_diameter, reflector_diameter, KeepDecimals<1>(equivalent));
     }
 
 } // namespace Union::__390N_T8::MDATType

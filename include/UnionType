@@ -14,9 +14,6 @@
 #include "../include_private/ASCAN/390/daa.hpp"
 #include "../include_private/ASCAN/390/hfdat.hpp"
 #include "../include_private/ASCAN/390N_T8/MDATType.hpp"
-#include "../include_private/ASCAN/390N_T8/json.hpp"
-#include "../include_private/ASCAN/390N_T8/ldat.hpp"
-#include "../include_private/ASCAN/390N_T8/vdata.hpp"
 #include "../include_private/ASCAN/AScanType.hpp"
 
 // TOFD_PE

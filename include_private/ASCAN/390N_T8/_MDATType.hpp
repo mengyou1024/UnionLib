@@ -302,22 +302,23 @@ namespace Union::__390N_T8::MDATType {
     };
 
     struct CMP000 : public Serializer<0x8000> {
-        uint8_t gateBType         = {};
-        float   criteriaBiasLine4 = {};
-        float   criteriaBiasLine5 = {};
-        float   criteriaBiasLine6 = {};
-        uint8_t LineNumber        = {};
+        uint8_t gateBType          = {};
+        float   criteriaBiasLine4  = {};
+        float   criteriaBiasLine5  = {};
+        float   criteriaBiasLine6  = {};
+        uint8_t LineNumber         = {};
+        float   workPieceThickness = {};
 
         virtual void serialize_payload(QDataStream& payload) const override {
-            payload << gateBType << criteriaBiasLine4 << criteriaBiasLine5 << criteriaBiasLine6 << LineNumber;
+            payload << gateBType << criteriaBiasLine4 << criteriaBiasLine5 << criteriaBiasLine6 << LineNumber << workPieceThickness;
         }
 
         virtual void unserialize_payload(QDataStream& payload) override {
-            payload >> gateBType >> criteriaBiasLine4 >> criteriaBiasLine5 >> criteriaBiasLine6 >> LineNumber;
+            payload >> gateBType >> criteriaBiasLine4 >> criteriaBiasLine5 >> criteriaBiasLine6 >> LineNumber >> workPieceThickness;
         }
 
         bool operator==(CMP000 other) {
-            return gateBType == other.gateBType && criteriaBiasLine4 == other.criteriaBiasLine4 && criteriaBiasLine5 == other.criteriaBiasLine5 && criteriaBiasLine6 == other.criteriaBiasLine6 && LineNumber == other.LineNumber;
+            return gateBType == other.gateBType && criteriaBiasLine4 == other.criteriaBiasLine4 && criteriaBiasLine5 == other.criteriaBiasLine5 && criteriaBiasLine6 == other.criteriaBiasLine6 && LineNumber == other.LineNumber && workPieceThickness == other.workPieceThickness;
         }
     };
 } // namespace Union::__390N_T8::MDATType

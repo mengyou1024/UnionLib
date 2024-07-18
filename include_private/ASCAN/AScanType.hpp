@@ -347,6 +347,14 @@ namespace Union::AScan {
          */
         virtual bool getDateEnable() const;
 
+        /**
+         * @brief 获取工件厚度
+         * 
+         * @param idx 图像序号
+         * @return std::optional<double> 
+         */
+        virtual std::optional<double> getWorkPieceThickness(int idx) const;
+
         ////////////////////////////////////////////////////// 不可重写的虚函数 //////////////////////////////////////////////////////
 
         /**

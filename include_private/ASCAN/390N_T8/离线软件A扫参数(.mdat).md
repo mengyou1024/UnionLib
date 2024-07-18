@@ -157,10 +157,11 @@
 
 #### CMP000
 
-| 字段名            | 类型    | 注释                         |
-| ----------------- | ------- | ---------------------------- |
-| gateBType         | uint8_t | B门类型(0: 失波门 1: 进波门) |
-| criteriaBiasLine4 | float   | Line4 偏移                   |
-| criteriaBiasLine5 | float   | Line5 偏移                   |
-| criteriaBiasLine6 | float   | Line6 偏移                   |
-| LineNumber        | uint8_t | DAC曲线根数                  |
+| 字段名             | 类型    | 注释                         |
+| ------------------ | ------- | ---------------------------- |
+| gateBType          | uint8_t | B门类型(0: 失波门 1: 进波门) |
+| criteriaBiasLine4  | float   | Line4 偏移                   |
+| criteriaBiasLine5  | float   | Line5 偏移                   |
+| criteriaBiasLine6  | float   | Line6 偏移                   |
+| LineNumber         | uint8_t | DAC曲线根数                  |
+| workPieceThickness | float   | 工件厚度(mm)                 |
