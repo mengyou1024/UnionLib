@@ -256,6 +256,7 @@ namespace Union::AScan {
     }
 
     std::optional<double> AScanIntf::getWorkPieceThickness(int idx) const {
+        (void)idx;
         return std::nullopt;
     }
 
