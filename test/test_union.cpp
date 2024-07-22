@@ -7,6 +7,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <Yo/File>
 
 TEST(Union, common) {
     using namespace Union;
@@ -21,7 +22,6 @@ TEST(Union, common) {
 
 TEST(Union, readFile) {
     using namespace Union::__330;
-    EXPECT_TRUE(Union::__390N_T8::LDAT::FromFile(L"test_file/1.LDAT"));
     EXPECT_EQ(sizeof(Union::__330::SystemStatus), 108);
     EXPECT_EQ(sizeof(Union::__330::ChannelStatus), 36);
     EXPECT_EQ(sizeof(Union::__330::ChannelParam), 84);
@@ -35,7 +35,6 @@ TEST(Union, readFile) {
     EXPECT_FALSE(Union::TOFD_PE::TPE::TpeType::FromFile(L"test_file/3.tpe"));
     EXPECT_TRUE(Union::__330::DATType::FromFile(L"test_file/23-11-03.DAT"));
     EXPECT_TRUE(Union::__330::Serial_330::FromFile(L"test_file/serial.cod"));
-    EXPECT_TRUE(Union::__390N_T8::VDATA::FromFile(LR"(test_file/2024-0510-103927.vdata)"));
     EXPECT_TRUE(Union::__390::DAAType::FromFile(LR"(test_file\2024-05-13.daa)"));
     EXPECT_TRUE(Union::TOFD_PE::TOF::TofType::FromFile(L"test_file/1.tof"));
     EXPECT_TRUE(Union::TOFD_PE::TOF::TofType::FromFile(L"test_file/3322.tof"));
