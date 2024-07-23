@@ -5,6 +5,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     m_channel_number(channel_number),
     m_gate_number(gate_number) {
         initParam();
+        register_read_interface(std::bind(&Emulator::readOneFrame, this));
     }
 
     Emulator::~Emulator() {
@@ -21,6 +22,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool Emulator::close() {
+        closeReadThreadAndWaitExit();
         return true;
     }
 
@@ -87,12 +89,12 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         return true;
     }
 
-    bool Emulator::setPulseWidth(int ch, double width_us) {
-        if (width_us < 30) {
-            width_us = 30;
+    bool Emulator::setPulseWidth(int ch, double width_ns) {
+        if (width_ns < 30) {
+            width_ns = 30;
         }
         auto _ch           = ch % getChannelNumber();
-        m_pulse_width[_ch] = width_us;
+        m_pulse_width[_ch] = width_ns;
         return true;
     }
 
@@ -174,8 +176,12 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         ret->xAxis_start    = 50;
         ret->xAxis_range    = 100;
         ret->ascan.resize(1000);
-        ret->gate = m_gate_info[ret->channel];
-        int idx   = 0;
+        {
+            std::lock_guard lock(m_param_mutex);
+            ret->gate = m_gate_info[ret->channel];
+        }
+
+        int idx = 0;
         std::generate(ret->ascan.begin(), ret->ascan.end(), [&]() -> uint8_t {
             idx++;
             auto _ret = 0;

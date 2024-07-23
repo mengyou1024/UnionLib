@@ -8,6 +8,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     m_type(type),
     m_gate_number(gate_number) {
         initParam();
+        register_read_interface(std::bind(&_12CH_USB::readOneFrame, this));
     }
 
     _12CH_USB::~_12CH_USB() {
@@ -24,6 +25,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::close() {
+        closeReadThreadAndWaitExit();
         return TOFD_PORT_CloseDevice();
     }
 
@@ -100,13 +102,16 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         return TOFD_PORT_SetDelay(_ch, val);
     }
 
-    bool _12CH_USB::setPulseWidth(int ch, double width_us) {
-        if (width_us < 30) {
-            width_us = 30;
+    bool _12CH_USB::setPulseWidth(int ch, double width_ns) {
+        if (width_ns < 30) {
+            width_ns = 30;
+        }
+        if (width_ns > 1000) {
+            width_ns = 1000;
         }
         auto _ch           = ch % getChannelNumber();
-        m_pulse_width[_ch] = width_us;
-        return TOFD_PORT_SetPulseWidth(_ch, width_us);
+        m_pulse_width[_ch] = width_ns;
+        return TOFD_PORT_SetPulseWidth(_ch, width_ns);
     }
 
     bool _12CH_USB::setDelay(int ch, double delay_us) {
@@ -195,12 +200,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         ret->xAxis_start   = us2mm(getDelay(ret->channel), getSoundVelocity(ret->channel));
         ret->xAxis_range   = us2mm(getSampleDepth(ret->channel), getSoundVelocity(ret->channel));
         ret->ascan.resize(dat->iAScanSize);
-        ret->gate = m_gate_info[ret->channel];
+        {
+            std::lock_guard lock(m_param_mutex);
+            ret->gate = m_gate_info[ret->channel];
+        }
         memcpy_s(ret->ascan.data(), ret->ascan.size(), dat->pAscan, dat->iAScanSize);
 
         ret->gate_result.resize(getGateNumber());
-        auto gate = m_gate_info[ret->channel % getChannelNumber()];
-        std::transform(gate.begin(), gate.end(), ret->gate_result.begin(), [=](const std::optional<Union::Base::Gate> &_gate) -> Union::Base::GateResult {
+        std::transform(ret->gate.begin(), ret->gate.end(), ret->gate_result.begin(), [=](const std::optional<Union::Base::Gate> &_gate) -> Union::Base::GateResult {
             if (!_gate.has_value()) {
                 return std::nullopt;
             }

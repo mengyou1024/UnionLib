@@ -62,6 +62,6 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         int m_channel_number = 12;
         int m_gate_number    = 2;
 
-        virtual std::shared_ptr<ScanData> readOneFrame(void) override;
+        std::shared_ptr<ScanData> readOneFrame(void);
     };
 } // namespace Union::Bridge::MultiChannelHardwareBridge

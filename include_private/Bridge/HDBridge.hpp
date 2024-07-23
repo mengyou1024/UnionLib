@@ -11,6 +11,7 @@
 #include <stack>
 #include <string_view>
 #include <vector>
+#include <variant>
 
 namespace Union::Bridge::MultiChannelHardwareBridge {
 
@@ -174,16 +175,16 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         /**
          * @brief 设置脉冲宽度
          * @param ch 通道号
-         * @param width 脉冲宽度(μs)
+         * @param width_ns 脉冲宽度(ns)
          * @return true if success
          */
-        virtual bool setPulseWidth(int ch, double width_us) = 0;
+        virtual bool setPulseWidth(int ch, double width_ns) = 0;
 
         /**
          * @brief 获取脉冲宽度
          *
          * @param ch 通道号
-         * @return 脉冲宽度(μs)
+         * @return 脉冲宽度(ns)
          */
         virtual double getPulseWidth(int ch) const final;
 
@@ -194,6 +195,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return true if success
          */
         virtual bool setDelay(int ch, double delay_us) = 0;
+        bool setAxisBias(int ch, double mm);
 
         /**
          * @brief 获取延时
@@ -202,22 +204,25 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return 延时(μs)
          */
         virtual double getDelay(int ch) const final;
+        double getAxisBias(int ch) const;
 
         /**
          * @brief 设置采样深度
          * @param ch 通道号
-         * @param depth 采样深度
+         * @param depth 采样深度(μs)
          * @return true if success
          */
         virtual bool setSampleDepth(int ch, double depth) = 0;
+        bool setAxisLength(int ch, double mm);
 
         /**
          * @brief 获取采样深度
          *
          * @param ch 通道号
-         * @return 采样深度
+         * @return 采样深度(μs)
          */
         virtual double getSampleDepth(int ch) const final;
+        bool getAxisLength(int ch) const;
 
         /**
          * @brief 设置采样因子
@@ -452,21 +457,21 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         using _T_DataV = std::vector<std::shared_ptr<ScanData>>;
 
         // param
-        int                 m_frequency     = {}; ///< 重复频率
-        int                 m_voltage       = {}; ///< 电压
+        int                 m_frequency     = {}; ///< 重复频率(Hz)
+        int                 m_voltage       = {}; ///< 电压(V or Enum)
         uint32_t            m_channel_flag  = {}; ///< 通道标志
         int                 m_damper_flag   = {}; ///< 阻尼标志
-        std::vector<double> m_velocity      = {}; ///< 声速m/s
-        std::vector<double> m_zero_bias     = {}; ///< 零点偏移
-        std::vector<double> m_pulse_width   = {}; ///< 脉冲宽度
-        std::vector<double> m_delay         = {}; ///< 延时
-        std::vector<double> m_sample_depth  = {}; ///< 采样深度
+        std::vector<double> m_velocity      = {}; ///< 声速(m/s)
+        std::vector<double> m_zero_bias     = {}; ///< 零点偏移(μs)
+        std::vector<double> m_pulse_width   = {}; ///< 脉冲宽度(ns)
+        std::vector<double> m_delay         = {}; ///< 延时(μs)
+        std::vector<double> m_sample_depth  = {}; ///< 采样深度(μs)
         std::vector<int>    m_sample_factor = {}; ///< 采样因子
-        std::vector<double> m_gain          = {}; ///< 增益
+        std::vector<double> m_gain          = {}; ///< 增益(dB)
         std::vector<int>    m_filter        = {}; ///< 滤波频带
         std::vector<int>    m_demodu        = {}; ///< 检波方式
         std::vector<bool>   m_phase_reverse = {}; ///< 相位翻转
-        _T_GateV            m_gate_info     = {}; ///< 检波信息
+        _T_GateV            m_gate_info     = {}; ///< 波门信息
 
         // scan data
         _T_DataV           m_scan_data       = {}; ///< 扫查数据
@@ -474,12 +479,12 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
         bool m_param_is_init = false;
 
-        /**
-         * @brief 读取一帧数据
-         *
-         * @return std::shared_ptr<ScanData>
-         */
-        virtual std::shared_ptr<ScanData> readOneFrame(void) = 0;
+        using _T_R_ONE = std::function<std::shared_ptr<ScanData>(void)>;
+        using _T_R_ALL = std::function<std::vector<std::shared_ptr<ScanData>>(void)>;
+
+        using _T_R_INTF = std::optional<std::variant<_T_R_ONE, _T_R_ALL>>;
+
+        _T_R_INTF m_read_intf = std::nullopt;
 
         /**
          * @brief 关闭读取线程并等待线程退出
@@ -518,6 +523,12 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          *
          */
         void unlock_param(void);
+
+        template<class T>
+        requires  std::is_convertible_v<T, _T_R_ONE> || std::is_convertible_v<T, _T_R_ALL>
+        void register_read_interface(T f) {
+            m_read_intf = f;
+        }
 
     private:
         void     invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type = std::launch::async);

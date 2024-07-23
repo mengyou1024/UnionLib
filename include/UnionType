@@ -23,5 +23,6 @@
 
 // HDBRIDGE
 #include "../include_private/Bridge/12CH_USB/_12CH_USB.hpp"
+#include "../include_private/Bridge/8CH_USB/_8CH_USB.hpp"
 #include "../include_private/Bridge/Emulator/Emulator.hpp"
 #include "../include_private/Bridge/HDBridge.hpp"

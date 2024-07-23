@@ -20,6 +20,13 @@ FetchContent_Declare(MISC_UTILS
 
 FetchContent_MakeAvailable(MISC_UTILS)
 
+FetchContent_Declare(LIBFTDI
+    QUIET
+    GIT_REPOSITORY https://github.com/mengyou1024/ftd2xx.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(LIBFTDI)
+
 find_package(Qt5 5.15 REQUIRED COMPONENTS Core SerialPort Widgets)
 
 set(CMAKE_CXX_STANDARD 20)

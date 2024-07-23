@@ -10,9 +10,7 @@
 #include <future>
 #include <numeric>
 
-#if !defined(QT_DEBUG)
 Q_LOGGING_CATEGORY(TAG, "Union.HDBridge");
-#endif
 
 namespace Union::Bridge::MultiChannelHardwareBridge {
     HDBridgeIntf::HDBridgeIntf() {}
@@ -349,6 +347,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
     bool HDBridgeIntf::autoGain(int ch, int gate_idx, double target, int timeout_ms, uint8_t max_value) {
         if (target <= 0.0) {
+            qWarning(TAG) << "error target";
             return false;
         }
         const auto           _ch           = ch % getChannelNumber();
@@ -364,6 +363,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         {
             std::lock_guard lock(m_scan_data_mutex);
             if (!m_scan_data[_ch]->gate[_gate_idx].has_value()) {
+                qWarning(TAG) << "no gate on channel:" << ch << "gate num:" << gate_idx;
                 return false;
             }
         }
@@ -375,6 +375,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 gate_res = m_scan_data[_ch]->gate_result[_gate_idx];
             }
             if (!gate_res.has_value()) {
+                qDebug(TAG) << "no gate value";
                 break;
             }
             double rate = (std::get<Base::GATE_MAX_AMP>(gate_res.value()) / static_cast<double>(max_value)) / (target / 100.0);
@@ -393,8 +394,13 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             auto gain = getGain(ch);
             gain += sign * step;
             setGain(ch, gain);
+            auto _c = std::chrono::system_clock::now();
+            sync2Board();
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(200ms);
+            std::this_thread::sleep_until(_c + 200ms);
+        }
+        if (std::chrono::system_clock::now() - _current_time > std::chrono::milliseconds(timeout_ms)) {
+            qDebug(TAG) << "timeout";
         }
         return false;
     }
@@ -409,44 +415,64 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     void HDBridgeIntf::hardwareReadThread(void) {
-        auto              _last_invoke_time = std::chrono::system_clock::now();
-        std::vector<bool> _ch_update_flag; // 用于标记通道是否更新
-        _ch_update_flag.resize(getChannelNumber());
-        std::generate(_ch_update_flag.begin(), _ch_update_flag.end(), []() -> bool {
-            return false;
-        });
+        auto     _last_invoke_time = std::chrono::system_clock::now();
         _T_DataV _mirror_scan_data = {}; // 扫查数据镜像
         _mirror_scan_data.resize(getChannelNumber());
         std::generate(_mirror_scan_data.begin(), _mirror_scan_data.end(), []() -> std::shared_ptr<ScanData> {
             return nullptr;
         });
 
-        while (m_thread_running) {
-            auto data = readOneFrame();
-            if (data != nullptr && data->channel >= 0 && data->channel < getChannelNumber()) {
-                _mirror_scan_data.at(data->channel) = data;
-                _ch_update_flag.at(data->channel)   = true;
-                if (std::accumulate(_ch_update_flag.begin(), _ch_update_flag.end(), 0) != getChannelNumber()) {
-                    // 如果有通道没有更新完成，则继续读取
-                    continue;
-                }
-                invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
-                {
-                    std::lock_guard lock(m_scan_data_mutex);
-                    m_scan_data = _mirror_scan_data; // 更新镜像数据(作用域是为了减少lock的持有时间)
-                }
+        auto RUN_HELPER = [&](auto func) {
+            if constexpr (std::is_same_v<decltype(func), _T_R_ONE>) {
+                std::vector<bool> _ch_update_flag; // 用于标记通道是否更新
+                _ch_update_flag.resize(getChannelNumber());
                 std::generate(_ch_update_flag.begin(), _ch_update_flag.end(), []() -> bool {
                     return false;
-                }); // 重新清空标志位
-                auto _current_invoke_time = std::chrono::system_clock::now();
-                using namespace std::chrono_literals;
-                // 限制最大帧率为100帧
-                if (_current_invoke_time - _last_invoke_time > 10ms) {
-                    std::this_thread::sleep_until(_last_invoke_time + 10ms);
+                });
+                while (m_thread_running) {
+                    auto data = func();
+                    if (data != nullptr && data->channel >= 0 && data->channel < getChannelNumber()) {
+                        _mirror_scan_data.at(data->channel) = data;
+                        _ch_update_flag.at(data->channel)   = true;
+                        if (std::accumulate(_ch_update_flag.begin(), _ch_update_flag.end(), 0) != getChannelNumber()) {
+                            // 如果有通道没有更新完成，则继续读取
+                            continue;
+                        }
+                        invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
+                        {
+                            std::lock_guard lock(m_scan_data_mutex);
+                            m_scan_data = _mirror_scan_data; // 更新镜像数据(作用域是为了减少lock的持有时间)
+                        }
+                        std::generate(_ch_update_flag.begin(), _ch_update_flag.end(), []() -> bool {
+                            return false;
+                        }); // 重新清空标志位
+                        auto _current_invoke_time = std::chrono::system_clock::now();
+                        using namespace std::chrono_literals;
+                        // 限制最大帧率为100帧
+                        std::this_thread::sleep_until(_last_invoke_time + 10ms);
+                        _last_invoke_time = _current_invoke_time;
+                    }
                 }
-                _last_invoke_time = _current_invoke_time;
+            } else if constexpr (std::is_same_v<decltype(func), _T_R_ALL>) {
+                while (m_thread_running) {
+                    _mirror_scan_data = func();
+                    invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
+                    {
+                        std::lock_guard lock(m_scan_data_mutex);
+                        m_scan_data = _mirror_scan_data; // 更新镜像数据(作用域是为了减少lock的持有时间)
+                    }
+                    auto _current_invoke_time = std::chrono::system_clock::now();
+                    using namespace std::chrono_literals;
+                    // 限制最大帧率为100帧
+                    std::this_thread::sleep_until(_last_invoke_time + 10ms);
+                    _last_invoke_time = _current_invoke_time;
+                }
             }
+        };
+        if (!m_read_intf.has_value()) {
+            throw std::runtime_error("no read interface");
         }
+        std::visit(RUN_HELPER, m_read_intf.value());
     }
 
     void HDBridgeIntf::fileReadThread(const QString &file_name, std::optional<double> fps) {
@@ -610,14 +636,30 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         return m_pulse_width[ch % getChannelNumber()];
     }
 
+    bool HDBridgeIntf::setAxisBias(int ch, double mm) {
+        return setDelay(ch, mm2us(mm, getSoundVelocity(ch)));
+    }
+
     double HDBridgeIntf::getDelay(int ch) const {
         std::lock_guard lock(m_param_mutex);
         return m_delay[ch % getChannelNumber()];
     }
 
+    double HDBridgeIntf::getAxisBias(int ch) const {
+        return us2mm(getDelay(ch), getSoundVelocity(ch));
+    }
+
+    bool HDBridgeIntf::setAxisLength(int ch, double mm) {
+        return setSampleDepth(ch, mm2us(mm, getSoundVelocity(ch)));
+    }
+
     double HDBridgeIntf::getSampleDepth(int ch) const {
         std::lock_guard lock(m_param_mutex);
         return m_sample_depth[ch % getChannelNumber()];
+    }
+
+    bool HDBridgeIntf::getAxisLength(int ch) const {
+        return us2mm(getSampleDepth(ch), getSoundVelocity(ch));
     }
 
     int HDBridgeIntf::getSampleFactor(int ch) const {

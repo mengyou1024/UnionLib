@@ -39,6 +39,7 @@ target_include_directories(UnionLib PRIVATE
     include_private/Bridge
     include_private/Bridge/12CH_USB
     include_private/Bridge/Emulator
+    include_private/Bridge/8CH_USB
 )
 
 add_library(_TOFDPort SHARED IMPORTED)
@@ -50,6 +51,7 @@ set_target_properties(
 )
 
 target_link_libraries(UnionLib PRIVATE _TOFDPort)
+target_link_libraries(UnionLib PUBLIC libftdi)
 
 if(Morose_FOUND)
     morose_copy(
