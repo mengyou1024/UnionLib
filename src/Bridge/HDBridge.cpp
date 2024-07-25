@@ -658,7 +658,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         return m_sample_depth[ch % getChannelNumber()];
     }
 
-    bool HDBridgeIntf::getAxisLength(int ch) const {
+    double HDBridgeIntf::getAxisLength(int ch) const {
         return us2mm(getSampleDepth(ch), getSoundVelocity(ch));
     }
 

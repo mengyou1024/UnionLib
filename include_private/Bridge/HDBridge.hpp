@@ -108,7 +108,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         virtual int getVoltage() const final;
 
         /**
-         * @brief 获取电压表
+         * @brief 获取电压枚举表
          *
          * @return const std::vector<int>
          */
@@ -222,7 +222,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return 采样深度(μs)
          */
         virtual double getSampleDepth(int ch) const final;
-        bool getAxisLength(int ch) const;
+        double getAxisLength(int ch) const;
 
         /**
          * @brief 设置采样因子

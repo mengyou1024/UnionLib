@@ -354,7 +354,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
                 _ch_param.DemoduSel   = static_cast<uint8_t>((m_demodu.at(_ch) & 0x0F) | ((m_filter.at(_ch) & 0x0F) << 4));
                 _ch_param.Echo_Reject = 0;
-                _ch_param.SampLen     = m_zero_bias.at(_ch) * 100.0 + m_sample_depth.at(_ch) * 100.0;
+                _ch_param.SampLen     = us2mm(m_sample_depth.at(_ch), m_velocity.at(_ch)) * 100.0;
                 _ch_param.SampDelay   = m_zero_bias.at(_ch) * 100.0 + m_delay.at(_ch) * 100.0;
             }
         }
