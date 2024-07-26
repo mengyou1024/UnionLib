@@ -135,7 +135,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         try {
             std::ifstream file(file_name.toStdWString().c_str(), std::ios::binary);
             if (!file.is_open()) {
-                qCritical(TAG) << "failed to open file:" << file_name;
+                qCCritical(TAG) << "failed to open file:" << file_name;
                 return _ret;
             }
             Proto::Union::HDBridge::ScanDataVector scan_data_vector;

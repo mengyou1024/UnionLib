@@ -1,11 +1,10 @@
 #include "hfdat.hpp"
-#include "../330/_330_draw_dac.hpp"
 #include <Yo/File>
 #include <Yo/Types>
 #include <memory>
 #include <regex>
 
-static Q_LOGGING_CATEGORY(TAG, "390.HFDAT");
+[[maybe_unused]] static Q_LOGGING_CATEGORY(TAG, "390.HFDAT");
 
 namespace Yo::File {
     template <>
