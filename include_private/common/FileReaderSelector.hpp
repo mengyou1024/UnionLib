@@ -27,7 +27,7 @@ namespace Union::Utils {
     class FileReaderSelectorIntf {
     public:
         virtual ~FileReaderSelectorIntf() {
-            qDebug(QLoggingCategory("Union::Utils")) << __FUNCTION__;
+            qCDebug(QLoggingCategory("Union::Utils")) << __FUNCTION__;
         };
     };
 
@@ -74,7 +74,7 @@ namespace Union::Utils {
         FileReaderSelector &operator=(FileReaderSelector &&)      = delete;
 
         virtual ~FileReaderSelector() {
-            qDebug(QLoggingCategory("Union::Utils")) << __FUNCTION__;
+            qCDebug(QLoggingCategory("Union::Utils")) << __FUNCTION__;
         }
 
         /**

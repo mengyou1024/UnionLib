@@ -4,7 +4,7 @@ project(UnionLib)
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB_RECURSE UNIONLIB_SRC "src/*.cpp" "src/*.c")
+file(GLOB_RECURSE UNIONLIB_SRC "src/*.cpp" "src/*.c" "src/*.cc" "src/*.cxx")
 
 add_library(UnionLib ${UNIONLIB_SRC})
 
@@ -51,7 +51,7 @@ set_target_properties(
 )
 
 target_link_libraries(UnionLib PRIVATE _TOFDPort)
-target_link_libraries(UnionLib PUBLIC libftdi)
+target_link_libraries(UnionLib PUBLIC libftdi protobuf::libprotobuf)
 
 if(Morose_FOUND)
     morose_copy(

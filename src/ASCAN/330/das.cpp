@@ -7,12 +7,13 @@
 
 #include "_330_draw_dac.hpp"
 
+static Q_LOGGING_CATEGORY(TAG, "330.DAS");
+
 namespace Yo::File {
     template <>
     size_t __Read(std::ifstream &file, Union::__330::DASType &data, [[maybe_unused]] size_t file_size) {
         return data.__Read(file, file_size);
     }
-
 } // namespace Yo::File
 
 namespace Union::__330 {
@@ -61,11 +62,7 @@ namespace Union::__330 {
             ret += Yo::File::__Read(file, name, file_size);
             return ret;
         } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qWarning(QLoggingCategory("330.DAS")) << e.what();
-#endif
+            qCCritical(TAG) << e.what();
             return 0;
         }
     }
@@ -340,8 +337,8 @@ namespace Union::__330 {
             (void)s0;
             strMRange = "";
         }
-        qDebug(QLoggingCategory("DAS")) << "strMRange" << strMRange;
-        qDebug(QLoggingCategory("DAS")) << ret;
+        qCDebug(TAG) << "strMRange" << strMRange;
+        qCDebug(TAG) << ret;
         auto obj1 = ret[0].toObject();
         auto obj2 = ret[1].toObject();
         if (strMRange.isEmpty()) {

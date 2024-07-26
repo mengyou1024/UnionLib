@@ -75,7 +75,7 @@ namespace Union::TOFD_PE::TPE {
 
     const std::vector<uint8_t> &TpeType::getPeData(void) const {
         if (!hasPe()) {
-            qCritical(TAG) << "No PE data";
+            qCCritical(TAG) << "No PE data";
             static std::vector<uint8_t> empty;
             return empty;
         }

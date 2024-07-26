@@ -5,6 +5,8 @@
 #include <memory>
 #include <regex>
 
+static Q_LOGGING_CATEGORY(TAG, "390.HFDAT");
+
 namespace Yo::File {
     template <>
     size_t __Read(std::ifstream &file, Union::__390::HFDATType &data, [[maybe_unused]] size_t file_size) {
@@ -84,8 +86,8 @@ QJsonArray Union::__390::HFDATType::createGateValue(int idx, double soft_gain) c
         strMRange  = "";
         (void)s0;
     }
-    qDebug(QLoggingCategory("HFD")) << "strMRange" << strMRange;
-    qDebug(QLoggingCategory("HFD")) << ret;
+    qCDebug(TAG) << "strMRange" << strMRange;
+    qCDebug(TAG) << ret;
     auto obj1 = ret[0].toObject();
     auto obj2 = ret[1].toObject();
     if (strMRange.isEmpty()) {

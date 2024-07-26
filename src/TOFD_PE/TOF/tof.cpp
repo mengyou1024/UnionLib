@@ -36,7 +36,7 @@ namespace Union::TOFD_PE::TOF {
             }
             return file_size;
         } catch (std::exception &e) {
-            qCritical(TAG) << e.what();
+            qCCritical(TAG) << e.what();
             return 0;
         }
     }

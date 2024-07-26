@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <numbers>
 
+static Q_LOGGING_CATEGORY(TAG, "390.DAA");
+
 namespace Yo::File {
     template <>
     size_t __Read(std::ifstream &file, Union::__390::DAAType &data, [[maybe_unused]] size_t file_size) {
@@ -61,11 +63,7 @@ namespace Union::__390 {
             ret += Yo::File::__Read(file, m_390Extra, file_size);
             return ret;
         } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qCritical(QLoggingCategory("390.DAA")) << e.what();
-#endif
+            qCCritical(TAG) << e.what();
             return 0;
         }
     }
@@ -245,8 +243,8 @@ namespace Union::__390 {
             (void)s0;
             strMRange = "";
         }
-        qDebug(QLoggingCategory("DAS")) << "strMRange" << strMRange;
-        qDebug(QLoggingCategory("DAS")) << ret;
+        qCDebug(TAG) << "strMRange" << strMRange;
+        qCDebug(TAG) << ret;
         auto obj1 = ret[0].toObject();
         auto obj2 = ret[1].toObject();
         if (strMRange.isEmpty()) {

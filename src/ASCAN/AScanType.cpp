@@ -118,7 +118,7 @@ namespace Union::AScan {
             if (isStraightBeamProbe(idx)) {
                 if (getDistanceMode(idx) == Union::AScan::DistanceMode::DistanceMode_X) {
                     auto msg = QObject::tr("当探头为直探头时, 使用声程模式X");
-                    qWarning(TAG) << msg.toStdString().c_str();
+                    qCWarning(TAG).noquote() << msg;
                     std::call_once(m_once_flag, [&msg]() {
                         QMessageBox::warning(nullptr, QObject::tr("警告"), msg);
                     });
@@ -126,7 +126,7 @@ namespace Union::AScan {
             } else {
                 if (!(std::abs(getAngle(idx)) > 0.0001)) {
                     auto msg = QObject::tr("当探头为斜探头时, 探头角度近乎为0");
-                    qCritical(TAG) << msg.toStdString().c_str();
+                    qCCritical(TAG).noquote() << msg;
                     std::call_once(m_once_flag, [&msg]() {
                         QMessageBox::warning(nullptr, QObject::tr("警告"), msg);
                     });
@@ -155,7 +155,7 @@ namespace Union::AScan {
                         }
                     }
                 } catch (std::exception &e) {
-                    qCritical(TAG) << e.what();
+                    qCCritical(TAG) << e.what();
                 }
                 a = a.value_or(0) - getFrontDistance(idx);
             }
@@ -307,7 +307,6 @@ namespace Union::AScan {
                 } else {
                     for (auto i = 0; std::cmp_less(i, index_on_dac_view.size() - 1); i++) {
                         if (val < index_on_dac_view[i + 1]) {
-                            qDebug(QLoggingCategory("TEST")) << "i=" << i;
                             return CalculateGainOutput(avg_param->value[i] * std::exp(decay[i] * (val - index_on_dac_view[i])), modifyGain);
                         }
                     }
@@ -315,7 +314,7 @@ namespace Union::AScan {
                 return std::nullopt;
             };
         } catch (std::exception &e) {
-            qWarning(TAG) << e.what();
+            qCWarning(TAG) << e.what();
             return [](double) -> std::optional<double> {
                 return std::nullopt;
             };
@@ -366,7 +365,7 @@ namespace Union::AScan {
                 return std::nullopt;
             };
         } catch (std::exception &e) {
-            qWarning(TAG) << e.what();
+            qCWarning(TAG) << e.what();
             return [](double) -> std::optional<double> {
                 return std::nullopt;
             };

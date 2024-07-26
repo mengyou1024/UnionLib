@@ -133,18 +133,18 @@ namespace Union::__390N_T8::MDATType {
                 }
 
                 default: {
-                    qDebug(TAG) << "unrecognized class type:" << class_type;
+                    qCDebug(TAG) << "unrecognized class type:" << class_type;
                     break;
                 }
             }
             uint8_t frame_tail;
             fileStream >> frame_tail;
             if (frame_tail != FRAME_TAIL) {
-                qWarning(TAG) << "frame tail error:" << frame_tail << "type class:" << class_type << "frames:" << _frames;
+                qCWarning(TAG) << "frame tail error:" << frame_tail << "type class:" << class_type << "frames:" << _frames;
                 break;
             }
             if (file.size() <= file.pos()) {
-                qDebug(TAG) << "read file end";
+                qCDebug(TAG) << "read file end";
                 break;
             }
         }

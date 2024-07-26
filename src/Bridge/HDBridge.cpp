@@ -1,4 +1,5 @@
 #include "HDBridge.hpp"
+#include "HDBridge.pb.h"
 #include <QCoreApplication>
 #include <QDataStream>
 #include <QEventLoop>
@@ -7,6 +8,7 @@
 #include <QThread>
 #include <array>
 #include <chrono>
+#include <fstream>
 #include <future>
 #include <numeric>
 
@@ -15,7 +17,9 @@ Q_LOGGING_CATEGORY(TAG, "Union.HDBridge");
 namespace Union::Bridge::MultiChannelHardwareBridge {
     HDBridgeIntf::HDBridgeIntf() {}
 
-    HDBridgeIntf::~HDBridgeIntf() {}
+    HDBridgeIntf::~HDBridgeIntf() {
+        google::protobuf::ShutdownProtobufLibrary();
+    }
 
     void HDBridgeIntf::paramCopy(int src, std::vector<int> dist, int max_gate_number) {
         std::lock_guard lock(m_param_mutex);
@@ -64,51 +68,62 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool HDBridgeIntf::serializeScanDataAppendToFile(const QString &file_name) const {
-        _T_DataV copy = {};
+        _T_DataV _copy = {};
         {
+            std::lock_guard lock(m_scan_data_mutex);
             for (const auto &it : m_scan_data) {
                 if (it == nullptr) {
+                    qCWarning(TAG) << "channel parameter is nullptr!";
+                    return false;
+                }
+                if (it->ascan.size() == 0) {
+                    qCWarning(TAG) << "channel: " << it->channel << "'s data size is 0!";
                     return false;
                 }
             }
-            std::lock_guard lock(m_scan_data_mutex);
-            copy = m_scan_data;
+            _copy = m_scan_data;
         }
 
-        auto ret = std::async(std::launch::deferred, [=]() -> bool {
+        auto ret = std::async(std::launch::deferred, [&]() -> bool {
             try {
-                QFile file(file_name);
-                file.open(QIODevice::WriteOnly | QIODevice::Append);
-                QDataStream file_stream(&file);
-                file_stream << copy.size();
-                for (auto &it : copy) {
-                    file_stream << it->package_index;
-                    file_stream << it->channel;
-                    file_stream << it->xAxis_start;
-                    file_stream << it->xAxis_range;
-                    file_stream << it->ascan.size();
-                    file_stream.writeRawData(reinterpret_cast<const char *>(it->ascan.data()), std::ssize(it->ascan));
-                    file_stream << it->gate.size();
-                    for (auto g : it->gate) {
-                        if (g.has_value()) {
-                            file_stream << 1;
-                            file_stream << g->pos;
-                            file_stream << g->width;
-                            file_stream << g->height;
-                            file_stream << g->enable;
-                        } else {
-                            file_stream << 0;
+                std::ofstream file(file_name.toStdWString().c_str(), std::ios::binary | std::ios::app);
+                if (!file.is_open()) {
+                    qCCritical(TAG) << "failed to open file:" << file_name;
+                    return false;
+                }
+                Proto::Union::HDBridge::ScanDataVector scan_data_vector;
+                auto                                   _scan_data = scan_data_vector.add_scan_data();
+                for (int i = 0; i < std::min(getChannelNumber(), static_cast<int>(_copy.size())); i++) {
+                    auto _channel_scan_data = _scan_data->add_channel_data();
+                    auto _ch_to_write       = _copy[i];
+                    if (_ch_to_write == nullptr) {
+                        continue;
+                    }
+                    _channel_scan_data->set_pakcage_index(_ch_to_write->package_index);
+                    if (i != _ch_to_write->channel) {
+                        qCWarning(TAG).noquote() << QString::asprintf("current index(%d) != channel(%d)", i, _ch_to_write->channel);
+                    }
+                    _channel_scan_data->set_channel(_ch_to_write->channel);
+
+                    _channel_scan_data->set_axis_offset(_ch_to_write->xAxis_start);
+                    _channel_scan_data->set_axis_length(_ch_to_write->xAxis_range);
+                    _channel_scan_data->set_ascan_data(_ch_to_write->ascan.data(), _ch_to_write->ascan.size());
+
+                    for (int j = 0; j < std::ssize(_ch_to_write->gate); j++) {
+                        if (_ch_to_write->gate[j].has_value() && (_ch_to_write->gate[j]->enable == true)) {
+                            auto _gate = _channel_scan_data->add_gates();
+                            _gate->set_pos(_ch_to_write->gate[j]->pos);
+                            _gate->set_width(_ch_to_write->gate[j]->width);
+                            _gate->set_height(_ch_to_write->gate[j]->height);
+                            _gate->set_index(j);
                         }
                     }
                 }
+                auto ret = scan_data_vector.SerializeToOstream(&file);
                 file.flush();
-                return true;
+                return ret;
             } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-                qFatal(e.what());
-#else
-                    qCritical(TAG) << e.what();
-#endif
+                qCCritical(TAG) << e.what();
                 return false;
             }
         });
@@ -118,124 +133,152 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     std::vector<std::vector<std::shared_ptr<ScanData>>> HDBridgeIntf::deserializeScanData(const QString &file_name) const {
         std::vector<_T_DataV> _ret;
         try {
-            QFile file(file_name);
-            file.open(QIODevice::ReadOnly);
-            QDataStream file_stream(&file);
-            while (file.pos() < file.size()) {
-                auto _temp = unserializeOneFreame(file_stream);
-                _ret.emplace_back(std::move(_temp));
+            std::ifstream file(file_name.toStdWString().c_str(), std::ios::binary);
+            if (!file.is_open()) {
+                qCritical(TAG) << "failed to open file:" << file_name;
+                return _ret;
+            }
+            Proto::Union::HDBridge::ScanDataVector scan_data_vector;
+            if (scan_data_vector.ParseFromIstream(&file) != true) {
+                qCritical(TAG) << "failed to parse file:" << file_name;
+                return _ret;
+            }
+            qCDebug(TAG) << "parse data length:" << scan_data_vector.scan_data_size();
+
+            for (int sd_sz = 0; sd_sz < scan_data_vector.scan_data_size(); sd_sz++) {
+                auto                                   ch_data       = scan_data_vector.scan_data(sd_sz);
+                std::vector<std::shared_ptr<ScanData>> _sc_to_insert = {};
+                for (int _ch = 0; _ch < std::min(ch_data.channel_data_size(), getChannelNumber()); _ch++) {
+                    auto _ch_data_to_insert           = std::make_shared<ScanData>();
+                    _ch_data_to_insert->package_index = ch_data.channel_data(_ch).pakcage_index();
+                    _ch_data_to_insert->channel       = ch_data.channel_data(_ch).channel();
+                    _ch_data_to_insert->xAxis_start   = ch_data.channel_data(_ch).axis_offset();
+                    _ch_data_to_insert->xAxis_range   = ch_data.channel_data(_ch).axis_length();
+                    _ch_data_to_insert->ascan.resize(ch_data.channel_data(_ch).ascan_data().size());
+                    std::memcpy(_ch_data_to_insert->ascan.data(), ch_data.channel_data(_ch).ascan_data().data(), ch_data.channel_data(_ch).ascan_data().size());
+                    _ch_data_to_insert->gate.resize(getGateNumber());
+                    std::generate(_ch_data_to_insert->gate.begin(), _ch_data_to_insert->gate.end(), []() { return std::nullopt; });
+                    for (int _gate_sz = 0; _gate_sz < std::min(ch_data.channel_data(_ch).gates_size(), getGateNumber()); _gate_sz++) {
+                        auto _gate                              = ch_data.channel_data(_ch).gates(_gate_sz);
+                        _ch_data_to_insert->gate[_gate.index()] = std::make_optional<Union::Base::Gate>(_gate.pos(), _gate.width(), _gate.height(), true);
+                    }
+                    _ch_data_to_insert->gate_result.resize(_ch_data_to_insert->gate.size());
+                    std::transform(_ch_data_to_insert->gate.begin(), _ch_data_to_insert->gate.end(), _ch_data_to_insert->gate_result.begin(), [=](const std::optional<Union::Base::Gate> &_gate) -> Union::Base::GateResult {
+                        if (!_gate.has_value()) {
+                            return std::nullopt;
+                        }
+                        return Union::Base::CalculateGateResult(_ch_data_to_insert->ascan, _gate.value(), true, std::nullopt, 255);
+                    });
+                    _sc_to_insert.emplace_back(_ch_data_to_insert);
+                }
+                _ret.emplace_back(_sc_to_insert);
             }
 
         } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qCritical(TAG) << e.what();
-
-#endif
+            qCCritical(TAG) << e.what();
         }
         return _ret;
     }
 
     bool HDBridgeIntf::serializeConfigData(const QString &file_name) const {
         try {
-            std::lock_guard lock(m_param_mutex);
-            QFile           file(file_name);
-            file.open(QIODevice::WriteOnly);
-            QDataStream file_stream(&file);
-            file_stream << m_frequency;
-            file_stream << m_voltage;
-            file_stream << m_channel_flag;
-            file_stream << m_damper_flag;
-            file_stream << getChannelNumber();
-            for (auto i = 0; std::cmp_less(i, getChannelNumber()); i++) {
-                file_stream << m_velocity[i];
-                file_stream << m_zero_bias[i];
-                file_stream << m_pulse_width[i];
-                file_stream << m_delay[i];
-                file_stream << m_sample_depth[i];
-                file_stream << m_sample_factor[i];
-                file_stream << m_gain[i];
-                file_stream << m_filter[i];
-                file_stream << m_demodu[i];
-                file_stream << m_phase_reverse[i];
+            Proto::Union::HDBridge::ConfigData config_data;
+            {
+                std::lock_guard lock(m_param_mutex);
+                config_data.set_repeat_freqency(m_frequency);
+                config_data.set_emit_voltage(m_voltage);
+                config_data.set_channel_flag(m_channel_flag);
+                config_data.set_damper_flag(m_damper_flag);
 
-                file_stream << m_gate_info.size();
-                for (auto j = 0; std::cmp_less(j, m_gate_info.size()); i++) {
-                    if (m_gate_info[i][j].has_value()) {
-                        file_stream << 1;
-                        file_stream << m_gate_info[i][j]->pos;
-                        file_stream << m_gate_info[i][j]->width;
-                        file_stream << m_gate_info[i][j]->height;
-                        file_stream << m_gate_info[i][j]->enable;
-                    } else {
-                        file_stream << 0;
+                auto channel_params = config_data.mutable_channel_parameters();
+                channel_params->Reserve(getChannelNumber());
+                for (auto i = 0; std::cmp_less(i, getChannelNumber()); i++) {
+                    Proto::Union::HDBridge::ChannelParameter channel_param;
+                    channel_param.set_sound_velocity(m_velocity[i]);
+                    channel_param.set_zero_bias(m_zero_bias[i]);
+                    channel_param.set_pulse_width(m_pulse_width[i]);
+                    channel_param.set_sampling_delay(m_delay[i]);
+                    channel_param.set_sampling_depth(m_sample_depth[i]);
+                    channel_param.set_sampling_factor(m_sample_factor[i]);
+                    channel_param.set_gain(m_gain[i]);
+                    channel_param.set_filter_band(m_filter[i]);
+                    channel_param.set_demodu_mode(m_demodu[i]);
+                    channel_param.set_phase_reverse(m_phase_reverse[i]);
+
+                    auto mutable_gates = channel_param.mutable_gates();
+                    for (auto j = 0; std::cmp_less(j, m_gate_info[i].size()); j++) {
+                        Proto::Union::HDBridge::Gate gate;
+                        if (m_gate_info[i][j].has_value() && (m_gate_info[i][j]->enable == true)) {
+                            gate.set_pos(m_gate_info[i][j]->pos);
+                            gate.set_width(m_gate_info[i][j]->width);
+                            gate.set_height(m_gate_info[i][j]->height);
+                            gate.set_index(j);
+                            mutable_gates->Add(std::move(gate));
+                        }
                     }
+                    channel_params->Add(std::move(channel_param));
                 }
             }
-            return true;
+            std::ofstream file(file_name.toStdWString(), std::ios::binary);
+            if (!file.is_open()) {
+                throw std::runtime_error("open file failed");
+            }
+            auto ret = config_data.SerializePartialToOstream(&file);
+            file.flush();
+            return ret;
         } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qCritical(TAG) << e.what();
-
-#endif
+            qCCritical(TAG) << e.what();
             return false;
         }
     }
 
     bool HDBridgeIntf::deserializeConfigData(const QString &file_name) {
         try {
-            std::lock_guard lock(m_param_mutex);
-            QFile           file(file_name);
-            file.open(QIODevice::ReadOnly);
-            QDataStream file_stream(&file);
-            file_stream >> m_frequency;
-            file_stream >> m_voltage;
-            file_stream >> m_channel_flag;
-            file_stream >> m_damper_flag;
-            int channel_number;
-            file_stream >> channel_number;
-            for (auto i = 0; std::cmp_less(i, channel_number); i++) {
-                file_stream >> m_velocity[i];
-                file_stream >> m_zero_bias[i];
-                file_stream >> m_pulse_width[i];
-                file_stream >> m_delay[i];
-                file_stream >> m_sample_depth[i];
-                file_stream >> m_sample_factor[i];
-                file_stream >> m_gain[i];
-                file_stream >> m_filter[i];
-                file_stream >> m_demodu[i];
-                bool phase_reverse;
-                file_stream >> phase_reverse;
-                m_phase_reverse[i] = phase_reverse;
+            std::ifstream file(file_name.toStdWString(), std::ios::binary);
+            if (!file.is_open()) {
+                qCWarning(TAG) << "failed to open file:" << file_name;
+                return false;
+            }
+            Proto::Union::HDBridge::ConfigData config_data;
+            if (config_data.ParseFromIstream(&file) != true) {
+                qCWarning(TAG) << "failed to parse file:" << file_name;
+                return false;
+            }
 
-                size_t gate_info_number;
-                file_stream >> gate_info_number;
-                for (auto j = 0; std::cmp_less(j, gate_info_number); i++) {
-                    int gate_has_value;
-                    file_stream >> gate_has_value;
-                    if (gate_has_value) {
-                        Union::Base::Gate gate;
-                        file_stream >> gate.pos;
-                        file_stream >> gate.width;
-                        file_stream >> gate.height;
-                        file_stream >> gate.enable;
-                        m_gate_info[i][j] = gate;
-                    } else {
-                        m_gate_info[i][j] = std::nullopt;
+            {
+                std::lock_guard lock(m_param_mutex);
+                if (getChannelNumber() != config_data.channel_parameters_size()) {
+                    auto msg = QString::asprintf("The number of channels does not match, current HDBridge's channel is %d,"
+                                                 "but the config file's channel is %d",
+                                                 getChannelNumber(), config_data.channel_parameters_size());
+                    qCWarning(TAG) << msg.toStdString().c_str();
+                }
+                m_frequency    = config_data.repeat_freqency();
+                m_voltage      = config_data.emit_voltage();
+                m_channel_flag = config_data.channel_flag();
+                m_damper_flag  = config_data.damper_flag();
+                for (auto i = 0; std::cmp_less(i, std::min(getChannelNumber(), config_data.channel_parameters_size())); i++) {
+                    const auto channel_param = config_data.channel_parameters(i);
+                    m_velocity[i]            = channel_param.sound_velocity();
+                    m_zero_bias[i]           = channel_param.zero_bias();
+                    m_pulse_width[i]         = channel_param.pulse_width();
+                    m_delay[i]               = channel_param.sampling_delay();
+                    m_sample_depth[i]        = channel_param.sampling_depth();
+                    m_sample_factor[i]       = channel_param.sampling_factor();
+                    m_gain[i]                = channel_param.gain();
+                    m_filter[i]              = channel_param.filter_band();
+                    m_demodu[i]              = channel_param.demodu_mode();
+                    m_phase_reverse[i]       = channel_param.phase_reverse();
+                    std::generate(m_gate_info[i].begin(), m_gate_info[i].end(), [&]() { return std::nullopt; });
+                    for (auto j = 0; std::cmp_less(j, std::min(channel_param.gates_size(), getGateNumber())); j++) {
+                        const auto gate              = channel_param.gates(j);
+                        m_gate_info[i][gate.index()] = std::make_optional<Union::Base::Gate>(gate.pos(), gate.width(), gate.height(), true);
                     }
                 }
             }
             return true;
         } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qCritical(TAG) << e.what();
-
-#endif
+            qCCritical(TAG) << e.what();
             return false;
         }
     }
@@ -347,7 +390,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
     bool HDBridgeIntf::autoGain(int ch, int gate_idx, double target, int timeout_ms, uint8_t max_value) {
         if (target <= 0.0) {
-            qWarning(TAG) << "error target";
+            qCWarning(TAG) << "error target";
             return false;
         }
         const auto           _ch           = ch % getChannelNumber();
@@ -363,7 +406,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         {
             std::lock_guard lock(m_scan_data_mutex);
             if (!m_scan_data[_ch]->gate[_gate_idx].has_value()) {
-                qWarning(TAG) << "no gate on channel:" << ch << "gate num:" << gate_idx;
+                qCWarning(TAG) << "no gate on channel:" << ch << "gate num:" << gate_idx;
                 return false;
             }
         }
@@ -375,7 +418,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 gate_res = m_scan_data[_ch]->gate_result[_gate_idx];
             }
             if (!gate_res.has_value()) {
-                qDebug(TAG) << "no gate value";
+                qCDebug(TAG) << "no gate value";
                 break;
             }
             double rate = (std::get<Base::GATE_MAX_AMP>(gate_res.value()) / static_cast<double>(max_value)) / (target / 100.0);
@@ -400,7 +443,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             std::this_thread::sleep_until(_c + 200ms);
         }
         if (std::chrono::system_clock::now() - _current_time > std::chrono::milliseconds(timeout_ms)) {
-            qDebug(TAG) << "timeout";
+            qCDebug(TAG) << "timeout";
         }
         return false;
     }
@@ -476,23 +519,11 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     void HDBridgeIntf::fileReadThread(const QString &file_name, std::optional<double> fps) {
-        _T_DataV _mirror_scan_data = {}; // 扫查数据镜像
-        auto     _last_invoke_time = std::chrono::system_clock::now();
-        QFile    file(file_name);
-        file.open(QIODevice::ReadOnly);
-        QDataStream file_stream(&file);
-        while (file.pos() < file.size() && m_thread_running) {
-            try {
-                _mirror_scan_data = unserializeOneFreame(file_stream);
-            } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-                qFatal(e.what());
-#else
-                qCritical(TAG) << e.what();
-#endif
-            }
-
-            invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
+        auto _last_invoke_time = std::chrono::system_clock::now();
+        auto _file_Data        = deserializeScanData(file_name);
+        qCDebug(TAG) << "file Data size: " << _file_Data.size();
+        for (int i = 0; /*(i < std::ssize(_file_Data)) &&*/ m_thread_running; i++) {
+            invokeCallback(_file_Data[i % std::ssize(_file_Data)]); // 执行回调函数, 默认异步执行
             using namespace std::chrono_literals;
             auto sleep_time = 10000us / 1.0;
             if (fps.has_value()) {
@@ -500,13 +531,6 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             }
             std::this_thread::sleep_until(_last_invoke_time + sleep_time);
             _last_invoke_time = std::chrono::system_clock::now();
-        }
-        if (file.pos() > file.size()) {
-#if defined(QT_DEBUG)
-            qFatal("File read overflow");
-#else
-            qCritical(TAG) << "File read overflow";
-#endif
         }
         m_thread_running = false;
         m_thread_type    = SUB_THREAD_TYPE::IDLE;
@@ -556,49 +580,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 f.get();
             }
         } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qCritical(TAG) << e.what();
-#endif
+            qCCritical(TAG) << e.what();
         }
-    }
-
-    HDBridgeIntf::_T_DataV HDBridgeIntf::unserializeOneFreame(QDataStream &file) const {
-        _T_DataV _temp;
-        size_t   scan_data_size;
-        file >> scan_data_size;
-        _temp.resize(scan_data_size);
-        for (auto it = _temp.begin(); it != _temp.end(); it++) {
-            auto scan_data = std::make_shared<ScanData>();
-            file >> scan_data->package_index;
-            file >> scan_data->channel;
-            file >> scan_data->xAxis_start;
-            file >> scan_data->xAxis_range;
-            size_t ascan_size;
-            file >> ascan_size;
-            scan_data->ascan.resize(ascan_size);
-            file.readRawData(reinterpret_cast<char *>(scan_data->ascan.data()), static_cast<int>(ascan_size));
-            size_t gate_size;
-            file >> gate_size;
-            scan_data->gate.resize(gate_size);
-            for (int i = 0; std::cmp_less(i, gate_size); i++) {
-                int gate_has_value;
-                file >> gate_has_value;
-                if (gate_has_value == 1) {
-                    Union::Base::Gate gate;
-                    file >> gate.pos;
-                    file >> gate.width;
-                    file >> gate.height;
-                    file >> gate.enable;
-                    scan_data->gate[i] = gate;
-                } else {
-                    scan_data->gate[i] = std::nullopt;
-                }
-            }
-            *it = std::move(scan_data);
-        }
-        return _temp;
     }
 
     int HDBridgeIntf::getFrequency() const {

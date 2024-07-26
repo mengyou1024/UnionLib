@@ -28,12 +28,12 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         DWORD     numDevs  = 0;
         FT_STATUS ftStatus = FT_CreateDeviceInfoList(&numDevs);
         if (ftStatus != FT_OK || numDevs == 0) {
-            qFatal("create device info list error");
+            qCCritical(TAG) << "create device info list error";
         }
         std::vector<FT_DEVICE_LIST_INFO_NODE> infos(numDevs);
         ftStatus = FT_GetDeviceInfoList(&infos[0], &numDevs);
         if (ftStatus != FT_OK) {
-            qFatal("get device info list error");
+            qCCritical(TAG) << "get device info list error";
         }
         for (int i = 0; i < std::ssize(infos); ++i) {
             std::string describe = infos.at(i).Description;
@@ -53,7 +53,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         std::sort(_serial.begin(), _serial.end());
         auto uniq = std::unique(_serial.begin(), _serial.end());
         if (uniq != _serial.end()) {
-            qFatal("device serial number duplicated");
+            qCCritical(TAG) << "device serial number duplicated";
         }
 
         // 设置通道数量
@@ -137,7 +137,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         for (auto &it : m_device_list) {
             if (std::get<ID_DEVICE_IS_OPEN>(it) == true) {
                 if (FT_Close(std::get<ID_DEVICE_NODE>(it)->ftHandle) != FT_OK) {
-                    qWarning(TAG) << "close device:" << std::get<ID_DEVICE_INDEX>(it) << "error!";
+                    qCWarning(TAG) << "close device:" << std::get<ID_DEVICE_INDEX>(it) << "error!";
                 }
                 std::get<ID_DEVICE_IS_OPEN>(it) = false;
             }
@@ -198,11 +198,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
     bool _8CH_USB::setSoundVelocity(int ch, double velocity) {
         if (velocity < 1000 || velocity > 8000) {
-#if defined(QT_DEBUG)
-            qFatal("velocity must be between 1000 and 8000");
-#else
+            qCCritical(TAG) << "velocity must be between 1000 and 8000";
             return false;
-#endif
         }
         m_velocity[ch % getChannelNumber()] = velocity;
         return true;
@@ -300,7 +297,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         for (int _int_part = 0; _int_part < getChannelNumber() / 8; ++_int_part) {
             auto &_param_ptr = std::get<ID_DEVCIE_CONFIG>(m_device_list.at(_int_part));
             if (_param_ptr == nullptr) {
-                qFatal("config pointer is nullptr!");
+                qCCritical(TAG) << "config pointer is nullptr!";
             }
             // 系统参数:
             std::lock_guard lock(m_param_mutex);
@@ -369,7 +366,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 DWORD           bytes_write = 0;
                 std::lock_guard lock(m_usb_mutex);
                 if (FT_Write(node->ftHandle, cfg.get(), STRUCT_CONFIG_SIZE, &bytes_write) != FT_OK || bytes_write != STRUCT_CONFIG_SIZE) {
-                    qFatal("write config error");
+                    qCCritical(TAG) << "write config error";
                 }
             }
         }
@@ -389,7 +386,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 {
                     std::lock_guard lock(m_usb_mutex);
                     if (FT_Read(node->ftHandle, _all_ch_data.data(), STRUCT_CH_DATA_SIZE * 8, &byte_read) != FT_OK || byte_read != STRUCT_CH_DATA_SIZE * 8) {
-                        qFatal("read channel data error");
+                        qCCritical(TAG) << "read channel data error";
                     }
                 }
                 for (int j = 0; j < std::ssize(_all_ch_data); ++j) {

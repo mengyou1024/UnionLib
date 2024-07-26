@@ -1,5 +1,9 @@
 #include "_12CH_USB.hpp"
 #include "TOFDPort.h"
+#include <QDebug>
+#include <QLoggingCategory>
+
+static Q_LOGGING_CATEGORY(TAG, "Bridge._12CH_USB");
 
 using namespace TOFDPort;
 
@@ -85,11 +89,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
     bool _12CH_USB::setSoundVelocity(int ch, double velocity) {
         if (velocity < 1000 || velocity > 8000) {
-#if defined(QT_DEBUG)
-            qFatal("velocity must be between 1000 and 8000");
-#else
+            qCWarning(TAG) << "velocity must be between 1000 and 8000";
             return false;
-#endif
         }
         m_velocity[ch % getChannelNumber()] = velocity;
         return true;

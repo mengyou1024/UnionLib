@@ -10,14 +10,14 @@ namespace Union::TOFD_MULTI::__9x0 {
 
     bool ParseUDFile(QString path, SYSTEM_CONFIG_PARAS* psysconfig, CHANNEL_CONFIG_PARAS* pchconfig, QSize& imgsz, int& version) {
         if (path.isEmpty()) {
-            qWarning(TAG) << "file:" << path << "is empty";
+            qCWarning(TAG) << "file:" << path << "is empty";
             return false;
         }
 
         FILE* fp  = nullptr;
         auto  err = fopen_s(&fp, path.toStdString().c_str(), "rb");
         if (err != 0) {
-            qWarning(TAG) << "file:" << path << "open failed, errno:" << err;
+            qCWarning(TAG) << "file:" << path << "open failed, errno:" << err;
             return false;
         }
 
@@ -62,7 +62,7 @@ namespace Union::TOFD_MULTI::__9x0 {
             // TODO: 移除这段注释
             /*CopyMemory(psysconfig, pParaData, sizeof(SYSTEM_CONFIG_PARAS));
             CopyMemory(pchconfig, pParaData + sizeof(SYSTEM_CONFIG_PARAS), sizeof(CHANNEL_CONFIG_PARAS) * 8);*/
-            qWarning(TAG) << "unrecognized file:" << path;
+            qCWarning(TAG) << "unrecognized file:" << path;
         } else if (version == 1) {
             memcpy(psysconfig, pParaData, sizeof(SYSTEM_CONFIG_PARAS));
             memcpy(pchconfig, pParaData + sizeof(SYSTEM_CONFIG_PARAS), sizeof(CHANNEL_CONFIG_PARAS) * 8);
@@ -134,7 +134,7 @@ namespace Union::TOFD_MULTI::__9x0 {
 
         bool ret = ParseUDFile(filepath, &m_SystemPara, m_ChannelPara, image_size, m_nFileVersion);
         if (ret != true) {
-            qDebug(TAG) << "ParseUDFile error: " << filepath;
+            qCDebug(TAG) << "ParseUDFile error: " << filepath;
         }
 
         m_iScanLength = image_size.height();

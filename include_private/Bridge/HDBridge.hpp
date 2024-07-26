@@ -10,8 +10,8 @@
 #include <mutex>
 #include <stack>
 #include <string_view>
-#include <vector>
 #include <variant>
+#include <vector>
 
 namespace Union::Bridge::MultiChannelHardwareBridge {
 
@@ -195,7 +195,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return true if success
          */
         virtual bool setDelay(int ch, double delay_us) = 0;
-        bool setAxisBias(int ch, double mm);
+        bool         setAxisBias(int ch, double mm);
 
         /**
          * @brief 获取延时
@@ -204,7 +204,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return 延时(μs)
          */
         virtual double getDelay(int ch) const final;
-        double getAxisBias(int ch) const;
+        double         getAxisBias(int ch) const;
 
         /**
          * @brief 设置采样深度
@@ -213,7 +213,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return true if success
          */
         virtual bool setSampleDepth(int ch, double depth) = 0;
-        bool setAxisLength(int ch, double mm);
+        bool         setAxisLength(int ch, double mm);
 
         /**
          * @brief 获取采样深度
@@ -222,7 +222,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          * @return 采样深度(μs)
          */
         virtual double getSampleDepth(int ch) const final;
-        double getAxisLength(int ch) const;
+        double         getAxisLength(int ch) const;
 
         /**
          * @brief 设置采样因子
@@ -524,15 +524,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          */
         void unlock_param(void);
 
-        template<class T>
-        requires  std::is_convertible_v<T, _T_R_ONE> || std::is_convertible_v<T, _T_R_ALL>
+        template <class T>
+            requires std::is_convertible_v<T, _T_R_ONE> || std::is_convertible_v<T, _T_R_ALL>
         void register_read_interface(T f) {
             m_read_intf = f;
         }
 
     private:
-        void     invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type = std::launch::async);
-        _T_DataV unserializeOneFreame(QDataStream &file) const;
+        void invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type = std::launch::async);
     };
 
 } // namespace Union::Bridge::MultiChannelHardwareBridge

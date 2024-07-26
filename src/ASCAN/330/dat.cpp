@@ -59,7 +59,7 @@ namespace Union::__330 {
             ret += Yo::File::__Read(file, _330CFlag, file_size); // TODO: 这个标志位用来判断330N、330C？
             if (_330CFlag >= 10) {
                 constexpr auto msg = "_330CFlag >= 10";
-                qWarning(TAG) << msg << "fileName: " << m_fileName;
+                qCWarning(TAG) << msg << "fileName: " << m_fileName;
             }
             for (int32_t i = 0; i < bufferCount; i++) {
                 int32_t encoderLen = 0;
@@ -67,7 +67,7 @@ namespace Union::__330 {
                 ret += Yo::File::__Read(file, encoderLen, file_size);
                 ret += Yo::File::__Read(file, infoLen, file_size);
                 if (std::cmp_greater_equal(encoderLen, file_size) || std::cmp_greater_equal(infoLen, file_size)) {
-                    qWarning(TAG) << "encoderLen >= file_size, fileName: " << m_fileName;
+                    qCWarning(TAG) << "encoderLen >= file_size, fileName: " << m_fileName;
                     return 0;
                 }
                 std::vector<uint8_t> rawData;
@@ -75,14 +75,9 @@ namespace Union::__330 {
                 ret += Yo::File::__Read(file, rawData, file_size);
                 auto decoderBuf = Union::__330::lzw_decompress(rawData.data(), encoderLen);
                 if (infoLen < 0 || (infoLen != (decoderBuf->size() % ASCAN_FRAME_SIZE))) {
-                    qFatal("info lenght error!");
                     constexpr auto msg = "info lenght error!";
-#if defined(QT_DEBUG)
-                    qFatal(msg);
-#else
-                    qCritical(TAG) << msg;
+                    qCCritical(TAG) << msg;
                     return 0;
-#endif
                 }
 
                 auto head_ptr = std::make_shared<__DATHead>();
@@ -122,22 +117,18 @@ namespace Union::__330 {
                         list.emplace_back(std::move(temp));
                     } else {
                         if (!has_empty_on_start) {
-                            qWarning(TAG) << QObject::tr("波形起始位置空白");
+                            qCWarning(TAG).noquote() << QObject::tr("波形起始位置空白");
                             has_empty_on_start = true;
                         }
                     }
                 }
             }
             if (ret != file_size) {
-                qWarning(TAG) << "ret != file_size, fileName:" << m_fileName;
+                qCWarning(TAG) << "ret != file_size, fileName:" << m_fileName;
             }
             return file_size;
         } catch (std::exception& e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qCritical(TAG) << e.what();
-#endif
+            qCCritical(TAG) << e.what();
             return 0;
         }
     }
@@ -408,8 +399,8 @@ namespace Union::__330 {
             QString s0 = QString::asprintf("∧%0.1f %", (float)(int(wavepara[3]) / 10.0));
             strMRange  = "";
         }
-        qDebug(QLoggingCategory("DAS")) << "strMRange" << strMRange;
-        qDebug(QLoggingCategory("DAS")) << ret;
+        qCDebug(TAG) << "strMRange" << strMRange;
+        qCDebug(TAG) << ret;
         auto obj1 = ret[0].toObject();
         auto obj2 = ret[1].toObject();
         if (strMRange.isEmpty()) {

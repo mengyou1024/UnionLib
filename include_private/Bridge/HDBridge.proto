@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package Proto.Union.HDBridge;
+
+// 波门
+message Gate {
+    double pos = 1; // 波门位置(归一化)
+    double width = 2; // 波门宽度(归一化)
+    double height = 3; // 波门高度(归一化)
+    uint32 index = 4; // 波门序号
+};
+
+// 通道参数
+message ChannelParameter {
+    double sound_velocity = 1; // 声速(m/s)
+    double zero_bias = 2; // 零点偏移(μs)
+    double pulse_width = 3; // 脉冲宽度(ns)
+    double sampling_delay = 4; // 采样延时(μs)
+    double sampling_depth = 5; // 采样深度(μs)
+    int32 sampling_factor = 6; // 采样因子
+    double gain = 7; //增益
+    int32 filter_band = 8;// 滤波频带
+    int32 demodu_mode = 9; // 检波方式
+    bool phase_reverse = 10; // 相位翻转
+    repeated Gate gates = 11; // 波门
+};
+
+// 单通道扫查数据
+message OneChannelScanData {
+    int32 pakcage_index = 1; // 包序号
+    int32 channel = 2; // 通道号
+    double axis_offset = 3; // 坐标轴偏移
+    double axis_length = 4; // 坐标轴长度
+    bytes ascan_data = 5; // A扫数据
+    repeated Gate gates = 6; // 波门
+}
+
+// 配置数据(工艺参数)
+message ConfigData {
+    int32 repeat_freqency = 1; // 重复频率
+    int32 emit_voltage = 2; // 发射电压
+    uint32 channel_flag = 3; // 通道标志
+    int32 damper_flag = 4; // 阻尼标志
+    repeated ChannelParameter channel_parameters = 5;
+}
+
+// 所有通道的扫查数据
+message ScanData {
+    repeated OneChannelScanData channel_data = 1; // 一个通道的扫查数据
+}
+
+// 所有通道扫查数据组成的数组
+message ScanDataVector {
+    repeated ScanData scan_data = 1; // 扫查数据
+}

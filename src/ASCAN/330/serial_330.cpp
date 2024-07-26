@@ -108,11 +108,7 @@ namespace Union::__330 {
 
             return ret;
         } catch (std::exception &e) {
-#if defined(QT_DEBUG)
-            qFatal(e.what());
-#else
-            qCritical(TAG) << e.what();
-#endif
+            qCCritical(TAG) << e.what();
             return 0;
         }
     }
@@ -406,12 +402,12 @@ namespace Union::__330 {
             (void)s0;
             strMRange = "";
         }
-        qDebug(QLoggingCategory("DAS")) << "strMRange" << strMRange;
-        qDebug(QLoggingCategory("DAS")) << ret;
-        auto obj1    = ret[0].toObject();
-        auto obj2    = ret[1].toObject();
-        obj1["equi"] = strMRange;
-        obj2["equi"] = "-";
+        qCDebug(TAG) << "strMRange" << strMRange;
+        qCDebug(TAG) << ret;
+        auto obj1      = ret[0].toObject();
+        auto obj2      = ret[1].toObject();
+        obj1["equi"]   = strMRange;
+        obj2["equi"]   = "-";
         obj1["dist_c"] = QString::number(channelParam.wavepara[0] / 10.0, 'f', 1);
         obj1["dist_a"] = QString::number(channelParam.wavepara[1] / 10.0, 'f', 1);
         obj1["dist_b"] = QString::number(channelParam.wavepara[2] / 10.0, 'f', 1);
