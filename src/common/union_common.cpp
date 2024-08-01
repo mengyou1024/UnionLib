@@ -1,7 +1,6 @@
 
 #include "union_common.hpp"
 #include <Yo/Types>
-#include <stdexcept>
 
 double Union::CalculatedGain(double input, double output) {
     return 20.0 * std::log10(output / input);
@@ -14,8 +13,8 @@ double Union::CalculateGainInput(double output, double gain) {
     return output / std::pow(10.0, gain / 20.0);
 }
 
-double Union::ValueMap(double val, const std::array<double, 2>& dist, const std::array<double, 2>& raw) {
-    return (val - raw[0]) / (raw[1] - raw[0]) * (dist[1] - dist[0]) + dist[0];
+double Union::ValueMap(double val, const std::pair<double, double>& dist, const std::pair<double, double>& raw) {
+    return (val - raw.first) / (raw.second - raw.first) * (dist.second - dist.first) + dist.first;
 }
 
 double Union::EchoDbDiffOfPlan(double x1, double x2) {
@@ -77,4 +76,5 @@ namespace Union::Base {
         }
         return ret;
     }
+
 } // namespace Union::Base

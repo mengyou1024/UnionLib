@@ -363,7 +363,7 @@ namespace Union::AScan {
          * @return [bias, bias+len]
          *         其中bias为`getAxisBias`返回值, len为`getAxisLen`返回值
          */
-        virtual std::array<double, 2> getAxisRange(int idx) const final;
+        virtual std::pair<double, double> getAxisRange(int idx) const final;
 
         /**
          * @brief 获取波门的计算结果

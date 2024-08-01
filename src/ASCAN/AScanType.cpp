@@ -386,8 +386,8 @@ namespace Union::AScan {
         return Union::Base::CalculateGateResult(_data, _gate, find_center_if_overflow, _supression);
     }
 
-    std::array<double, 2> AScanIntf::getAxisRange(int idx) const {
-        return std::array<double, 2>({getAxisBias(idx), getAxisBias(idx) + getAxisLen(idx)});
+    std::pair<double, double> AScanIntf::getAxisRange(int idx) const {
+        return std::make_pair(getAxisBias(idx), getAxisBias(idx) + getAxisLen(idx));
     }
 
 } // namespace Union::AScan

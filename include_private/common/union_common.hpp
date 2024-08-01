@@ -57,7 +57,7 @@ namespace Union {
      *
      * @return 映射值
      */
-    double ValueMap(double val, const std::array<double, 2>& dist, const std::array<double, 2>& raw = {0.0, 1.0});
+    double ValueMap(double val, const std::pair<double, double>& dist, const std::pair<double, double>& raw = {0.0,1.0});
 
     /**
      * @brief 不同距离的大平底面回波dB差
