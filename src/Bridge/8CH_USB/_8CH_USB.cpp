@@ -468,7 +468,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             throw std::runtime_error("device serial number duplicated");
         }
 
-        // 设置通道数量 模块数*8
+        // 设置通道数量: 模块数*8
         m_channel_number = 8 * std::ssize(m_device_list);
 
         initParam();

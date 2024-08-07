@@ -466,6 +466,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
         auto RUN_HELPER = [&](auto func) {
             if constexpr (std::is_same_v<decltype(func), _T_R_ONE>) {
+                // 读取函数接口的形式为: 一次读取单个通道的数据
                 std::vector<bool> _ch_update_flag; // 用于标记通道是否更新
                 _ch_update_flag.resize(getChannelNumber());
                 std::generate(_ch_update_flag.begin(), _ch_update_flag.end(), []() -> bool {
@@ -496,9 +497,12 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                     }
                 }
             } else if constexpr (std::is_same_v<decltype(func), _T_R_ALL>) {
+                // 读取函数接口的形式为: 一次读取所有通道的数据
                 while (m_thread_running) {
                     _mirror_scan_data = func();
-                    invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
+                    if (std::ssize(_mirror_scan_data) == getChannelNumber()) {
+                        invokeCallback(_mirror_scan_data); // 执行回调函数, 默认异步执行
+                    }
                     {
                         std::lock_guard lock(m_scan_data_mutex);
                         m_scan_data = _mirror_scan_data; // 更新镜像数据(作用域是为了减少lock的持有时间)
@@ -521,7 +525,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         auto _last_invoke_time = std::chrono::system_clock::now();
         auto _file_Data        = deserializeScanData(file_name);
         qCDebug(TAG) << "file Data size: " << _file_Data.size();
-        for (int i = 0; /*(i < std::ssize(_file_Data)) &&*/ m_thread_running; i++) {
+
+#if EXIT_ON_EOF
+        // 文件结束时退出线程
+        for (int i = 0; (i < std::ssize(_file_Data)) && m_thread_running; i++) {
+#else
+        // 文件结束时从头读取
+        for (int i = 0; m_thread_running; i++) {
+#endif
             invokeCallback(_file_Data[i % std::ssize(_file_Data)]); // 执行回调函数, 默认异步执行
             using namespace std::chrono_literals;
             auto sleep_time = 10000us / 1.0;
