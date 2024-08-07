@@ -24,44 +24,10 @@ namespace {
 namespace Union::Bridge::MultiChannelHardwareBridge {
     _8CH_USB::_8CH_USB(int gate_number) :
     m_gate_number(gate_number) {
-        // 创建并查找设备句柄
-        DWORD     numDevs  = 0;
-        FT_STATUS ftStatus = FT_CreateDeviceInfoList(&numDevs);
-        if (ftStatus != FT_OK || numDevs == 0) {
-            qCCritical(TAG) << "create device info list error";
-        }
-        std::vector<FT_DEVICE_LIST_INFO_NODE> infos(numDevs);
-        ftStatus = FT_GetDeviceInfoList(&infos[0], &numDevs);
-        if (ftStatus != FT_OK) {
-            qCCritical(TAG) << "get device info list error";
-        }
-        for (int i = 0; i < std::ssize(infos); ++i) {
-            std::string describe = infos.at(i).Description;
-            if (describe.find("Serial Cable A") != std::string::npos) {
-                m_device_list.emplace_back(std::make_tuple(i, std::make_shared<FT_DEVICE_LIST_INFO_NODE>(infos.at(i)), infos.at(i).ftHandle != nullptr, std::make_shared<UDA_CFG>()));
-            }
-        }
-
-        // 检查序列号是否重复
-        std::vector<std::vector<uint8_t>> _serial(m_device_list.size());
-        std::transform(m_device_list.begin(), m_device_list.end(), _serial.begin(), [](_T_DL it) -> std::vector<uint8_t> {
-            auto                 ptr = std::get<ID_DEVICE_NODE>(it);
-            std::vector<uint8_t> ret(16);
-            memcpy(ret.data(), ptr->SerialNumber, 16);
-            return ret;
-        });
-        std::sort(_serial.begin(), _serial.end());
-        auto uniq = std::unique(_serial.begin(), _serial.end());
-        if (uniq != _serial.end()) {
-            qCCritical(TAG) << "device serial number duplicated";
-        }
-
-        // 设置通道数量
-        m_channel_number = 8 * std::ssize(m_device_list);
-
-        initParam();
-
+        // 注册读取数据的回调函数
         register_read_interface(std::bind(&_8CH_USB::readAllFrame, this));
+        // 初始化板卡
+        private_init_params();
     }
 
     _8CH_USB::~_8CH_USB() {
@@ -72,7 +38,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     bool _8CH_USB::open() {
         using namespace std::chrono_literals;
         do {
-            auto i = 0;
+            std::lock_guard lock(m_usb_mutex);
+            auto            i = 0;
             for (i = 0; i < std::ssize(m_device_list); i++) {
                 auto &it = m_device_list.at(i);
                 if (std::get<ID_DEVICE_IS_OPEN>(it) != true) {
@@ -84,32 +51,25 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                     if (FT_SetBitMode(handle, 0xFF, 0x00) != FT_OK) {
                         break;
                     }
-                    std::this_thread::sleep_for(10ms);
                     // sysc fifo mode
                     if (FT_SetBitMode(handle, 0xFF, 0x40) != FT_OK) {
                         break;
                     }
-                    std::this_thread::sleep_for(10ms);
                     if (FT_SetLatencyTimer(handle, 16) != FT_OK) {
                         break;
                     }
-                    std::this_thread::sleep_for(10ms);
                     if (FT_SetUSBParameters(handle, 4096 * 8, 512) != FT_OK) {
                         break;
                     }
-                    std::this_thread::sleep_for(10ms);
                     if (FT_SetTimeouts(handle, 1000, 200) != FT_OK) {
                         break;
                     }
-                    std::this_thread::sleep_for(10ms);
                     if (FT_SetFlowControl(handle, FT_FLOW_RTS_CTS, 0, 0) != FT_OK) {
                         break;
                     }
-                    std::this_thread::sleep_for(10ms);
                     if (FT_Purge(handle, FT_PURGE_RX | FT_PURGE_TX) != FT_OK) {
                         break;
                     }
-                    std::this_thread::sleep_for(10ms);
                     std::get<ID_DEVICE_IS_OPEN>(it) = true;
                 }
             }
@@ -124,6 +84,10 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::isOpen() {
+        std::lock_guard lock(m_usb_mutex);
+        if (m_device_list.size() == 0) {
+            return false;
+        }
         for (const auto &it : m_device_list) {
             if (std::get<ID_DEVICE_IS_OPEN>(it) == false) {
                 return false;
@@ -134,6 +98,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
     bool _8CH_USB::close() {
         closeReadThreadAndWaitExit();
+        std::lock_guard lock(m_usb_mutex);
         for (auto &it : m_device_list) {
             if (std::get<ID_DEVICE_IS_OPEN>(it) == true) {
                 if (FT_Close(std::get<ID_DEVICE_NODE>(it)->ftHandle) != FT_OK) {
@@ -146,6 +111,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::isDeviceExist() {
+        std::lock_guard lock(m_usb_mutex);
         return m_device_list.size() > 0;
     }
 
@@ -158,9 +124,11 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     void _8CH_USB::loadDefaultConfig() {
+        std::lock_guard lock(getParamLock());
     }
 
     bool _8CH_USB::setFrequency(int freq) {
+        std::lock_guard lock(getParamLock());
         if (freq < 50) {
             freq = 50;
         }
@@ -172,6 +140,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::setVoltage(int volt) {
+        std::lock_guard lock(getParamLock());
         m_voltage = volt;
         return true;
     }
@@ -187,16 +156,19 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::setChannelFlag(uint32_t flag) {
+        std::lock_guard lock(getParamLock());
         Q_UNUSED(flag);
         return false;
     }
 
     bool _8CH_USB::setDamperFlag(int flag) {
+        std::lock_guard lock(getParamLock());
         m_damper_flag = flag;
         return true;
     }
 
     bool _8CH_USB::setSoundVelocity(int ch, double velocity) {
+        std::lock_guard lock(getParamLock());
         if (velocity < 1000 || velocity > 8000) {
             qCCritical(TAG) << "velocity must be between 1000 and 8000";
             return false;
@@ -206,12 +178,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::setZeroBias(int ch, double bias_us) {
-        auto _ch                              = ch % getChannelNumber();
+        std::lock_guard lock(getParamLock());
+        auto            _ch                   = ch % getChannelNumber();
         m_zero_bias[_ch % getChannelNumber()] = bias_us;
         return true;
     }
 
     bool _8CH_USB::setPulseWidth(int ch, double width_ns) {
+        std::lock_guard lock(getParamLock());
         if (width_ns < 30) {
             width_ns = 30;
         }
@@ -221,18 +195,21 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::setDelay(int ch, double delay_us) {
-        auto _ch                          = ch % getChannelNumber();
+        std::lock_guard lock(getParamLock());
+        auto            _ch               = ch % getChannelNumber();
         m_delay[_ch % getChannelNumber()] = delay_us;
         return true;
     }
 
     bool _8CH_USB::setSampleDepth(int ch, double depth) {
-        auto _ch            = ch % getChannelNumber();
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
         m_sample_depth[_ch] = depth;
         return true;
     }
 
     bool _8CH_USB::setSampleFactor(int ch, int factor) {
+        std::lock_guard lock(getParamLock());
         if (factor < 1) {
             factor = 1;
         } else if (factor > 127) {
@@ -244,14 +221,16 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::setGain(int ch, double gain) {
-        auto _ch    = ch % getChannelNumber();
-        m_gain[_ch] = gain;
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
+        m_gain[_ch]         = gain;
         return true;
     }
 
     bool _8CH_USB::setFilter(int ch, int filter_index) {
-        auto _ch      = ch % getChannelNumber();
-        m_filter[_ch] = filter_index;
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
+        m_filter[_ch]       = filter_index;
         return true;
     }
 
@@ -272,8 +251,9 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::setDemodu(int ch, int demodu_index) {
-        auto _ch      = ch % getChannelNumber();
-        m_demodu[_ch] = demodu_index;
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
+        m_demodu[_ch]       = demodu_index;
         return true;
     }
 
@@ -288,19 +268,27 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _8CH_USB::setPhaseReverse(int ch, bool enable) {
+        std::lock_guard lock(getParamLock());
         Q_UNUSED(ch)
         Q_UNUSED(enable)
         return false;
     }
 
     bool _8CH_USB::sync2Board(void) const {
+        std::vector<_T_DL> mirror_device_list = {};
+
+        {
+            std::lock_guard lock(m_usb_mutex);
+            mirror_device_list = m_device_list;
+        }
+
         for (int _int_part = 0; _int_part < getChannelNumber() / 8; ++_int_part) {
-            auto &_param_ptr = std::get<ID_DEVCIE_CONFIG>(m_device_list.at(_int_part));
+            auto &_param_ptr = std::get<ID_DEVCIE_CONFIG>(mirror_device_list.at(_int_part));
             if (_param_ptr == nullptr) {
                 qCCritical(TAG) << "config pointer is nullptr!";
             }
             // 系统参数:
-            std::lock_guard lock(m_param_mutex);
+            std::lock_guard lock(getParamLock());
 
             auto &_sys_param       = _param_ptr->sysParam;
             _sys_param.Scan_Unit   = 0;
@@ -356,7 +344,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             }
         }
 
-        for (const auto &it : m_device_list) {
+        for (const auto &it : mirror_device_list) {
             const auto &node   = std::get<ID_DEVICE_NODE>(it);
             const auto &cfg    = std::get<ID_DEVCIE_CONFIG>(it);
             bool        isOpen = std::get<ID_DEVICE_IS_OPEN>(it);
@@ -375,9 +363,25 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     std::vector<std::shared_ptr<ScanData>> _8CH_USB::readAllFrame(void) {
-        std::vector<std::shared_ptr<ScanData>> ret = {};
-        for (int i = 0; i < std::ssize(m_device_list); ++i) {
-            const auto &it     = m_device_list.at(i);
+        std::vector<std::shared_ptr<ScanData>> ret                = {};
+        std::vector<_T_DL>                     mirror_device_list = {};
+
+        {
+            std::lock_guard lock(m_usb_mutex);
+            mirror_device_list = m_device_list;
+        }
+
+        if (std::ssize(mirror_device_list) == 0) {
+            try {
+                private_init_params();
+                open();
+            } catch (std::exception &) {
+                return ret;
+            }
+        }
+
+        for (int i = 0; i < std::ssize(mirror_device_list); ++i) {
+            const auto &it     = mirror_device_list.at(i);
             const auto &node   = std::get<ID_DEVICE_NODE>(it);
             bool        isOpen = std::get<ID_DEVICE_IS_OPEN>(it);
             if (isOpen) {
@@ -386,7 +390,10 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                 {
                     std::lock_guard lock(m_usb_mutex);
                     if (FT_Read(node->ftHandle, _all_ch_data.data(), STRUCT_CH_DATA_SIZE * 8, &byte_read) != FT_OK || byte_read != STRUCT_CH_DATA_SIZE * 8) {
-                        qCCritical(TAG) << "read channel data error";
+                        qCCritical(TAG) << "read channel data error, try to re-initialize device";
+                        // 清除设备列表
+                        m_device_list.clear();
+                        return ret;
                     }
                 }
                 for (int j = 0; j < std::ssize(_all_ch_data); ++j) {
@@ -398,7 +405,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                     _ch_data->xAxis_range   = us2mm(getSampleDepth(_ch), getSoundVelocity(_ch));
                     _ch_data->ascan         = std::vector<uint8_t>(_all_ch_data.at(j).AcanData.begin(), _all_ch_data.at(j).AcanData.end());
                     {
-                        std::lock_guard lock(m_param_mutex);
+                        std::lock_guard lock(getParamLock());
                         _ch_data->gate = m_gate_info[_ch_data->channel % getChannelNumber()];
                     }
                     _ch_data->gate_result.resize(getGateNumber());
@@ -419,6 +426,52 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         });
 
         return ret;
+    }
+
+    void _8CH_USB::private_init_params() {
+        std::lock_guard lock(m_usb_mutex);
+        // 清除设备列表
+        m_device_list.clear();
+        // 创建并查找设备句柄
+        DWORD     numDevs  = 0;
+        FT_STATUS ftStatus = FT_CreateDeviceInfoList(&numDevs);
+        if (ftStatus != FT_OK || numDevs == 0) {
+            throw std::runtime_error("create device info list error");
+        }
+        std::vector<FT_DEVICE_LIST_INFO_NODE> infos(numDevs);
+        ftStatus = FT_GetDeviceInfoList(&infos[0], &numDevs);
+        if (ftStatus != FT_OK) {
+            throw std::runtime_error("get device info list error");
+        }
+        for (int i = 0; i < std::ssize(infos); ++i) {
+            std::string describe = infos.at(i).Description;
+            if (describe.find("Serial Cable A") != std::string::npos) {
+                m_device_list.emplace_back(std::make_tuple(i, std::make_shared<FT_DEVICE_LIST_INFO_NODE>(infos.at(i)), infos.at(i).ftHandle != nullptr, std::make_shared<UDA_CFG>()));
+            }
+        }
+
+        if (m_device_list.size() == 0) {
+            throw std::runtime_error("can't find device list");
+        }
+
+        // 检查序列号是否重复
+        std::vector<std::vector<uint8_t>> _serial(m_device_list.size());
+        std::transform(m_device_list.begin(), m_device_list.end(), _serial.begin(), [](_T_DL it) -> std::vector<uint8_t> {
+            auto                 ptr = std::get<ID_DEVICE_NODE>(it);
+            std::vector<uint8_t> ret(16);
+            memcpy(ret.data(), ptr->SerialNumber, 16);
+            return ret;
+        });
+        std::sort(_serial.begin(), _serial.end());
+        auto uniq = std::unique(_serial.begin(), _serial.end());
+        if (uniq != _serial.end()) {
+            throw std::runtime_error("device serial number duplicated");
+        }
+
+        // 设置通道数量 模块数*8
+        m_channel_number = 8 * std::ssize(m_device_list);
+
+        initParam();
     }
 
 } // namespace Union::Bridge::MultiChannelHardwareBridge

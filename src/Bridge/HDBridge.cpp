@@ -104,7 +104,6 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
                         qCWarning(TAG).noquote() << QString::asprintf("current index(%d) != channel(%d)", i, _ch_to_write->channel);
                     }
                     _channel_scan_data->set_channel(_ch_to_write->channel);
-
                     _channel_scan_data->set_axis_offset(_ch_to_write->xAxis_start);
                     _channel_scan_data->set_axis_length(_ch_to_write->xAxis_range);
                     _channel_scan_data->set_ascan_data(_ch_to_write->ascan.data(), _ch_to_write->ascan.size());
@@ -557,12 +556,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         m_param_is_init = true;
     }
 
-    void HDBridgeIntf::lock_param(void) {
-        m_param_mutex.lock();
-    }
-
-    void HDBridgeIntf::unlock_param(void) {
-        m_param_mutex.unlock();
+    std::mutex &HDBridgeIntf::getParamLock() const noexcept {
+        return m_param_mutex;
     }
 
     void HDBridgeIntf::invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type) {

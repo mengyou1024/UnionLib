@@ -513,16 +513,10 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         void initParam(void);
 
         /**
-         * @brief 锁定参数
-         *
+         * @brief 获取参数锁
+         * @return lock
          */
-        void lock_param(void);
-
-        /**
-         * @brief 解锁参数
-         *
-         */
-        void unlock_param(void);
+        std::mutex &getParamLock() const noexcept;
 
         template <class T>
             requires std::is_convertible_v<T, _T_R_ONE> || std::is_convertible_v<T, _T_R_ALL>

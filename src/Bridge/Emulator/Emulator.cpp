@@ -1,6 +1,6 @@
 #include "Emulator.hpp"
-#include <QLoggingCategory>
 #include <QDebug>
+#include <QLoggingCategory>
 
 static Q_LOGGING_CATEGORY(TAG, "Bridge.Emulator");
 
@@ -178,7 +178,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         ret->xAxis_range    = 100;
         ret->ascan.resize(1000);
         {
-            std::lock_guard lock(m_param_mutex);
+            std::lock_guard lock(getParamLock());
             ret->gate = m_gate_info[ret->channel];
         }
 

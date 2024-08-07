@@ -135,5 +135,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         inline static constexpr auto ID_DEVCIE_CONFIG  = 3;
 
         std::vector<std::shared_ptr<ScanData>> readAllFrame(void);
+
+        void private_init_params(void);
     };
 } // namespace Union::Bridge::MultiChannelHardwareBridge

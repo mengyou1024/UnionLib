@@ -49,6 +49,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setFrequency(int freq) {
+        std::lock_guard lock(getParamLock());
         if (freq < 50) {
             freq = 50;
         }
@@ -60,6 +61,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setVoltage(int volt) {
+        std::lock_guard lock(getParamLock());
         m_voltage = volt;
         return TOFD_PORT_SetVoltage(volt);
     }
@@ -75,6 +77,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setChannelFlag(uint32_t flag) {
+        std::lock_guard lock(getParamLock());
         if (flag == 0) {
             flag = 0xFFF0FFF;
         }
@@ -83,11 +86,13 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setDamperFlag(int flag) {
+        std::lock_guard lock(getParamLock());
         m_damper_flag = flag;
         return TOFD_PORT_SetDamperFlag(flag);
     }
 
     bool _12CH_USB::setSoundVelocity(int ch, double velocity) {
+        std::lock_guard lock(getParamLock());
         if (velocity < 1000 || velocity > 8000) {
             qCWarning(TAG) << "velocity must be between 1000 and 8000";
             return false;
@@ -97,13 +102,15 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setZeroBias(int ch, double bias_us) {
-        auto _ch                              = ch % getChannelNumber();
+        std::lock_guard lock(getParamLock());
+        auto            _ch                   = ch % getChannelNumber();
         m_zero_bias[_ch % getChannelNumber()] = bias_us;
         auto val                              = m_zero_bias[_ch] + m_delay[_ch];
         return TOFD_PORT_SetDelay(_ch, val);
     }
 
     bool _12CH_USB::setPulseWidth(int ch, double width_ns) {
+        std::lock_guard lock(getParamLock());
         if (width_ns < 30) {
             width_ns = 30;
         }
@@ -116,20 +123,23 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setDelay(int ch, double delay_us) {
-        auto _ch                          = ch % getChannelNumber();
+        std::lock_guard lock(getParamLock());
+        auto            _ch               = ch % getChannelNumber();
         m_delay[_ch % getChannelNumber()] = delay_us;
         auto val                          = m_zero_bias[_ch] + m_delay[_ch];
         return TOFD_PORT_SetDelay(_ch, val);
     }
 
     bool _12CH_USB::setSampleDepth(int ch, double depth) {
-        auto _ch            = ch % getChannelNumber();
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
         m_sample_depth[_ch] = depth;
         auto val            = m_sample_depth[_ch] + m_zero_bias[_ch];
         return TOFD_PORT_SetSampleDepth(_ch, val);
     }
 
     bool _12CH_USB::setSampleFactor(int ch, int factor) {
+        std::lock_guard lock(getParamLock());
         if (factor < 1) {
             factor = 1;
         } else if (factor > 127) {
@@ -141,14 +151,16 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setGain(int ch, double gain) {
-        auto _ch    = ch % getChannelNumber();
-        m_gain[_ch] = gain;
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
+        m_gain[_ch]         = gain;
         return TOFD_PORT_SetGain(_ch, gain);
     }
 
     bool _12CH_USB::setFilter(int ch, int filter_index) {
-        auto _ch      = ch % getChannelNumber();
-        m_filter[_ch] = filter_index;
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
+        m_filter[_ch]       = filter_index;
         return TOFD_PORT_SetFilter(_ch, filter_index);
     }
 
@@ -162,8 +174,9 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setDemodu(int ch, int demodu_index) {
-        auto _ch      = ch % getChannelNumber();
-        m_demodu[_ch] = demodu_index;
+        std::lock_guard lock(getParamLock());
+        auto            _ch = ch % getChannelNumber();
+        m_demodu[_ch]       = demodu_index;
         return TOFD_PORT_SetDemodu(_ch, demodu_index);
     }
 
@@ -178,7 +191,8 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
     }
 
     bool _12CH_USB::setPhaseReverse(int ch, bool enable) {
-        auto _ch             = ch % getChannelNumber();
+        std::lock_guard lock(getParamLock());
+        auto            _ch  = ch % getChannelNumber();
         m_phase_reverse[_ch] = enable;
         return TOFD_PORT_SetPhaseReverse(_ch, enable);
     }
@@ -202,7 +216,7 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         ret->xAxis_range   = us2mm(getSampleDepth(ret->channel), getSoundVelocity(ret->channel));
         ret->ascan.resize(dat->iAScanSize);
         {
-            std::lock_guard lock(m_param_mutex);
+            std::lock_guard lock(getParamLock());
             ret->gate = m_gate_info[ret->channel];
         }
         memcpy_s(ret->ascan.data(), ret->ascan.size(), dat->pAscan, dat->iAScanSize);
