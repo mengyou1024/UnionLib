@@ -7,6 +7,8 @@
 namespace Union::Base {
     class DAC {
     public:
+        using _T_PAIR_D = std::pair<double, double>;
+
         double              baseGain         = {}; ///< 基础增益
         double              biasGain         = {}; ///< 补偿增益
         int                 gate             = {};
@@ -15,6 +17,7 @@ namespace Union::Base {
         std::vector<double> value            = {}; ///< 值
         int                 samplingDepth    = {}; ///< 采样深度
         double              decimationFactor = {}; ///< 采样因子
+        _T_PAIR_D           samplingAxis     = {}; ///< 采样时的坐标轴
     };
 
     struct DAC_Standard {

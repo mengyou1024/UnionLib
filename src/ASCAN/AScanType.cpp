@@ -5,6 +5,20 @@
 #include <cmath>
 #include <tuple>
 
+#define STRINGISE_IMPL(x) #x
+#define STRINGISE(x)      STRINGISE_IMPL(x)
+
+// Use: #pragma message WARN("My message")
+#if _MSC_VER
+    #define FILE_LINE_LINK __FILE__ "(" STRINGISE(__LINE__) ") : "
+    #define WARN(exp)      (FILE_LINE_LINK "WARNING: " exp)
+#else //__GNUC__ - may need other defines for different compilers
+    #define WARN(exp) ("WARNING: " exp)
+#endif
+
+#pragma message WARN("这个宏用于测试DAC和AVG曲线的绘制, 由于仪器软件保存的参数存在问题, 暂时使用该方式代替 <未来将移除>")
+#define USE_TEST_RANGE
+
 static Q_LOGGING_CATEGORY(TAG, "ASCAN.INTF");
 
 namespace Union::AScan {
@@ -279,7 +293,12 @@ namespace Union::AScan {
             std::vector<double> index_on_dac_view;
             index_on_dac_view.resize(avg_param->index.size());
             std::transform(avg_param->index.begin(), avg_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
+#ifdef USE_TEST_RANGE
+    #pragma message WARN("仅供测试使用的代码, 完善后请移除")
                 return ValueMap(x, {0.0, 250.0}, {0.0, AVG_ECHO_SIZE});
+#else
+                return ValueMap(x, avg_param->samplingAxis, {0.0, AVG_ECHO_SIZE});
+#endif
             });
             auto modifyGain = getBaseGain(idx) + getScanGain(idx) + getSurfaceCompentationGain(idx) - avg_param->baseGain - avg_param->biasGain;
             if (avg_param->index.size() == 1) {
@@ -331,7 +350,12 @@ namespace Union::AScan {
             std::vector<double> index_on_dac_view;
             index_on_dac_view.resize(dac_param->index.size());
             std::transform(dac_param->index.begin(), dac_param->index.end(), index_on_dac_view.begin(), [&](double x) -> double {
+#ifdef USE_TEST_RANGE
+    #pragma message WARN("仅供测试使用的代码, 完善后请移除")
                 return ValueMap(x, {0.0, 100.0}, {0.0, DAC_ECHO_SIZE});
+#else
+                return ValueMap(x, dac_param->samplingAxis, {0.0, AVG_ECHO_SIZE});
+#endif
             });
             auto modifyGain = getBaseGain(idx) + getScanGain(idx) - dac_param->baseGain - dac_param->biasGain;
             if (dac_param->index.size() == 1) {

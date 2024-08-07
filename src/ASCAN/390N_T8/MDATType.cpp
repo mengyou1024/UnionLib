@@ -332,6 +332,7 @@ namespace Union::__390N_T8::MDATType {
             ret.isSubline          = avg_param->onlyShowBaseLine;
             ret.index              = CONVERT_F_VECTOR_TO_DOUBLE(avg_param->index);
             ret.value              = CONVERT_F_VECTOR_TO_DOUBLE(avg_param->value);
+            ret.samplingAxis       = std::make_pair(avg_param->samplingXAxisBias, avg_param->samplingXAxisBias + avg_param->samplingXAxisLen);
             return ret;
         }
         return std::nullopt;
@@ -341,12 +342,13 @@ namespace Union::__390N_T8::MDATType {
         const auto& dac_param = std::get<ID_DAC_PARAM>(m_data.second.at(idx));
         if (dac_param != nullptr && dac_param->isReady) {
             Base::DAC ret;
-            ret.baseGain  = dac_param->baseGain;
-            ret.biasGain  = dac_param->compensatingGain;
-            ret.gate      = 0;
-            ret.isSubline = dac_param->onlyShowBaseLine;
-            ret.index     = CONVERT_F_VECTOR_TO_DOUBLE(dac_param->index);
-            ret.value     = CONVERT_F_VECTOR_TO_DOUBLE(dac_param->value);
+            ret.baseGain     = dac_param->baseGain;
+            ret.biasGain     = dac_param->compensatingGain;
+            ret.gate         = 0;
+            ret.isSubline    = dac_param->onlyShowBaseLine;
+            ret.index        = CONVERT_F_VECTOR_TO_DOUBLE(dac_param->index);
+            ret.value        = CONVERT_F_VECTOR_TO_DOUBLE(dac_param->value);
+            ret.samplingAxis = std::make_pair(dac_param->samplingXAxisBias, dac_param->samplingXAxisBias + dac_param->samplingXAxisLen);
             return ret;
         }
         return std::nullopt;
