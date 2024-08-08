@@ -382,13 +382,40 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
          */
         virtual bool deserializeConfigData(const QString &file_name);
 
+        enum class CALLBACK_APPEND_FLAG {
+            OVERWRITE_OLD,         ///< 覆盖旧key
+            OVERWRITE_OLD_REVERSE, ///< 覆盖旧key(反向搜索)
+            OVERWRITE_ALL,         ///< 覆盖所有相同key
+            ALLOW_COEXISTENCE,     ///< 允许共存
+            DONOT_APPEND,          ///< 不追加
+        };
+
         /**
          * @brief 添加回调函数
          *
          * @param func 回调函数
+         * @param del_key 删除时的key
+         * @param flag 标志
          * @return bool
          */
-        virtual bool appendCallback(InftCallbackFunc func) final;
+        virtual bool appendCallback(
+            InftCallbackFunc       func,
+            std::optional<QString> del_key = std::nullopt,
+            CALLBACK_APPEND_FLAG   flag    = CALLBACK_APPEND_FLAG::ALLOW_COEXISTENCE) final;
+
+        enum class CALLBACK_DELETE_FLAG {
+            DELETE_FIRST, ///< 删除(正向搜索)
+            DELETE_LAST,  ///< 删除(反向搜索)
+            DELETE_ALL,   ///< 删除所有
+        };
+
+        /**
+         * @brief 删除回调函数
+         *
+         * @param del_key 删除的键
+         * @return bool
+         */
+        virtual bool deleteCallback(QString del_key, CALLBACK_DELETE_FLAG flag = CALLBACK_DELETE_FLAG::DELETE_ALL) final;
 
         /**
          * @brief 清空回调函数
@@ -445,13 +472,19 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
             FILE_STREAM, ///< 文件流
         };
 
-        std::list<InftCallbackFunc>             m_callback_list  = {};
-        std::stack<std::list<InftCallbackFunc>> m_callback_stack = {};
-        mutable std::mutex                      m_callback_mutex = {};
-        std::atomic<bool>                       m_thread_running = false;
-        std::unique_ptr<QThread>                m_read_thread    = {};
-        SUB_THREAD_TYPE                         m_thread_type    = SUB_THREAD_TYPE::IDLE;
-        mutable std::mutex                      m_param_mutex    = {};
+        using _T_LIST_CB_ELEMENT = std::tuple<InftCallbackFunc, std::optional<QString>>;
+        using _T_LIST_CALLBACK = std::list<_T_LIST_CB_ELEMENT>;
+
+        inline static constexpr auto ID_INTF_CALLBACK_FUNC = 0;
+        inline static constexpr auto ID_INTF_DEL_KEY       = 1;
+
+        _T_LIST_CALLBACK             m_callback_list  = {};
+        std::stack<_T_LIST_CALLBACK> m_callback_stack = {};
+        mutable std::mutex           m_callback_mutex = {};
+        std::atomic<bool>            m_thread_running = false;
+        std::unique_ptr<QThread>     m_read_thread    = {};
+        SUB_THREAD_TYPE              m_thread_type    = SUB_THREAD_TYPE::IDLE;
+        mutable std::mutex           m_param_mutex    = {};
 
         using _T_GateV = std::vector<std::vector<std::optional<Union::Base::Gate>>>;
         using _T_DataV = std::vector<std::shared_ptr<ScanData>>;

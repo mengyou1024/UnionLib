@@ -282,10 +282,125 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
         }
     }
 
-    bool HDBridgeIntf::appendCallback(InftCallbackFunc func) {
+    bool HDBridgeIntf::appendCallback(InftCallbackFunc       func,
+                                      std::optional<QString> del_key,
+                                      CALLBACK_APPEND_FLAG   flag) {
         std::lock_guard lock(m_callback_mutex);
-        m_callback_list.emplace_back(func);
+        if (!del_key.has_value() || flag == CALLBACK_APPEND_FLAG::ALLOW_COEXISTENCE) {
+            m_callback_list.emplace_back(std::make_tuple(func, del_key));
+            return true;
+        }
+
+        switch (flag) {
+            case CALLBACK_APPEND_FLAG::OVERWRITE_OLD: {
+                auto it = std::find_if(m_callback_list.begin(), m_callback_list.end(), [&](const _T_LIST_CB_ELEMENT &item) {
+                    const auto &key = std::get<ID_INTF_DEL_KEY>(item);
+                    if (key.has_value()) {
+                        return key.value() == del_key;
+                    }
+                    return false;
+                });
+                if (it != m_callback_list.end()) {
+                    *it = std::make_tuple(func, del_key);
+                } else {
+                    m_callback_list.emplace_back(std::make_tuple(func, del_key));
+                }
+                break;
+            }
+            case CALLBACK_APPEND_FLAG::OVERWRITE_OLD_REVERSE: {
+                auto it = std::find_if(m_callback_list.end(), m_callback_list.begin(), [&](const _T_LIST_CB_ELEMENT &item) {
+                    const auto &key = std::get<ID_INTF_DEL_KEY>(item);
+                    if (key.has_value()) {
+                        return key.value() == del_key;
+                    }
+                    return false;
+                });
+                if (it != m_callback_list.end()) {
+                    *it = std::make_tuple(func, del_key);
+                } else {
+                    m_callback_list.emplace_back(std::make_tuple(func, del_key));
+                }
+                break;
+            }
+
+            case CALLBACK_APPEND_FLAG::OVERWRITE_ALL: {
+                std::replace_if(m_callback_list.begin(), m_callback_list.end(), [&](const _T_LIST_CB_ELEMENT &item) {
+                    const auto &key = std::get<ID_INTF_DEL_KEY>(item);
+                    if (key.has_value()) {
+                        return key.value() == del_key;
+                    }
+                    return false; }, std::make_tuple(func, del_key));
+
+                break;
+            }
+
+            case CALLBACK_APPEND_FLAG::DONOT_APPEND: {
+                auto it = std::find_if(m_callback_list.end(), m_callback_list.begin(), [&](const _T_LIST_CB_ELEMENT &item) {
+                    const auto &key = std::get<ID_INTF_DEL_KEY>(item);
+                    if (key.has_value()) {
+                        return key.value() == del_key;
+                    }
+                    return false;
+                });
+                if (it != m_callback_list.end()) {
+                    return false;
+                }
+                m_callback_list.emplace_back(std::make_tuple(func, del_key));
+                break;
+            }
+
+            default:
+                break;
+        }
         return true;
+    }
+
+    bool HDBridgeIntf::deleteCallback(QString del_key, CALLBACK_DELETE_FLAG flag) {
+        switch (flag) {
+            case CALLBACK_DELETE_FLAG::DELETE_FIRST: {
+                const auto it = std::find_if(m_callback_list.end(), m_callback_list.begin(), [&](const _T_LIST_CB_ELEMENT &item) {
+                    const auto &key = std::get<ID_INTF_DEL_KEY>(item);
+                    if (key.has_value()) {
+                        return key.value() == del_key;
+                    }
+                    return false;
+                });
+
+                if (it != m_callback_list.end()) {
+                    m_callback_list.erase(it);
+                    return true;
+                }
+                break;
+            }
+            case CALLBACK_DELETE_FLAG::DELETE_LAST: {
+                const auto it = std::find_if(m_callback_list.begin(), m_callback_list.end(), [&](const auto &item) {
+                    const auto &key = std::get<ID_INTF_DEL_KEY>(item);
+                    if (key.has_value()) {
+                        return key.value() == del_key;
+                    }
+                    return false;
+                });
+                if (it != m_callback_list.end()) {
+                    m_callback_list.erase(it);
+                    return true;
+                }
+                break;
+            }
+            case CALLBACK_DELETE_FLAG::DELETE_ALL: {
+                std::erase_if(m_callback_list, [&](const auto &item) {
+                    const auto &key = std::get<ID_INTF_DEL_KEY>(item);
+                    if (key.has_value()) {
+                        return key.value() == del_key;
+                    }
+                    return false;
+                });
+                return true;
+            }
+
+            default:
+                break;
+        }
+        return false;
     }
 
     bool HDBridgeIntf::clearCallback(void) {
@@ -573,14 +688,14 @@ namespace Union::Bridge::MultiChannelHardwareBridge {
 
     void HDBridgeIntf::invokeCallback(IntfInvokeParam_1 data, std::launch launtch_type) {
         try {
-            std::list<InftCallbackFunc> mirror = {};
+            _T_LIST_CALLBACK mirror = {};
             {
                 std::lock_guard lock(m_callback_mutex);
                 mirror = m_callback_list;
             }
             std::vector<std::future<void>> futures = {};
-            for (auto &func : mirror) {
-                futures.emplace_back(std::async(launtch_type, func, data, std::ref(*this)));
+            for (auto &item : mirror) {
+                futures.emplace_back(std::async(launtch_type, std::get<ID_INTF_CALLBACK_FUNC>(item), data, std::ref(*this)));
             }
             for (auto &f : futures) {
                 f.get();
